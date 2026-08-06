@@ -3,476 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hokejová Analytika — Tipsport Extraliga</title>
-  <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
-  <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
+  <title>Pauza mezi třetinami · Hokejová analytika</title>
+  <meta name="description" content="Hokejová analytika Tipsport extraligy se připravuje na novou sezónu. Brzy jsme zpět.">
+  <meta name="robots" content="noindex">
+
+  <!-- Open Graph / social -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Hokejová Analytika — Tipsport Extraliga">
-  <meta property="og:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <meta property="og:title" content="Pauza mezi třetinami · Hokejová analytika">
+  <meta property="og:description" content="Web se připravuje na novou sezónu Tipsport extraligy. Brzy jsme zpět.">
   <meta property="og:url" content="https://hokejovaanalytika.cz/">
   <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@hokejanalytika">
-  <meta name="twitter:title" content="Hokejová Analytika — Tipsport Extraliga">
-  <meta name="twitter:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
-  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+
+  <link rel="icon" href="logos/profilovka.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
-    :root{
-      --teal:#2A8B8B;--teal-light:#3AADAD;--teal-dim:#1E6565;
-      --slate:#1B2B34;--slate-mid:#243545;--slate-light:#2E4256;
-      --gold:#D4A843;--gold-dim:#A87E2A;
-      --text:#E8EFF4;--text-dim:#8FA3B0;--text-faint:#4A6070;
-      --border:rgba(42,139,139,0.2);
-      --win:#4CAF82;--loss:#E05555;--otwin:#5B9BD5;
-      --radius:10px;--font-main:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
-
-    header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
-    .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .logo-text{display:flex;align-items:center;gap:10px;}
-    .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
-    .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text);}
-    .site-title span{color:var(--teal-light);}
-    .meta-badge{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right;line-height:1.4;}
-    .meta-badge strong{color:var(--gold);}
-
-    nav{background:var(--slate-mid);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
-    nav::-webkit-scrollbar{display:none;}
-    .nav-inner{max-width:1100px;margin:0 auto;display:flex;gap:0;padding:0 8px;}
-    nav a{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:11px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
-    nav a:hover{color:var(--text);}
-    nav a.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
-
-    main{max-width:1100px;margin:0 auto;padding:16px 12px 40px;}
-
-    .card{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
-    /* "Co ti to říká" — insight box */
-    .insight{background:linear-gradient(135deg,rgba(42,139,139,.10) 0%,rgba(27,43,52,.35) 100%);border:1px solid var(--teal-dim);border-left:3px solid var(--teal);border-radius:var(--radius);padding:13px 15px;margin-bottom:16px;}
-    .insight-h{font-size:11px;font-weight:600;color:var(--teal-light);text-transform:uppercase;letter-spacing:.9px;margin-bottom:9px;}
-    .insight-item{display:flex;gap:10px;align-items:flex-start;padding:6px 0;}
-    .insight-item+.insight-item{border-top:1px solid rgba(42,139,139,.15);}
-    .insight-ic{font-size:16px;line-height:1.35;flex-shrink:0;}
-    .insight-tx{font-size:13.5px;line-height:1.5;color:var(--text);}
-    .insight-tx b{font-weight:600;}
-    .insight-tx b.teal{color:var(--teal-light);} .insight-tx b.gold{color:var(--gold);}
-    .insight-tx b.loss{color:var(--loss);} .insight-tx b.blue{color:var(--otwin);}
-    .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-    .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;}
-    .card-title.gold::before{background:var(--gold);}
-    .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
-
-    .hero-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
-    @media(min-width:480px){.hero-stats{grid-template-columns:repeat(4,1fr);}}
-    .stat-box{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px 12px;text-align:center;position:relative;overflow:hidden;}
-    .stat-box::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--teal);}
-    .stat-box.gold::after{background:var(--gold);}
-    .stat-box.win::after{background:var(--win);}
-    .stat-value{font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--text);line-height:1;}
-    .stat-label{font-size:11px;color:var(--text-dim);margin-top:4px;text-transform:uppercase;letter-spacing:.5px;}
-
-    /* STANDINGS */
-    .standings-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    table.standings{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
-    .standings thead tr{background:var(--slate-light);}
-    .standings th{padding:8px 8px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border);}
-    .standings th:first-child,.standings th:nth-child(2){text-align:left;}
-    .standings td{padding:8px 8px;text-align:right;border-bottom:1px solid rgba(42,139,139,0.08);font-family:var(--font-mono);font-size:12px;color:var(--text-dim);white-space:nowrap;}
-    .standings td:first-child{text-align:center;color:var(--text-faint);font-size:11px;}
-    .standings td:nth-child(2){text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500;font-size:13px;}
-    .standings td.pts{color:var(--gold);font-weight:600;}
-    .standings tbody tr:hover{background:rgba(42,139,139,0.06);}
-    .standings tbody tr:nth-child(-n+4) td:nth-child(2){color:var(--gold);}
-    .standings tbody tr:nth-child(n+5):nth-child(-n+12) td:nth-child(2){color:var(--teal-light);}
-    .standings tbody tr:nth-child(4) td{border-bottom:2px solid var(--gold);}
-    .standings tbody tr:nth-child(12) td{border-bottom:2px solid var(--teal-dim);}
-    .standings tbody tr:nth-child(13) td{border-bottom:2px dashed var(--loss);}
-
-    /* HIGHLIGHTS */
-    .highlights-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-    @media(min-width:600px){.highlights-grid{grid-template-columns:1fr 1fr 1fr;}}
-    .highlight-item{background:var(--slate-light);border-radius:8px;padding:12px;border-left:3px solid var(--teal);}
-    .highlight-item.gold{border-left-color:var(--gold);}
-    .highlight-item.win{border-left-color:var(--win);}
-    .highlight-item.loss{border-left-color:var(--loss);}
-    .highlight-item.blue{border-left-color:var(--otwin);}
-    .highlight-label{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin-bottom:4px;display:flex;align-items:center;gap:5px;}
-    .highlight-value{font-size:15px;font-weight:600;color:var(--text);line-height:1.3;}
-    .highlight-sub{font-size:11px;color:var(--text-dim);margin-top:3px;}
-
-    .chart-wrap{width:100%;height:360px;}
-    .chart-wrap-tall{width:100%;height:460px;}
-    @media(min-width:768px){.chart-wrap{height:400px;}.chart-wrap-tall{height:480px;}}
-
-    @media(min-width:768px){
-      .two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-      .two-col .card{margin-bottom:0;}
-      .two-col-wide{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;}
-      .two-col-wide .card{margin-bottom:0;}
+    :root {
+      --slate:      #1B2B34;
+      --slate-deep: #142128;
+      --petrolej:   #2A8B8B;
+      --petrolej-lt:#3FB3B3;
+      --zlata:      #D4A843;
+      --text:       #E7EDEF;
+      --text-dim:   #8FA3AB;
+      --line:       rgba(63, 179, 179, 0.18);
     }
 
-    .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
-    .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
-    @keyframes spin{to{transform:rotate(360deg);}}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
-    footer a{color:var(--teal-light);text-decoration:none;}
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      color: var(--text);
+      background: var(--slate);
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(42, 139, 139, 0.22), transparent 70%),
+        radial-gradient(ellipse 60% 50% at 50% 120%, rgba(212, 168, 67, 0.06), transparent 70%),
+        var(--slate);
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32px 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--line);
+      box-shadow: 0 0 0 6px rgba(42, 139, 139, 0.08);
+      margin-bottom: 30px;
+      background: var(--slate-deep);
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--petrolej-lt);
+      margin-bottom: 22px;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 8vw, 3.4rem);
+      font-weight: 700;
+      line-height: 1.04;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    h1 .accent { color: var(--zlata); }
+
+    .lead {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--text-dim);
+      max-width: 420px;
+      margin-bottom: 40px;
+    }
+
+    /* Scoreboard status panel — the signature element */
+    .board {
+      display: inline-flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      background: linear-gradient(180deg, var(--slate-deep), rgba(20, 33, 40, 0.6));
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px 22px;
+      margin-bottom: 48px;
+    }
+    .board .label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+    .board .sep { width: 1px; height: 22px; background: var(--line); }
+    .board .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--zlata);
+      text-transform: uppercase;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--zlata);
+      box-shadow: 0 0 8px rgba(212, 168, 67, 0.7);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.35; transform: scale(0.82); }
+    }
+
+    footer {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px 16px;
+    }
+    footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+      padding: 2px 0;
+    }
+    footer a:hover,
+    footer a:focus-visible {
+      color: var(--petrolej-lt);
+      border-bottom-color: var(--petrolej-lt);
+    }
+    footer a:focus-visible { outline: 2px solid var(--petrolej-lt); outline-offset: 4px; border-radius: 2px; }
+    footer .divider { color: var(--line); }
+
+    @media (max-width: 380px) {
+      .board { gap: 12px; padding: 12px 16px; }
+      .board .status { font-size: 13px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dot { animation: none; }
+    }
   </style>
 </head>
 <body>
+  <main class="wrap">
+    <img class="logo" src="logos/profilovka.png" alt="Hokejová analytika" onerror="this.style.display='none'">
 
-<header>
-  <div class="header-inner">
-    <div class="logo-text">
-      <img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo">
-      <div class="site-title">Hokejová<span>Analytika</span></div>
+    <p class="eyebrow">Hokejová analytika · Tipsport extraliga</p>
+
+    <h1>Pauza mezi <span class="accent">třetinami</span></h1>
+
+    <p class="lead">Web se připravuje na novou sezónu. Brzy jsme zpět s kompletními statistikami a analýzou.</p>
+
+    <div class="board" role="status" aria-label="Stav webu: přestávka">
+      <span class="label">Stav</span>
+      <span class="sep" aria-hidden="true"></span>
+      <span class="status"><span class="dot" aria-hidden="true"></span>Přestávka</span>
     </div>
-    <div class="meta-badge">
-      <div>Tipsport Extraliga</div>
-      <div>Aktualizováno: <strong id="meta-datum">—</strong></div>
-    </div>
-  </div>
-</header>
 
-<nav>
-  <div class="nav-inner">
-    <a href="index.html" class="active">Přehled</a>
-    <a href="tymy.html">Týmy</a>
-    <a href="hraci.html">Hráči</a>
-    <a href="zapasy.html">Zápasy</a>
-    <a href="analytika.html">Analytika</a>
-    <a href="gm-mod.html">GM Mód</a>
-    <a href="playoff.html">Playoff</a>
-  </div>
-</nav>
-
-<main>
-
-  <!-- HERO STATS -->
-  <div class="hero-stats">
-    <div class="stat-box"><div class="stat-value" id="stat-kolo">—</div><div class="stat-label">Aktuální kolo</div></div>
-    <div class="stat-box gold"><div class="stat-value" id="stat-leader">—</div><div class="stat-label">Lídr tabulky</div></div>
-    <div class="stat-box win"><div class="stat-value" id="stat-utok">—</div><div class="stat-label">Nejlepší útok</div></div>
-    <div class="stat-box"><div class="stat-value" id="stat-zapasy">—</div><div class="stat-label">Odehraných zápasů</div></div>
-  </div>
-
-  <!-- 1. PLAYOFF ZONES + 2. HIGHLIGHTS -->
-  <div class="two-col-wide" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-title">Playoff Zones</div>
-      <div class="card-sub">Rozdělení týmů podle playoff pozic — body za sezónu</div>
-      <div class="chart-wrap-tall" id="chart-playoff-zones"><div class="loading"><div class="spinner"></div> Načítám...</div></div>
-    </div>
-    <div class="card">
-      <div class="card-title gold">Zajímavosti sezóny</div>
-      <div class="card-sub">Automaticky generované statistiky</div>
-      <div class="highlights-grid" id="highlights-grid"><div class="loading"><div class="spinner"></div> Načítám...</div></div>
-    </div>
-  </div>
-
-  <div class="insight" id="insight-prehled" style="display:none">
-    <div class="insight-h">Co ti to říká</div>
-    <div class="insight-body"></div>
-  </div>
-
-  <!-- 3. TABULKA -->
-  <div class="card">
-    <div class="card-title">Aktuální tabulka Tipsport Extraligy</div>
-    <div class="standings-wrap">
-      <table class="standings">
-        <thead>
-          <tr>
-            <th>#</th><th>Tým</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th>
-            <th>Skóre</th><th>B</th><th>PP%</th><th>PK%</th><th>Doma</th><th>Venku</th>
-          </tr>
-        </thead>
-        <tbody id="standings-body">
-          <tr><td colspan="13"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- 4. NERVY Z PRODLOUŽENÍ -->
-  <div class="card">
-    <div class="card-title">🎲 Nervy z prodloužení — kdo žije z nájezdů?</div>
-    <div class="card-sub">Rozdíl výher a proher v prodloužení/nájezdech (VP − PP). Prodloužení i nájezdy jsou hodně o štěstí — velký plus se může otočit dolů, velký mínus nahoru.</div>
-    <div class="chart-wrap-tall" id="chart-otso"></div>
-  </div>
-
-  <!-- 5. GRIT + 6. PRODUKTIVITA -->
-  <div class="two-col" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-title">💪 Grit Index — Fyzická hra</div>
-      <div class="card-sub">Hity a bloky na zápas (skládaný)</div>
-      <div class="chart-wrap" id="chart-grit"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">📈 Produktivita týmů</div>
-      <div class="card-sub">Vstřelené vs obdržené góly</div>
-      <div class="chart-wrap" id="chart-goly"></div>
-    </div>
-  </div>
-
-  <!-- 7. DOMA vs VENKU -->
-  <div class="card">
-    <div class="card-title">🏠 Doma vs 🚌 Venku — bodová úspěšnost</div>
-    <div class="card-sub">Bodová úspěšnost doma vs venku (%). Velikost bubliny = body celkem, barva = rozdíl.</div>
-    <div class="chart-wrap-tall" id="chart-doma-venku"></div>
-  </div>
-
-</main>
-
-<footer>
-  Data: <a href="https://hokej.cz" target="_blank" rel="noopener">hokej.cz</a> &nbsp;·&nbsp;
-  Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp;
-  <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp;
-  <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp;
-  <a href="index.html">hokejovaanalytika.cz</a>
-</footer>
-
-<script>
-const DATA = 'data/';
-
-/* ── MOBILNÍ ZÁMEK — žádný zoom/pan/roztažení na dotyku ───────── */
-const LOCK_CONFIG = {responsive:true, displayModeBar:false, scrollZoom:false, doubleClick:false};
-const AX_LOCK = {fixedrange:true};                 // rozšiř do os: {...AX_LOCK, ...}
-const BASE_LAYOUT = {
-  paper_bgcolor:'transparent', plot_bgcolor:'transparent',
-  font:{family:'DM Sans', color:'#E8EFF4'},
-  dragmode:false,
-  hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}
-};
-const logoSrc = t => 'logos/' + encodeURIComponent(t) + '.png';
-
-async function loadJSON(file){
-  const r = await fetch(DATA + file);
-  if(!r.ok) throw new Error('Nelze načíst ' + file);
-  return r.json();
-}
-
-async function init(){
-  try {
-    const [tabulka, highlights, tymy_stats, doma_venku, meta, insPrehled] = await Promise.all([
-      loadJSON('tabulka.json'),
-      loadJSON('highlights.json'),
-      loadJSON('tymy_stats.json'),
-      loadJSON('doma_venku.json'),
-      loadJSON('meta.json'),
-      loadJSON('insights_prehled.json').catch(()=>[])
-    ]);
-    renderMeta(meta, tabulka, highlights);
-    renderPlayoffZones(tabulka);
-    renderHighlights(highlights);
-    renderInsights('insight-prehled', insPrehled, (tabulka||[]).map(t=>t.Tym_clean));
-    renderStandings(tabulka);
-    renderOTSO(tabulka);
-    renderGrit(tymy_stats);
-    renderGoly(tabulka);
-    renderDomaVenku(doma_venku);
-  } catch(e){
-    console.error(e);
-    document.querySelector('main').innerHTML =
-      '<div class="card" style="color:var(--loss);padding:24px;margin-top:16px">'+
-      '⚠️ Nepodařilo se načíst data. Spusť <code>build.R</code> a ověř, že soubory jsou ve <code>www/data/</code>.<br><small>'+e.message+'</small></div>';
-  }
-}
-
-/* ── META + HERO ─────────────────────────────────────────────── */
-function renderMeta(meta, tabulka, highlights){
-  document.getElementById('meta-datum').textContent = meta.aktualizovano || '—';
-    { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
-  document.getElementById('stat-kolo').textContent  = meta.aktualni_kolo ?? '—';
-  document.getElementById('stat-zapasy').textContent= meta.celkem_odehranych ?? '—';
-  const leader = [...tabulka].sort((a,b)=>a.Poradi-b.Poradi)[0];
-  if(leader) document.getElementById('stat-leader').textContent = leader.Tym_clean;
-  const utok = (highlights||[]).find(h=>h.label==='Nejlepší útok');
-  if(utok) document.getElementById('stat-utok').textContent = utok.value;
-}
-
-/* ── 1. PLAYOFF ZONES — horizontální bar + loga (věrně dle R) ──── */
-function renderPlayoffZones(tabulka){
-  const d = [...tabulka].sort((a,b)=>a.Poradi-b.Poradi);   // 1. nahoře
-  const n = d.length;
-  const zoneColor = p => p<=4 ? '#FFD700' : p<=12 ? '#90EE90' : p===13 ? '#D3D3D3' : '#FFB6C1';
-  const zoneName  = p => p<=4 ? '🏆 Čtvrtfinále (1–4)' : p<=12 ? '⚔️ Osmifinále (5–12)' : p===13 ? '📊 Mimo playoff' : '⚠️ Baráž';
-  // loga vlevo u os (paper souřadnice), zarovnaná ke středům sloupců
-  const images = d.map((t,i)=>({
-    source: logoSrc(t.Tym_clean),
-    x:-0.005, y: 1 - (i+0.5)/n,
-    xref:'paper', yref:'paper', xanchor:'right', yanchor:'middle',
-    sizex:0.05, sizey:0.05, sizing:'contain', layer:'above'
-  }));
-  Plotly.newPlot('chart-playoff-zones', [{
-    type:'bar', orientation:'h',
-    y: d.map(t=>t.Tym_clean), x: d.map(t=>t.B),
-    text: d.map(t=>t.B+'b'), textposition:'outside',
-    textfont:{family:'JetBrains Mono',size:11,color:'#8FA3B0'},
-    marker:{color:d.map(t=>zoneColor(t.Poradi)), line:{color:'#1B2B34',width:1}},
-    hoverinfo:'text',
-    hovertext:d.map(t=>`${t.Tym_clean}<br>Pořadí: ${t.Poradi}<br>Body: ${t.B}<br>Výhry: ${t.V}<br>Skóre: ${t.Vstrelene}:${t.Obdrzene}<br>${zoneName(t.Poradi)}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:55,r:45,t:10,b:35},
-    xaxis:{...AX_LOCK, title:{text:'Body',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, autorange:'reversed', showticklabels:false},
-    images, showlegend:false
-  }), LOCK_CONFIG);
-}
-
-/* ── 2. HIGHLIGHTS — 12 staty z highlights.json ─────────────────── */
-function renderHighlights(items){
-  const cls = a => (a==='teal'||!a) ? '' : a;
-  document.getElementById('highlights-grid').innerHTML = (items||[]).map(it=>`
-    <div class="highlight-item ${cls(it.accent)}">
-      <div class="highlight-label">${it.icon||''} ${it.label}</div>
-      <div class="highlight-value">${it.value}</div>
-      <div class="highlight-sub">${it.detail||''}</div>
-    </div>`).join('');
-}
-
-/* ── Insight box "Co ti to říká" — sdílený renderer ─────────── */
-function renderInsights(boxId, data, names){
-  const box = document.getElementById(boxId); if(!box) return;
-  const body = box.querySelector('.insight-body'); if(!body) return;
-  const arr = Array.isArray(data) ? data : [];
-  if(!arr.length){ box.style.display='none'; return; }
-  const esc = s => String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-  const rxe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const uniq = [...new Set((names||[]).filter(Boolean))].sort((a,b)=>b.length-a.length);
-  const rxAll = uniq.length ? new RegExp('('+uniq.map(n=>rxe(esc(n))).join('|')+')','g') : null;
-  body.innerHTML = arr.map(o=>{
-    let t = esc(o.text||'');
-    if(rxAll) t = t.replace(rxAll, m=>`<b class="${o.tone||'teal'}">${m}</b>`);
-    return `<div class="insight-item"><span class="insight-ic">${o.icon||'\u2022'}</span><span class="insight-tx">${t}</span></div>`;
-  }).join('');
-  box.style.display='';
-}
-
-/* \u2500\u2500 3. TABULKA — 13 sloupců (bez CF%/PDO) ─────────────────────── */
-function renderStandings(tabulka){
-  const d = [...tabulka].sort((a,b)=>a.Poradi-b.Poradi);
-  const f1 = x => x==null ? '—' : (Math.round(x*10)/10).toFixed(1);
-  document.getElementById('standings-body').innerHTML = d.map((t,i)=>`
-    <tr>
-      <td>${t.Poradi ?? i+1}</td>
-      <td>${t.Tym_clean}</td>
-      <td>${t.Z}</td><td>${t.V}</td><td>${t.VP}</td><td>${t.PP}</td><td>${t.P}</td>
-      <td>${t.Vstrelene}:${t.Obdrzene}</td>
-      <td class="pts">${t.B}</td>
-      <td>${f1(t.PP_pct)}</td>
-      <td>${f1(t.PK_pct)}</td>
-      <td>${t.B_doma ?? '—'}</td>
-      <td>${t.B_venku ?? '—'}</td>
-    </tr>`).join('');
-}
-
-/* ── 4. NERVY Z PRODLOUŽENÍ — diverging bar (VP − PP) ─────────── */
-function renderOTSO(tabulka){
-  const d = [...tabulka]
-    .map(t=>({...t, net:(t.VP||0)-(t.PP||0), otso:(t.VP||0)+(t.PP||0)}))
-    .sort((a,b)=>a.net-b.net);                // smůla dole, štěstí nahoře
-  const color = v => v>2 ? '#4CAF50' : v<-2 ? '#F44336' : '#FFD700';
-  const podil = t => t.Z ? Math.round(t.otso/t.Z*100) : 0;
-  Plotly.newPlot('chart-otso', [{
-    type:'bar', orientation:'h',
-    y:d.map(t=>t.Tym_clean), x:d.map(t=>t.net),
-    marker:{color:d.map(t=>color(t.net))},
-    text:d.map(t=>`${t.net>0?'+':''}${t.net}`),
-    textposition:'outside', textfont:{size:10,color:'#8FA3B0'},
-    hoverinfo:'text',
-    hovertext:d.map(t=>`${t.Tym_clean}<br>Výhry v prodl./náj.: ${t.VP}<br>Prohry v prodl./náj.: ${t.PP}<br>Rozdíl: ${t.net>0?'+':''}${t.net}<br>Do prodloužení šlo ${podil(t)} % zápasů<br>${t.net>2?'🍀 Sbírá body navíc — může klesnout':t.net<-2?'😤 Smůla v prodloužení — může se zlepšit':'⚖️ Vyrovnané'}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:120,r:55,t:30,b:35},
-    xaxis:{...AX_LOCK, title:{text:'Výhry − prohry v prodloužení/nájezdech',font:{size:11,color:'#4A6070'}},
-      color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
-      zeroline:true, zerolinewidth:2, zerolinecolor:'rgba(232,239,244,0.6)'},
-    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}},
-    shapes:[{type:'rect', xref:'x', yref:'paper', x0:-2, x1:2, y0:0, y1:1,
-             fillcolor:'rgba(255,235,59,0.08)', line:{width:0}}],
-    annotations:[
-      {x:0.97,y:1.06,xref:'paper',yref:'paper',text:'🍀 SBÍRÁ BODY',showarrow:false,font:{size:11,color:'#4CAF50'}},
-      {x:0.03,y:1.06,xref:'paper',yref:'paper',text:'😤 SMŮLA',showarrow:false,font:{size:11,color:'#F44336'}}
-    ],
-    showlegend:false
-  }), LOCK_CONFIG);
-}
-
-/* ── 5. GRIT — stacked bar (hity + bloky / zápas) ──────────────── */
-function renderGrit(tymy_stats){
-  const d = (tymy_stats||[]).filter(t=>t.Hity_GP!=null)
-    .sort((a,b)=>(b.Grit||0)-(a.Grit||0));
-  const x = d.map(t=>t.Tym_clean);
-  Plotly.newPlot('chart-grit', [
-    {type:'bar', name:'💥 Hity/zápas', x, y:d.map(t=>t.Hity_GP), marker:{color:'#FF5722'},
-     text:d.map(t=>(Math.round(t.Hity_GP*10)/10)), textposition:'inside', textfont:{size:9},
-     hoverinfo:'text', hovertext:d.map(t=>`${t.Tym_clean}<br>Hity/zápas: ${Math.round(t.Hity_GP*10)/10}`)},
-    {type:'bar', name:'🛡️ Bloky/zápas', x, y:d.map(t=>t.Bloky_GP), marker:{color:'#60A5FA'},
-     text:d.map(t=>(Math.round(t.Bloky_GP*10)/10)), textposition:'inside', textfont:{size:9},
-     hoverinfo:'text', hovertext:d.map(t=>`${t.Tym_clean}<br>Bloky/zápas: ${Math.round(t.Bloky_GP*10)/10}`)}
-  ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'stack',
-    margin:{l:40,r:15,t:40,b:70},
-    xaxis:{...AX_LOCK, color:'#4A6070',tickangle:-45,tickfont:{family:'DM Sans',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Grit Index (hity + bloky / zápas)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.12,font:{size:11,color:'#8FA3B0'}}
-  }), LOCK_CONFIG);
-}
-
-/* ── 6. PRODUKTIVITA — grouped bar (vstřelené vs obdržené) ─────── */
-function renderGoly(tabulka){
-  const d = [...tabulka].sort((a,b)=>a.Vstrelene-b.Vstrelene);  // dle vstřelených
-  const x = d.map(t=>t.Tym_clean);
-  Plotly.newPlot('chart-goly', [
-    {type:'bar', name:'Vstřelené', x, y:d.map(t=>t.Vstrelene), marker:{color:'#2A8B8B'},
-     hoverinfo:'text', hovertext:d.map(t=>`${t.Tym_clean}<br>Vstřelené: ${t.Vstrelene}`)},
-    {type:'bar', name:'Obdržené', x, y:d.map(t=>t.Obdrzene), marker:{color:'#E05555'},
-     hoverinfo:'text', hovertext:d.map(t=>`${t.Tym_clean}<br>Obdržené: ${t.Obdrzene}`)}
-  ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'group',
-    margin:{l:40,r:15,t:40,b:70},
-    xaxis:{...AX_LOCK, color:'#4A6070',tickangle:-45,tickfont:{family:'DM Sans',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.12,font:{size:11,color:'#8FA3B0'}}
-  }), LOCK_CONFIG);
-}
-
-/* ── 7. DOMA vs VENKU — scatter (bodová úspěšnost %) ───────────── */
-function renderDomaVenku(dv){
-  const d = (dv||[]).filter(t=>t.Bpct_doma!=null && t.Bpct_venku!=null);
-  Plotly.newPlot('chart-doma-venku', [{
-    type:'scatter', mode:'markers+text',
-    x:d.map(t=>t.Bpct_doma), y:d.map(t=>t.Bpct_venku),
-    text:d.map(t=>t.Tym_clean), textposition:'top center', textfont:{size:9,color:'#8FA3B0'},
-    marker:{
-      size:d.map(t=>Math.max(8,(t.B_doma+t.B_venku)/3)),
-      color:d.map(t=>t.Rozdil),
-      colorscale:[[0,'#2196F3'],[0.5,'#FFF9C4'],[1,'#FF5722']],
-      cmid:0, showscale:true, opacity:0.85, line:{color:'#fff',width:1},
-      colorbar:{title:{text:'Doma−Venku',side:'right',font:{size:10,color:'#8FA3B0'}},tickfont:{size:9,color:'#8FA3B0'},thickness:10,len:0.7}
-    },
-    hoverinfo:'text',
-    hovertext:d.map(t=>`${t.Tym_clean}<br>Doma: ${t.Bpct_doma}% úspěšnost<br>Venku: ${t.Bpct_venku}% úspěšnost`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:50,r:15,t:15,b:45},
-    xaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost DOMA (%) →',font:{size:11,color:'#4A6070'}},range:[20,85],color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost VENKU (%) →',font:{size:11,color:'#4A6070'}},range:[20,85],color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    shapes:[{type:'line',x0:20,y0:20,x1:85,y1:85,line:{dash:'dash',color:'rgba(143,163,176,0.4)',width:1}}],
-    annotations:[
-      {x:0.95,y:0.05,xref:'paper',yref:'paper',text:'🏠 Silní doma',showarrow:false,font:{size:10,color:'#FF5722'}},
-      {x:0.05,y:0.95,xref:'paper',yref:'paper',text:'🚌 Silní venku',showarrow:false,font:{size:10,color:'#2196F3'}},
-      {x:0.88,y:0.92,xref:'paper',yref:'paper',text:'⭐ Silní všude',showarrow:false,font:{size:10,color:'#8FA3B0'}}
-    ],
-    showlegend:false
-  }), LOCK_CONFIG);
-}
-
-init();
-</script>
+    <footer>
+      <a href="https://twitter.com/hokejanalytika">@hokejanalytika</a>
+      <span class="divider" aria-hidden="true">/</span>
+      <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a>
+    </footer>
+  </main>
 </body>
 </html>
- 
