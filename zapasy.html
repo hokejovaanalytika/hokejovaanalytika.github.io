@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zápasy — Hokejová Analytika</title>
+  <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zápasy — Hokejová Analytika">
+  <meta property="og:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <meta property="og:url" content="https://hokejovaanalytika.cz/zapasy.html">
+  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@hokejanalytika">
+  <meta name="twitter:title" content="Zápasy — Hokejová Analytika">
+  <meta name="twitter:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    :root{
+      --teal:#2A8B8B;--teal-light:#3AADAD;--teal-dim:#1E6565;
+      --slate:#1B2B34;--slate-mid:#243545;--slate-light:#2E4256;
+      --gold:#D4A843;--gold-dim:#A87E2A;
+      --text:#E8EFF4;--text-dim:#8FA3B0;--text-faint:#4A6070;
+      --border:rgba(42,139,139,0.2);
+      --win:#4CAF82;--loss:#E05555;--otwin:#5B9BD5;
+      --radius:10px;--font-main:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
+    header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .logo-text{display:flex;align-items:center;gap:10px;}
+    .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
+    .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text);}
+    .site-title span{color:var(--teal-light);}
+    .meta-badge{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right;line-height:1.4;}
+    .meta-badge strong{color:var(--gold);}
+    nav{background:var(--slate-mid);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+    nav::-webkit-scrollbar{display:none;}
+    .nav-inner{max-width:1100px;margin:0 auto;display:flex;gap:0;padding:0 8px;}
+    nav a{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:11px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+    nav a:hover{color:var(--text);}
+    nav a.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+    main{max-width:1100px;margin:0 auto;padding:16px 12px 40px;}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:2px;}
+    .chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:16px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;transition:all .15s;}
+    .chip:hover{color:var(--text);}
+    .chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .card{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
+    /* "Co ti to říká" — insight box */
+    .insight{background:linear-gradient(135deg,rgba(42,139,139,.10) 0%,rgba(27,43,52,.35) 100%);border:1px solid var(--teal-dim);border-left:3px solid var(--teal);border-radius:var(--radius);padding:13px 15px;margin-bottom:16px;}
+    .insight-h{font-size:11px;font-weight:600;color:var(--teal-light);text-transform:uppercase;letter-spacing:.9px;margin-bottom:9px;}
+    .insight-item{display:flex;gap:10px;align-items:flex-start;padding:6px 0;}
+    .insight-item+.insight-item{border-top:1px solid rgba(42,139,139,.15);}
+    .insight-ic{font-size:16px;line-height:1.35;flex-shrink:0;}
+    .insight-tx{font-size:13.5px;line-height:1.5;color:var(--text);}
+    .insight-tx b{font-weight:600;}
+    .insight-tx b.teal{color:var(--teal-light);} .insight-tx b.gold{color:var(--gold);}
+    .insight-tx b.loss{color:var(--loss);} .insight-tx b.blue{color:var(--otwin);}
+    .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+    .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;}
+    .card-title.gold::before{background:var(--gold);}
+    .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .intro{background:linear-gradient(135deg,var(--slate-mid) 0%,#16242c 100%);border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
+    .intro h1{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;}
+    .intro p{font-size:13px;color:var(--text-dim);}
+    .subnav{display:flex;gap:4px;background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;}
+    .subnav button{flex:0 0 auto;white-space:nowrap;background:transparent;border:none;color:var(--text-dim);font-family:var(--font-main);font-size:13px;font-weight:600;padding:9px 14px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;}
+    .subnav button:hover{color:var(--text);}
+    .subnav button.active{background:var(--teal);color:#fff;}
+    .subpanel{display:none;}
+    .subpanel.active{display:block;animation:fade .25s ease;}
+    @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+    select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:var(--font-main);font-size:13px;}
+    .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:520px;}
+    .tbl thead tr{background:var(--slate-light);}
+    .tbl th{padding:8px;text-align:center;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border);}
+    .tbl td{padding:7px 8px;text-align:center;border-bottom:1px solid rgba(42,139,139,0.08);font-size:13px;color:var(--text-dim);white-space:nowrap;}
+    .tbl tbody tr:hover{background:rgba(42,139,139,0.06);}
+    .tbl td.home{text-align:right;color:var(--text);font-weight:500;}
+    .tbl td.away{text-align:left;color:var(--text);font-weight:500;}
+    .tbl td.score{font-family:var(--font-mono);font-weight:600;color:var(--text);}
+    .tbl td.score .ot{font-size:9px;color:var(--gold);margin-left:3px;}
+    .prob{display:inline-block;min-width:42px;font-family:var(--font-mono);font-weight:600;}
+    .prob-d{color:var(--win);} .prob-r{color:var(--text-faint);} .prob-h{color:var(--otwin);}
+    .tip{font-weight:600;}
+    .pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;white-space:nowrap;}
+    .pill-low{background:rgba(76,175,130,.18);color:#7FE0AC;}
+    .pill-mid{background:rgba(212,168,67,.18);color:var(--gold);}
+    .pill-high{background:rgba(224,85,85,.16);color:#F0A0A0;}
+    .res-ok{background:rgba(76,175,130,.18);color:#7FE0AC;}
+    .res-part{background:rgba(212,168,67,.18);color:var(--gold);}
+    .res-bad{background:rgba(224,85,85,.16);color:#F0A0A0;}
+    .acc-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+    .acc-box{flex:1;min-width:110px;background:var(--slate);border:1px solid var(--border);border-radius:9px;padding:12px;text-align:center;}
+    .acc-box .num{font-family:var(--font-mono);font-size:24px;font-weight:700;color:var(--gold);}
+    .acc-box .lab{font-size:11px;color:var(--text-dim);margin-top:2px;}
+    .chart-wrap-tall{width:100%;height:460px;}
+    .bd-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:13px;}
+    .bd-head .match{font-weight:600;color:var(--text);}
+    .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
+    .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
+    footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
+    footer a{color:var(--teal-light);text-decoration:none;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-text"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></div>
+    <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html">Přehled</a>
+    <a href="tymy.html">Týmy</a>
+    <a href="hraci.html">Hráči</a>
+    <a href="zapasy.html" class="active">Zápasy</a>
+    <a href="analytika.html">Analytika</a>
+    <a href="gm-mod.html">GM Mód</a>
+    <a href="playoff.html">Playoff</a>
+  </div>
+</nav>
+
+<main>
+  <div class="subnav">
+    <button data-tab="vysledky" class="active">Výsledky</button>
+    <button data-tab="predikce">Predikce</button>
+    <button data-tab="h2h">Kdo proti komu</button>
+  </div>
+
+  <!-- ===================== VÝSLEDKY ===================== -->
+  <section class="subpanel active" id="panel-vysledky">
+
+    <div class="insight" id="insight-vysledky" style="display:none">
+      <div class="insight-h">Co ti to říká</div>
+      <div class="insight-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title gold">Výsledky zápasů</div>
+      <div class="card-sub">Všechny odehrané zápasy sezóny. <span class="ot" style="color:var(--gold)">pp</span> = rozhodnuto v prodloužení/nájezdech.</div>
+      <div class="filters">
+        <select id="f-kolo"><option value="">Všechna kola</option></select>
+        <select id="f-tym"><option value="">Všechny týmy</option></select>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Kolo</th><th>Datum</th><th>Domácí</th><th>Skóre</th><th>Hosté</th></tr></thead>
+          <tbody id="vys-body"><tr><td colspan="5"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PREDIKCE ===================== -->
+  <section class="subpanel" id="panel-h2h">
+
+    <div class="insight" id="insight-h2h" style="display:none">
+      <div class="insight-h">Co ti to říká</div>
+      <div class="insight-body"></div>
+    </div>
+
+    <div class="intro">
+      <h1>Kdo proti komu</h1>
+      <p>Vzájemná bilance všech dvojic. Vyber tým a uvidíš, jak mu letos sedí jednotliví soupeři.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vyber tým</div>
+      <div class="chips" id="h2h-chips"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Bilance proti soupeřům</div>
+      <div class="card-sub">Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, červená = trápení. V popisku celkové skóre.</div>
+      <div class="chart-wrap-tall" id="c-h2h"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Detailní přehled</div>
+      <div class="card-sub">V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra</div>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Body</th><th>Úspěšnost</th></tr></thead>
+        <tbody id="t-h2h"><tr><td colspan="9"><div class="empty">Vyber tým výše.</div></td></tr></tbody>
+      </table></div>
+    </div>
+
+  </section>
+
+  <section class="subpanel" id="panel-predikce">
+
+  <div class="insight" id="insight-predikce" style="display:none">
+    <div class="insight-h">Co ti to říká</div>
+    <div class="insight-body"></div>
+  </div>
+    <div class="intro">
+      <h1>Predikce — Model 2.0</h1>
+      <p>10 faktorů (forma, pozice, doma/venku, H2H, momentum, comebacky, brankový rozdíl, speciální formace, variance z prodloužení, brankář) → pravděpodobnost výsledku. Přepočítává se každou aktualizací dat.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title gold">Predikce příštího kola <span id="pred-kolo" style="color:var(--gold);font-weight:700"></span></div>
+      <div class="card-sub">P = pravděpodobnost (<span style="color:var(--win)">domácí</span> / <span style="color:var(--text-faint)">remíza</span> / <span style="color:var(--otwin)">hosté</span>), očekávané skóre, jistota modelu.</div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Domácí</th><th>Šance&nbsp;(D/H)</th><th>Hosté</th><th>Skóre</th><th>Jistota</th><th>Tip</th></tr></thead>
+          <tbody id="pred-body"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Match Breakdown — proč model tipuje takhle</div>
+      <div class="card-sub">Příspěvek 10 faktorů. Doprava (zelená) = nahrává domácím, doleva (červená) = hostům.</div>
+      <div class="bd-head">
+        <select id="bd-match"></select>
+        <span id="bd-info"></span>
+      </div>
+      <div class="chart-wrap-tall" id="chart-breakdown"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Úspěšnost předchozích predikcí</div>
+      <div class="card-sub">Automaticky vyhodnoceno proti skutečným výsledkům. Track record modelu.</div>
+      <div id="acc-summary"></div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Kolo</th><th>Domácí</th><th>Hosté</th><th>Tip</th><th>Skutečnost</th><th>Hodnocení</th></tr></thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a>
+</footer>
+
+<script>
+const DATA='data/';
+const LOCK_CONFIG={responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false};
+const AX_LOCK={fixedrange:true};
+const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
+async function loadJSON(f){const r=await fetch(DATA+f);if(!r.ok)throw new Error('Nelze načíst '+f);return r.json();}
+const f1=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+
+let VYS=[], PRED=null, renderedPred=false, INS_PRED=[], H2H=null, INS_H2H=[], INS_VYS=[];
+const predNames = () => { const a=[]; (VYS||[]).forEach(v=>{a.push(v.Domaci);a.push(v.Hoste);}); return a; };
+
+async function init(){
+  try{
+    const [vys, pred, meta, insPred, h2h, insH2h, insVys] = await Promise.all([
+      loadJSON('vysledky.json').catch(()=>[]),
+      loadJSON('predikce.json').catch(()=>null),
+      loadJSON('meta.json').catch(()=>({})),
+      loadJSON('insights_predikce.json').catch(()=>[]),
+      loadJSON('h2h.json').catch(()=>null),
+      loadJSON('insights_h2h.json').catch(()=>[]),
+      loadJSON('insights_vysledky.json').catch(()=>[])
+    ]);
+    VYS = Array.isArray(vys)?vys:[];
+    PRED = pred;
+    INS_PRED = Array.isArray(insPred)?insPred:[];
+    H2H = h2h; INS_H2H = Array.isArray(insH2h)?insH2h:[];
+    INS_VYS = Array.isArray(insVys)?insVys:[];
+    document.getElementById('meta-datum').textContent = meta.aktualizovano || '—';
+    { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
+    document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.addEventListener('click',()=>showSub(b.dataset.tab)));
+    buildFilters(); renderInsights('insight-vysledky', INS_VYS, predNames()); renderVysledky();
+  }catch(e){
+    console.error(e);
+    document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ Nepodařilo se načíst data. Spusť <code>build.R</code> a ověř <code>vysledky.json</code> / <code>predikce.json</code>.<br><small>'+e.message+'</small></div>';
+  }
+}
+function showSub(name){
+  document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='h2h' && !renderedH2H){ renderedH2H=true; renderH2H(); }
+  if(name==='predikce' && !renderedPred){ renderedPred=true; renderPredikce(); }
+  else if(name==='predikce'){ setTimeout(()=>{const g=document.getElementById('chart-breakdown');if(g&&g.data)try{Plotly.Plots.resize(g);}catch(_){}} ,40); }
+  window.scrollTo(0,0);
+}
+
+/* ---------- VÝSLEDKY ---------- */
+function buildFilters(){
+  const kola=[...new Set(VYS.map(z=>+z.Kolo))].sort((a,b)=>a-b);
+  const tymy=[...new Set(VYS.flatMap(z=>[z.Domaci,z.Hoste]))].sort((a,b)=>a.localeCompare(b,'cs'));
+  document.getElementById('f-kolo').innerHTML='<option value="">Všechna kola</option>'+kola.map(k=>`<option value="${k}">${k}. kolo</option>`).join('');
+  document.getElementById('f-tym').innerHTML='<option value="">Všechny týmy</option>'+tymy.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('f-kolo').onchange=renderVysledky;
+  document.getElementById('f-tym').onchange=renderVysledky;
+}
+function isOT(v){ return v===true||v==='TRUE'||v==='True'||v==='ANO'||v===1||v==='1'; }
+function renderVysledky(){
+  const fk=document.getElementById('f-kolo').value, ft=document.getElementById('f-tym').value;
+  let d=[...VYS];
+  if(fk) d=d.filter(z=>+z.Kolo===+fk);
+  if(ft) d=d.filter(z=>z.Domaci===ft||z.Hoste===ft);
+  d.sort((a,b)=>(+b.Kolo)-(+a.Kolo));
+  const body=document.getElementById('vys-body');
+  if(!d.length){ body.innerHTML='<tr><td colspan="5"><div class="empty">Žádné odehrané zápasy (doplň <code>zapasy_master.csv</code>).</div></td></tr>'; return; }
+  body.innerHTML=d.map(z=>{
+    const ot=isOT(z.Prodlouzeni)?'<span class="ot">pp</span>':'';
+    return `<tr><td>${z.Kolo}</td><td style="font-family:var(--font-mono);font-size:11px;color:var(--text-faint)">${z.Datum||''}</td>
+      <td class="home">${z.Domaci}</td>
+      <td class="score">${z.Goly_domaci}:${z.Goly_hoste}${ot}</td>
+      <td class="away">${z.Hoste}</td></tr>`;
+  }).join('');
+}
+
+/* ---------- PREDIKCE ---------- */
+const PRED_FACTORS=[
+  {k:'F_forma',lab:'Forma'},{k:'F_pozice',lab:'Pozice v tabulce'},{k:'F_bilance',lab:'Doma / venku'},
+  {k:'F_h2h',lab:'Vzájemné zápasy'},{k:'F_momentum',lab:'Momentum'},{k:'F_comeback',lab:'Comebacky'},
+  {k:'F_gd',lab:'Brankový rozdíl'},{k:'F_st',lab:'Speciální formace'},{k:'F_var',lab:'Variance z prodloužení'},{k:'F_sv',lab:'Brankář'}
+];
+/* ── Insight box "Co ti to říká" — sdílený renderer ─────────── */
+function renderInsights(boxId, data, names){
+  const box = document.getElementById(boxId); if(!box) return;
+  const body = box.querySelector('.insight-body'); if(!body) return;
+  const arr = Array.isArray(data) ? data : [];
+  if(!arr.length){ box.style.display='none'; return; }
+  const esc = s => String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const rxe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const uniq = [...new Set((names||[]).filter(Boolean))].sort((a,b)=>b.length-a.length);
+  const rxAll = uniq.length ? new RegExp('('+uniq.map(n=>rxe(esc(n))).join('|')+')','g') : null;
+  body.innerHTML = arr.map(o=>{
+    let t = esc(o.text||'');
+    if(rxAll) t = t.replace(rxAll, m=>`<b class="${o.tone||'teal'}">${m}</b>`);
+    return `<div class="insight-item"><span class="insight-ic">${o.icon||'\u2022'}</span><span class="insight-tx">${t}</span></div>`;
+  }).join('');
+  box.style.display='';
+}
+
+
+/* ══ KDO PROTI KOMU ══════════════════════════════════════════ */
+let h2hTym=null, renderedH2H=false;
+const h2hNames = () => (H2H && H2H.tymy) ? H2H.tymy : [];
+
+function renderH2H(){
+  renderInsights('insight-h2h', INS_H2H, h2hNames());
+  if(!H2H || !H2H.tymy || !H2H.tymy.length){
+    document.getElementById('h2h-chips').innerHTML='<div class="empty">Chybí data (spusť build.R).</div>';
+    emptyBox('c-h2h','Chybí odehrané zápasy.');
+    return;
+  }
+  if(!h2hTym) h2hTym = H2H.tymy[0];
+  buildH2HChips(); drawH2H();
+}
+
+function buildH2HChips(){
+  const box=document.getElementById('h2h-chips');
+  box.innerHTML=H2H.tymy.map(t=>`<button class="chip${t===h2hTym?' active':''}" data-t="${t}">${t}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    h2hTym=b.dataset.t; buildH2HChips(); drawH2H();
+  }));
+}
+
+function drawH2H(){
+  const rows=(H2H.pary||[]).filter(r=>r.Tym===h2hTym).sort((a,b)=>a.Uspesnost-b.Uspesnost);
+  if(!rows.length){ emptyBox('c-h2h','Tento tým zatím nikoho nepotkal.');
+    document.getElementById('t-h2h').innerHTML='<tr><td colspan="9"><div class="empty">Zatím bez vzájemných zápasů.</div></td></tr>';
+    return; }
+  const y=rows.map(r=>r.Souper);
+  Plotly.newPlot('c-h2h',[{
+    // podkladová stopa — aby byl vidět i soupeř s nulovým ziskem bodů
+    type:'bar',orientation:'h',y,x:rows.map(()=>100),
+    marker:{color:'rgba(42,139,139,0.10)'},hoverinfo:'skip',showlegend:false
+  },{
+    type:'bar',orientation:'h',y,x:rows.map(r=>r.Uspesnost),
+    marker:{color:rows.map(r=>r.Uspesnost>=66?'#4CAF82':r.Uspesnost>=34?'#D4A843':'#E05555')},
+    text:rows.map(r=>`${r.GF}:${r.GA}`),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    hoverinfo:'text',
+    hovertext:rows.map(r=>`${h2hTym} – ${r.Souper}<br>Zápasů: ${r.Z} · bilance ${r.V}-${r.VP}-${r.PP}-${r.P}<br>Skóre: ${r.GF}:${r.GA}<br>Body: ${r.Body} z ${r.Body_max} (${r.Uspesnost} %)`)
+  }],Object.assign({},BASE_LAYOUT,{
+    barmode:'overlay',
+    margin:{l:125,r:60,t:14,b:42},
+    xaxis:{...AX_LOCK,title:{text:'zisk bodů ze vzájemných zápasů (%)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},range:[0,105]},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+    shapes:[{type:'line',x0:50,x1:50,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'rgba(143,163,176,.4)',width:1}}],
+    showlegend:false
+  }),LOCK_CONFIG);
+
+  const d=[...rows].sort((a,b)=>b.Uspesnost-a.Uspesnost);
+  document.getElementById('t-h2h').innerHTML=d.map(r=>`<tr>
+    <td>${r.Souper}</td><td>${r.Z}</td><td>${r.V}</td><td>${r.VP}</td><td>${r.PP}</td><td>${r.P}</td>
+    <td>${r.GF}:${r.GA}</td><td style="font-weight:600">${r.Body}</td>
+    <td style="color:${r.Uspesnost>=66?'var(--win)':r.Uspesnost>=34?'var(--gold)':'var(--loss)'};font-weight:600">${r.Uspesnost} %</td>
+  </tr>`).join('');
+}
+
+function renderPredikce(){
+  renderInsights('insight-predikce', INS_PRED, predNames());
+  if(!PRED){ ['pred-body','hist-body'].forEach(id=>document.getElementById(id).innerHTML='<tr><td colspan="6"><div class="empty">Chybí predikce.json (spusť build.R).</div></td></tr>'); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Chybí data.</div>'; return; }
+  renderPredTable(); buildBreakdownSelect(); renderBreakdown(); renderAccuracy();
+}
+function renderPredTable(){
+  const nr=PRED.next_round||[];
+  document.getElementById('pred-kolo').textContent = PRED.info&&PRED.info.kolo_pristi?('· '+PRED.info.kolo_pristi+'. kolo'):'';
+  const body=document.getElementById('pred-body');
+  if(!nr.length){ body.innerHTML='<tr><td colspan="6"><div class="empty">Žádné nadcházející zápasy (doplň rozpis do <code>zapasy_master.csv</code>).</div></td></tr>'; return; }
+  body.innerHTML=nr.map(m=>{
+    const conf = m.Confidence>=65?'pill-low':m.Confidence>=56?'pill-mid':'pill-high';
+    return `<tr>
+      <td class="home">${m.Domaci}</td>
+      <td><span class="prob prob-d">${f1(m.P_domaci)}</span><span class="prob prob-h">${f1(m.P_hoste)}</span></td>
+      <td class="away">${m.Hoste}</td>
+      <td class="score">${f1(m.Skore_domaci)} : ${f1(m.Skore_hoste)}</td>
+      <td><span class="pill ${conf}">${m.Confidence}%</span></td>
+      <td class="tip">${m.Tip}</td>
+    </tr>`;
+  }).join('');
+}
+function buildBreakdownSelect(){
+  const nr=PRED.next_round||[];
+  const sel=document.getElementById('bd-match');
+  if(!nr.length){ sel.innerHTML='<option>—</option>'; return; }
+  sel.innerHTML=nr.map((m,i)=>`<option value="${i}">${m.Domaci} vs ${m.Hoste}</option>`).join('');
+  sel.onchange=renderBreakdown;
+}
+function renderBreakdown(){
+  const nr=PRED.next_round||[];
+  if(!nr.length){ document.getElementById('chart-breakdown').innerHTML='<div class="empty">Žádný zápas k rozkladu.</div>'; document.getElementById('bd-info').textContent=''; return; }
+  const i=+(document.getElementById('bd-match').value||0); const m=nr[i];
+  document.getElementById('bd-info').innerHTML=`<span class="match">${m.Tip}</span> · jistota ${m.Confidence}%`;
+  const vals=PRED_FACTORS.map(f=>m[f.k]||0);
+  const labs=PRED_FACTORS.map(f=>f.lab);
+  Plotly.newPlot('chart-breakdown',[{
+    type:'bar',orientation:'h',y:labs,x:vals,
+    marker:{color:vals.map(v=>v>=0?'#4CAF82':'#E05555')},
+    text:vals.map(v=>(v>0?'+':'')+v.toFixed(3)),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    hoverinfo:'text',hovertext:PRED_FACTORS.map((f,j)=>`${f.lab}: ${(vals[j]>0?'+':'')+vals[j].toFixed(3)} ${vals[j]>=0?'(domácí)':'(hosté)'}`)
+  }],Object.assign({},BASE_LAYOUT,{
+    margin:{l:130,r:50,t:10,b:30},
+    xaxis:{...AX_LOCK,zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:9},color:'#4A6070',title:{text:'← hosté | domácí →',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'},automargin:true},
+    showlegend:false
+  }),LOCK_CONFIG);
+}
+function renderAccuracy(){
+  const a=PRED.accuracy, sum=document.getElementById('acc-summary');
+  if(a){
+    sum.innerHTML=`<div class="acc-row">
+      <div class="acc-box"><div class="num">${f1(a.pct_spravne)}%</div><div class="lab">Správně (${a.spravne}/${a.celkem})</div></div>
+      <div class="acc-box"><div class="num">${f1(a.pct_aspon_castecne)}%</div><div class="lab">Aspoň částečně</div></div>
+      <div class="acc-box"><div class="num">${a.castecne}</div><div class="lab">Částečně</div></div>
+      <div class="acc-box"><div class="num">${a.spatne}</div><div class="lab">Špatně</div></div>
+    </div>`;
+  } else sum.innerHTML='';
+  const h=PRED.history||[], body=document.getElementById('hist-body');
+  if(!h.length){ body.innerHTML='<tr><td colspan="6"><div class="empty">Zatím žádné vyhodnocené predikce — naběhne po odehrání zalogovaných kol.</div></td></tr>'; return; }
+  const cls=v=>v==='Správně'?'res-ok':v==='Částečně'?'res-part':'res-bad';
+  body.innerHTML=h.map(r=>`<tr><td>${r.Kolo}</td><td class="home">${r.Domaci}</td><td class="away">${r.Hoste}</td>
+    <td>${r.Tip}</td><td style="font-family:var(--font-mono);font-size:11px">${r.Skutecnost}</td>
+    <td><span class="pill ${cls(r.Vysledek)}">${r.Vysledek}</span></td></tr>`).join('');
+}
+
+init();
+</script>
+</body>
+</html>

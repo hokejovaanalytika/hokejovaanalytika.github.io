@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playoff — Hokejová Analytika</title>
+  <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Playoff — Hokejová Analytika">
+  <meta property="og:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <meta property="og:url" content="https://hokejovaanalytika.cz/playoff.html">
+  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@hokejanalytika">
+  <meta name="twitter:title" content="Playoff — Hokejová Analytika">
+  <meta name="twitter:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
+  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    :root{
+      --teal:#2A8B8B;--teal-light:#3AADAD;--teal-dim:#1E6565;
+      --slate:#1B2B34;--slate-mid:#243545;--slate-light:#2E4256;
+      --gold:#D4A843;--gold-dim:#A87E2A;
+      --text:#E8EFF4;--text-dim:#8FA3B0;--text-faint:#4A6070;
+      --border:rgba(42,139,139,0.2);--win:#4CAF82;--loss:#E05555;--otwin:#5B9BD5;
+      --radius:10px;--font-main:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
+    header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .logo-text{display:flex;align-items:center;gap:10px;}
+    .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
+    .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
+    .site-title span{color:var(--teal-light);}
+    .meta-badge{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right;line-height:1.4;}
+    .meta-badge strong{color:var(--gold);}
+    nav{background:var(--slate-mid);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+    nav::-webkit-scrollbar{display:none;}
+    .nav-inner{max-width:1100px;margin:0 auto;display:flex;padding:0 8px;}
+    nav a{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:11px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:.2s;}
+    nav a:hover{color:var(--text);}
+    nav a.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+    main{max-width:1100px;margin:0 auto;padding:16px 12px 40px;}
+    .hero{background:linear-gradient(135deg,#0d1b2a 0%,#1b263b 50%,#415a77 100%);border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;}
+    .hero h1{font-size:22px;font-weight:700;color:var(--gold);}
+    .hero p{font-size:13px;color:var(--text-dim);margin-top:4px;}
+    .card{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
+    .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+    .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--gold);border-radius:2px;}
+    .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .chart-wrap-tall{width:100%;height:540px;}
+    .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:620px;}
+    .tbl thead tr{background:var(--slate-light);}
+    .tbl th{padding:8px 6px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .tbl th:nth-child(2){text-align:left;}
+    .tbl td{padding:7px 6px;text-align:right;border-bottom:1px solid rgba(42,139,139,0.08);font-family:var(--font-mono);font-size:12px;color:var(--text-dim);white-space:nowrap;}
+    .tbl td:first-child{text-align:center;color:var(--text-faint);}
+    .tbl td:nth-child(2){text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500;}
+    .tbl tbody tr:hover{background:rgba(42,139,139,0.06);}
+    .tbl .pbar{position:relative;min-width:90px;}
+    .tbl .pbar i{position:absolute;left:0;top:0;bottom:0;background:rgba(59,130,246,0.35);border-radius:3px;}
+    .tbl .pbar span{position:relative;padding-left:5px;font-weight:600;color:var(--text);}
+    .tbl tr.z4{box-shadow:inset 3px 0 0 var(--win);}
+    .tbl tr.z12{box-shadow:inset 3px 0 0 var(--gold);}
+    .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .legend span{display:inline-flex;align-items:center;gap:6px;}
+    .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
+    .bracket{display:flex;gap:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
+    .bcol{flex:0 0 auto;min-width:160px;display:flex;flex-direction:column;justify-content:space-around;gap:10px;}
+    .bcol h4{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;text-align:center;margin-bottom:4px;}
+    .match{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;}
+    .match.qf{border-left:3px solid #3B82F6;}
+    .match.pre{border-left:3px solid #93C5FD;}
+    .match.sf{border-left:3px solid #1D4ED8;}
+    .match.fin{border-left:3px solid var(--gold);background:rgba(212,168,67,0.08);}
+    .match .team{display:flex;justify-content:space-between;gap:8px;padding:2px 0;}
+    .match .team .seed{color:var(--text-faint);font-family:var(--font-mono);font-size:11px;margin-right:6px;}
+    .match .team .nm{color:var(--text);font-weight:500;flex:1;}
+    .match .vs{color:var(--text-faint);font-size:11px;font-style:italic;}
+    .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
+    .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
+    footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
+    footer a{color:var(--teal-light);text-decoration:none;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-text"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></div>
+    <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html">Přehled</a>
+    <a href="tymy.html">Týmy</a>
+    <a href="hraci.html">Hráči</a>
+    <a href="zapasy.html">Zápasy</a>
+    <a href="analytika.html">Analytika</a>
+    <a href="gm-mod.html">GM Mód</a>
+    <a href="playoff.html" class="active">Playoff</a>
+  </div>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>🏆 Playoff Extraliga 2026/27</h1>
+    <p>Monte Carlo simulace — šance na playoff se mění po každém kole. Top 12 postupuje (1–4 přímo do QF, 5–12 předkolo).</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Šance na playoff — Monte Carlo</div>
+    <div class="card-sub">5 000 simulací zbývajících zápasů podle aktuální bodové úspěšnosti a síly týmů.</div>
+    <div class="legend">
+      <span><i style="background:#4CAF82"></i> Top 4 (přímo QF)</span>
+      <span><i style="background:#D4A843"></i> Předkolo (5–12)</span>
+      <span><i style="background:#5E7384"></i> Mimo playoff</span>
+    </div>
+    <div class="chart-wrap-tall" id="c-prob"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Detailní pravděpodobnosti</div>
+    <div class="card-sub">Šance jednotlivých zón + projekce konečných bodů. Zelený pruh = Top 4, zlatý = předkolo.</div>
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Tým</th><th>Body</th><th>Odehr.</th><th>Zbývá</th><th>Playoff %</th><th>Top 4 %</th><th>Předkolo %</th><th>Mimo %</th><th>Odhad b.</th></tr></thead>
+        <tbody id="t-prob"><tr><td colspan="10"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Projekce nasazení — playoff pavouk</div>
+    <div class="card-sub">Podle aktuální tabulky: 1–4 přímo do čtvrtfinále, 5–12 předkolo (best of 5). Po předkole se ze všech 8 postupujících udělá nové nasazení 1–8.</div>
+    <div class="bracket" id="bracket"></div>
+  </div>
+</main>
+
+<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a></footer>
+
+<script>
+const DATA='data/';
+const LOCK_CONFIG={responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false};
+const AX_LOCK={fixedrange:true};
+const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
+async function loadJSON(f){const r=await fetch(DATA+f);if(!r.ok)throw new Error('Nelze načíst '+f);return r.json();}
+const f1=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+
+async function init(){
+  try{
+    const [pl,meta]=await Promise.all([loadJSON('playoff.json').catch(()=>null),loadJSON('meta.json').catch(()=>({}))]);
+    document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
+    if(!pl||!pl.sim){
+      document.getElementById('c-prob').innerHTML='<div class="empty">Chybí playoff.json — spusť build.R.</div>';
+      document.getElementById('t-prob').innerHTML='<tr><td colspan="10"><div class="empty">Chybí data.</div></td></tr>';
+      return;
+    }
+    renderProb(pl.sim); renderTable(pl.sim); renderBracket(pl);
+  }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+e.message+'</div>';}
+}
+
+function renderProb(sim){
+  const d=[...sim].sort((a,b)=>(a.Playoff_pct-b.Playoff_pct)||(a.Top4_pct-b.Top4_pct));
+  const cats=d.map(r=>r.Tym);
+  Plotly.newPlot('c-prob',[
+    {type:'bar',orientation:'h',name:'Top 4',y:cats,x:d.map(r=>r.Top4_pct),marker:{color:'#4CAF82'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Top 4: ${f1(r.Top4_pct)} %`)},
+    {type:'bar',orientation:'h',name:'Předkolo',y:cats,x:d.map(r=>r.Predkolo_pct),marker:{color:'#D4A843'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Předkolo: ${f1(r.Predkolo_pct)} %<br>Playoff celkem: ${f1(r.Playoff_pct)} %`)},
+    {type:'bar',orientation:'h',name:'Mimo',y:cats,x:d.map(r=>r.Mimo_pct),marker:{color:'#5E7384'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Mimo playoff: ${f1(r.Mimo_pct)} %`)}
+  ],Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:100,r:20,t:10,b:40},
+    xaxis:{...AX_LOCK,range:[0,100],ticksuffix:'%',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},title:{text:'pravděpodobnost',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}},
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.04,font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
+
+function renderTable(sim){
+  const d=[...sim].sort((a,b)=>(b.Playoff_pct-a.Playoff_pct)||(b.Top4_pct-a.Top4_pct));
+  const mimoColor=v=>v<20?'#7FE0AC':v<50?'var(--gold)':'#F0A0A0';
+  document.getElementById('t-prob').innerHTML=d.map((r,i)=>{
+    const cls=i<4?'z4':i<12?'z12':'';
+    return `<tr class="${cls}"><td>${i+1}</td><td>${r.Tym}</td><td>${r.Body}</td><td>${r.Zapasy}</td><td>${r.Zbyvajici}</td>
+      <td class="pbar"><i style="width:${Math.max(2,r.Playoff_pct)}%"></i><span>${f1(r.Playoff_pct)}</span></td>
+      <td>${f1(r.Top4_pct)}</td><td>${f1(r.Predkolo_pct)}</td>
+      <td style="color:${mimoColor(r.Mimo_pct)};font-weight:600">${f1(r.Mimo_pct)}</td>
+      <td style="color:var(--text)">${r.Avg_body}</td></tr>`;
+  }).join('');
+}
+
+function renderBracket(pl){
+  const pre=pl.predkolo||[], qf=pl.qf||[];
+  const teamRow=(seed,nm)=>`<div class="team"><span class="nm"><span class="seed">${seed}.</span>${nm}</span></div>`;
+  const preCol=pre.map(m=>`<div class="match pre">${teamRow(m.s1,m.t1)}<div class="vs">vs</div>${teamRow(m.s2,m.t2)}</div>`).join('');
+  const qfCol=qf.map(m=>`<div class="match qf">${teamRow(m.seed,m.top)}</div>`).join('');
+  const sfCol=`<div class="match sf"><div class="team"><span class="nm">Vítěz QF1</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz QF4</span></div></div>
+               <div class="match sf"><div class="team"><span class="nm">Vítěz QF2</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz QF3</span></div></div>`;
+  const finCol=`<div class="match fin"><div class="team"><span class="nm">Vítěz SF1</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz SF2</span></div></div>`;
+  document.getElementById('bracket').innerHTML=`
+    <div class="bcol"><h4>Předkolo</h4>${preCol}</div>
+    <div class="bcol"><h4>Čtvrtfinále</h4>${qfCol}</div>
+    <div class="bcol"><h4>Semifinále</h4>${sfCol}</div>
+    <div class="bcol"><h4>Finále</h4>${finCol}</div>`;
+}
+
+init();
+</script>
+</body>
+</html>
