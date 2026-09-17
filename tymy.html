@@ -580,7 +580,7 @@ function renderForma(){ renderInsights('insight-forma', INS_FORMA, teamNames());
 function renderFormaTable(){
   const d = [...FORMA].filter(t=>t.Forma_Index!=null).sort((a,b)=>b.Forma_Index-a.Forma_Index);
   const body = document.getElementById('forma-body');
-  if(!d.length){ body.innerHTML='<tr><td colspan="7"><div class="empty">Chybí výsledky — doplň <code>zapasy_master.csv</code>.</div></td></tr>'; return; }
+  if(!d.length){ body.innerHTML='<tr><td colspan="7"><div class="empty">Zatím bez odehraných zápasů.</div></td></tr>'; return; }
   body.innerHTML = d.map((t,i)=>{
     const dots = (t.Forma_txt||'').split('-').filter(Boolean)
       .map(r=>`<span class="dot dot-${r}" title="${r}"></span>`).join('');
@@ -625,7 +625,7 @@ function renderFormaCorsi(){
   const gd = {}; POWER.forEach(t=>{ if(t.GD_gp!=null) gd[t.Tym_clean]=t.GD_gp; });
   const d = FORMA.filter(t=>t.Forma_Index!=null && gd[t.Tym_clean]!=null)
     .map(t=>({...t, GD:gd[t.Tym_clean]}));
-  if(!d.length){ emptyBox('chart-forma-corsi','Chybí data brankového rozdílu nebo formy.'); return; }
+  if(!d.length){ emptyBox('chart-forma-corsi','Zatím bez dat o formě.'); return; }
   const avgGD = mean(d.map(t=>t.GD)), avgF = mean(d.map(t=>t.Forma_Index));
   const minGD = Math.min(...d.map(t=>t.GD)), maxGD = Math.max(...d.map(t=>t.GD));
   const minF = Math.min(...d.map(t=>t.Forma_Index)), maxF = Math.max(...d.map(t=>t.Forma_Index));
@@ -680,8 +680,8 @@ const teamNames = () => POWER.map(t=>t.Tym_clean);
 
 function renderPower(){
   if(!POWER.length){ ['power-body'].forEach(()=>{}); 
-    document.getElementById('power-body').innerHTML='<tr><td colspan="10"><div class="empty">Chybí týmová data (spusť build.R).</div></td></tr>';
-    ['chart-power-radar','chart-sustain','chart-special','chart-attack-def'].forEach(id=>emptyBox(id,'Chybí data.'));
+    console.warn('power_index.json / tymy_stats.json chybí — kartu build.R nevygeneroval.');document.getElementById('power-body').innerHTML='<tr><td colspan="10"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
+    ['chart-power-radar','chart-sustain','chart-special','chart-attack-def'].forEach(id=>emptyBox(id,'Zatím bez dat.'));
     return;
   }
   renderInsights('insight-power', INS_POWER, teamNames());
@@ -748,7 +748,7 @@ function renderRadar(){
 function renderSustain(){
   const d = POWER.filter(t=>t.GD_gp!=null && t.B!=null && t.Z>0)
     .map(t=>({...t, BpZ: t.B/t.Z}));
-  if(!d.length){ emptyBox('chart-sustain','Chybí data.'); return; }
+  if(!d.length){ emptyBox('chart-sustain','Zatím bez dat.'); return; }
   const maxB=Math.max(...d.map(t=>t.B||0),1);
   const minGD=Math.min(...d.map(t=>t.GD_gp)), maxGD=Math.max(...d.map(t=>t.GD_gp));
   const minB=Math.min(...d.map(t=>t.BpZ)), maxB2=Math.max(...d.map(t=>t.BpZ));
@@ -783,7 +783,7 @@ function renderSustain(){
 function renderSpecial(){
   const d = POWER.filter(t=>t.PP_pct!=null && t.PK_pct!=null)
     .sort((a,b)=>a.Power_Index-b.Power_Index); // nejvyšší Power nahoře
-  if(!d.length){ emptyBox('chart-special','Chybí PP/PK data.'); return; }
+  if(!d.length){ emptyBox('chart-special','Zatím bez dat o přesilovkách a oslabeních.'); return; }
   const cats=d.map(t=>t.Tym_clean);
   const avgPP=mean(d.map(t=>t.PP_pct)), avgPK=mean(d.map(t=>t.PK_pct));
   Plotly.newPlot('chart-special', [
@@ -813,7 +813,7 @@ function renderAttackDef(){
   const d = POWER.filter(t=>t.GF_gp!=null && t.GA_gp!=null)
     .map(t=>({...t, Rozdil:t.GF_gp-t.GA_gp}))
     .sort((a,b)=>a.Rozdil-b.Rozdil); // nejlepší rozdíl nahoře
-  if(!d.length){ emptyBox('chart-attack-def','Chybí gólová data.'); return; }
+  if(!d.length){ emptyBox('chart-attack-def','Zatím bez gólových dat.'); return; }
   const cats=d.map(t=>t.Tym_clean);
   Plotly.newPlot('chart-attack-def', [
     {type:'bar', orientation:'h', name:'Góly VSTŘELENÉ', y:cats, x:d.map(t=>t.GF_gp),
@@ -838,9 +838,9 @@ function renderAttackDef(){
 function renderMomentum(){
   renderInsights('insight-momentum', INS_MOM, teamNames());
   if(!MOM || !MOM.summary){
-    ['chart-streak','chart-drivers','chart-blocks','chart-playoff'].forEach(id=>emptyBox(id,'Chybí data (spusť build.R).'));
-    document.getElementById('mom-form-body').innerHTML='<tr><td colspan="8"><div class="empty">Chybí výsledky.</div></td></tr>';
-    document.getElementById('mom-pace-body').innerHTML='<tr><td colspan="9"><div class="empty">Chybí výsledky.</div></td></tr>';
+    ['chart-streak','chart-drivers','chart-blocks','chart-playoff'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));
+    document.getElementById('mom-form-body').innerHTML='<tr><td colspan="8"><div class="empty">Zatím bez odehraných zápasů.</div></td></tr>';
+    document.getElementById('mom-pace-body').innerHTML='<tr><td colspan="9"><div class="empty">Zatím bez odehraných zápasů.</div></td></tr>';
     return;
   }
   if(MOM.info) document.getElementById('mom-form-sub').textContent =
@@ -897,7 +897,7 @@ function buildDriversSelect(){
 function renderDrivers(){
   const tm = document.getElementById('drivers-team').value || (MOM.drivers[0]&&MOM.drivers[0].Tym_clean);
   const t = MOM.drivers.find(x=>x.Tym_clean===tm);
-  if(!t){ emptyBox('chart-drivers','Chybí data.'); return; }
+  if(!t){ emptyBox('chart-drivers','Zatím bez dat.'); return; }
   // per-metrika max abs (napříč týmy) pro srovnatelnou délku barů
   const maxAbs={}; DRIVER_METR.forEach(m=>maxAbs[m.key]=Math.max(...MOM.drivers.map(x=>Math.abs(x[m.key]||0)),0.01));
   const cats=DRIVER_METR.map(m=>m.lab);
@@ -969,7 +969,7 @@ function renderBlocks(){
 }
 
 function renderPlayoff(){
-  if(!MOM.playoff || !MOM.playoff.length){ emptyBox('chart-playoff','Chybí data.'); return; }
+  if(!MOM.playoff || !MOM.playoff.length){ emptyBox('chart-playoff','Zatím bez dat.'); return; }
   const teams=[...new Set(MOM.playoff.map(p=>p.Tym_clean))].sort((a,b)=>a.localeCompare(b,'cs'));
   const maxK=Math.max(...MOM.playoff.map(p=>p.Kolo));
   const traces=teams.map(tm=>{
@@ -996,8 +996,8 @@ const DNA_DIMS = [
 ];
 function renderDNA(){
   if(!DNA.length){
-    document.getElementById('dna-ready-body').innerHTML='<tr><td colspan="10"><div class="empty">Chybí týmová data.</div></td></tr>';
-    ['chart-dna-bars','chart-faceoff-dna','chart-scoring-dist','chart-home-away'].forEach(id=>emptyBox(id,'Chybí data.'));
+    document.getElementById('dna-ready-body').innerHTML='<tr><td colspan="10"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
+    ['chart-dna-bars','chart-faceoff-dna','chart-scoring-dist','chart-home-away'].forEach(id=>emptyBox(id,'Zatím bez dat.'));
     return;
   }
   renderInsights('insight-dna', INS_DNA, teamNames());
@@ -1049,7 +1049,7 @@ function renderReadiness(){
 
 function renderFaceoffDna(){
   const d=[...DNA].filter(t=>t.FO_pct!=null).sort((a,b)=>b.FO_pct-a.FO_pct);
-  if(!d.length){ emptyBox('chart-faceoff-dna','Chybí data vhazování.'); return; }
+  if(!d.length){ emptyBox('chart-faceoff-dna','Zatím bez dat o vhazování.'); return; }
   const cats=d.map(t=>t.Tym_clean);
   Plotly.newPlot('chart-faceoff-dna', [{
     type:'bar', x:cats, y:d.map(t=>t.FO_pct),
@@ -1066,7 +1066,7 @@ function renderFaceoffDna(){
 }
 
 function renderScoringDist(){
-  if(!HRACI.length){ emptyBox('chart-scoring-dist','Chybí hráčská data (hraci_complete.json).'); return; }
+  if(!HRACI.length){ emptyBox('chart-scoring-dist','Zatím bez hráčských dat.'); return; }
   const byTeam={};
   HRACI.filter(p=>p.GP>=5 && p.Body!=null && p.Tym_clean).forEach(p=>{
     (byTeam[p.Tym_clean]=byTeam[p.Tym_clean]||[]).push(p);
@@ -1078,7 +1078,7 @@ function renderScoringDist(){
     const top3pct=total>0?Math.round(top3/total*1000)/10:0;
     return {tm, top3pct, zbytek:Math.round((100-top3pct)*10)/10, top:ps[0], n:ps.length, total};
   }).filter(r=>r.total>0).sort((a,b)=>a.top3pct-b.top3pct); // nejvyšší závislost nahoře
-  if(!rows.length){ emptyBox('chart-scoring-dist','Chybí data.'); return; }
+  if(!rows.length){ emptyBox('chart-scoring-dist','Zatím bez dat.'); return; }
   const cats=rows.map(r=>r.tm);
   Plotly.newPlot('chart-scoring-dist', [
     {type:'bar',orientation:'h',name:'Top 3 hráči',y:cats,x:rows.map(r=>r.top3pct),marker:{color:'#5C6BC0'},
@@ -1097,7 +1097,7 @@ function renderScoringDist(){
 
 function renderHomeAway(){
   const d=[...DNA].filter(t=>t.HA_rozdil!=null).sort((a,b)=>a.HA_rozdil-b.HA_rozdil); // nejvíc doma nahoře
-  if(!d.length){ emptyBox('chart-home-away','Chybí domácí/venkovní data.'); return; }
+  if(!d.length){ emptyBox('chart-home-away','Zatím bez domácích a venkovních dat.'); return; }
   Plotly.newPlot('chart-home-away', [{
     type:'bar', orientation:'h', y:d.map(t=>t.Tym_clean), x:d.map(t=>t.HA_rozdil),
     marker:{color:d.map(t=>t.HA_rozdil>=0?'#42A5F5':'#E05555')},
@@ -1116,9 +1116,9 @@ function renderHomeAway(){
 function renderComeback(){
   renderInsights('insight-comeback', INS_CB, teamNames());
   if(!CB || !CB.stats){
-    document.getElementById('cb-body').innerHTML='<tr><td colspan="6"><div class="empty">Chybí data (zapasy.csv / build.R).</div></td></tr>';
-    document.getElementById('kt-body').innerHTML='<tr><td colspan="4"><div class="empty">Chybí data.</div></td></tr>';
-    ['chart-cb-clutch','chart-anat-deficit','chart-anat-kdy'].forEach(id=>emptyBox(id,'Chybí data.'));
+    console.warn('comeback.json chybí — kartu build.R nevygeneroval.');document.getElementById('cb-body').innerHTML='<tr><td colspan="6"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
+    document.getElementById('kt-body').innerHTML='<tr><td colspan="4"><div class="empty">Zatím bez dat.</div></td></tr>';
+    ['chart-cb-clutch','chart-anat-deficit','chart-anat-kdy'].forEach(id=>emptyBox(id,'Zatím bez dat.'));
     return;
   }
   renderCbTable(); renderCbClutch(); renderAnatomie();
@@ -1141,7 +1141,7 @@ function renderCbTable(){
 
 function renderCbClutch(){
   const d=[...CB.stats].filter(t=>t.Uspesnost_udrzeni!=null);
-  if(!d.length){ emptyBox('chart-cb-clutch','Chybí data.'); return; }
+  if(!d.length){ emptyBox('chart-cb-clutch','Zatím bez dat.'); return; }
   const xs=d.map(t=>t.Pocet_comebacku), ys=d.map(t=>t.Uspesnost_udrzeni);
   const avgX=mean(xs), avgY=mean(ys);
   const xr=[Math.min(...xs)-0.6, Math.max(...xs)+0.6];
@@ -1215,7 +1215,7 @@ function renderKt(){
 function renderTiming(){
   renderInsights('insight-timing', INS_TIM, teamNames());
   if(!GT || !GT.buckets){
-    ['chart-gt-buckets','chart-gt-tretiny','chart-gt-rychle','chart-gt-killer','chart-gt-prvni'].forEach(id=>emptyBox(id,'Chybí data (zapasy.csv / build.R).'));
+    ['chart-gt-buckets','chart-gt-tretiny','chart-gt-rychle','chart-gt-killer','chart-gt-prvni'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));
     return;
   }
   buildGtSelect(); renderGtBuckets(); renderGtTretiny(); renderGtRychle(); renderGtKiller(); renderGtPrvni();
@@ -1248,7 +1248,7 @@ function renderGtBuckets(){
 
 function renderGtTretiny(){
   const d=[...(GT.tretiny||[])].sort((a,b)=>b.Celkem-a.Celkem);
-  if(!d.length){ emptyBox('chart-gt-tretiny','Chybí data.'); return; }
+  if(!d.length){ emptyBox('chart-gt-tretiny','Zatím bez dat.'); return; }
   const cats=d.map(t=>t.Tym);
   const series=[{k:'T1',lab:'1. třetina',c:'#60A5FA'},{k:'T2',lab:'2. třetina',c:'#3B82F6'},{k:'T3',lab:'3. třetina',c:'#1D4ED8'}];
   Plotly.newPlot('chart-gt-tretiny', series.map(s=>({
@@ -1282,7 +1282,7 @@ function renderGtRychle(){
 
 function renderGtKiller(){
   const d=[...(GT.killer||[])].sort((a,b)=>a.Bilance-b.Bilance); // nejlepší bilance nahoře
-  if(!d.length){ emptyBox('chart-gt-killer','Chybí data.'); return; }
+  if(!d.length){ emptyBox('chart-gt-killer','Zatím bez dat.'); return; }
   const cats=d.map(t=>t.Tym);
   Plotly.newPlot('chart-gt-killer', [
     {type:'bar', orientation:'h', name:'Vstřelené', y:cats, x:d.map(t=>t.Vstrelene), marker:{color:'#42A5F5'},
@@ -1300,7 +1300,7 @@ function renderGtKiller(){
 
 function renderGtPrvni(){
   const d=[...(GT.prvni||[])].sort((a,b)=>b.Uspesnost-a.Uspesnost);
-  if(!d.length){ emptyBox('chart-gt-prvni','Chybí data.'); return; }
+  if(!d.length){ emptyBox('chart-gt-prvni','Zatím bez dat.'); return; }
   Plotly.newPlot('chart-gt-prvni', [{
     type:'bar', x:d.map(t=>t.Tym), y:d.map(t=>t.Uspesnost),
     text:d.map(t=>t.Vyhrane+'/'+t.Celkem), textposition:'outside', cliponaxis:false,

@@ -288,7 +288,7 @@ async function init(){
     const [gm,dream,trade,meta]=await Promise.all([loadJSON('gm_mod.json').catch(()=>null),loadJSON('gm_dream.json').catch(()=>null),loadJSON('gm_trade.json').catch(()=>null),loadJSON('meta.json').catch(()=>({}))]);
     GM=gm; DREAM=dream; TRADE=trade; document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
     { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
-    if(!GM||!GM.teams){document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ Chybí <code>gm_mod.json</code> — spusť <code>build.R</code>.</div>';return;}
+    if(!GM||!GM.teams){console.warn('gm_mod.json chybí — kartu build.R nevygeneroval.');document.querySelector('main').innerHTML='<div class="card" style="padding:24px">GM Mód se odemkne, až bude odehráno víc zápasů.</div>';return;}
     const teams=[...GM.teams].sort((a,b)=>a.Tym.localeCompare(b.Tym,'cs'));
     gmTeam=GM.teams.slice().sort((a,b)=>a.Poradi-b.Poradi)[0].Tym;
     document.getElementById('gm-team').innerHTML=teams.map(t=>`<option value="${t.Tym}"${t.Tym===gmTeam?' selected':''}>${t.Tym}</option>`).join('');
@@ -559,7 +559,7 @@ function scoreBar(v,max){const w=Math.max(4,Math.min(100,v/max*100));return `<di
 function renderKadr(){ renderDream(); renderTrade(); }
 function renderDream(){
   const b=document.getElementById('gm-dream');
-  if(!DREAM||!DREAM.length){b.innerHTML='<tr><td colspan="8"><div class="empty">Chybí gm_dream.json (spusť build.R).</div></td></tr>';}
+  if(!DREAM||!DREAM.length){b.innerHTML='<tr><td colspan="8"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';}
   else{
     const mx=Math.max(...DREAM.map(r=>r.Score),1);
     b.innerHTML=DREAM.map(r=>`<tr>
@@ -579,7 +579,7 @@ function renderTrade(){
   const pills=document.getElementById('gm-needpills'), body=document.getElementById('gm-trade'), note=document.getElementById('gm-trade-note');
   const exp=document.getElementById('gm-trade-expand');
   if(!entry||!entry.targets||!entry.targets.length){
-    pills.innerHTML=''; body.innerHTML='<tr><td colspan="9"><div class="empty">Chybí gm_trade.json nebo data pro tým.</div></td></tr>'; note.innerHTML=''; exp.style.display='none'; return;
+    pills.innerHTML=''; body.innerHTML='<tr><td colspan="9"><div class="empty">Pro tenhle tým zatím nejsou data.</div></td></tr>'; note.innerHTML=''; exp.style.display='none'; return;
   }
   const nc=['#E05555','#FF8A3D','#D4A843'];
   pills.innerHTML=`<b style="color:var(--text-dim);font-size:13px">${t.Tym} — hlavní potřeby:</b><br>`+

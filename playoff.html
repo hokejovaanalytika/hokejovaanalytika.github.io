@@ -162,8 +162,8 @@ async function init(){
     const [pl,meta]=await Promise.all([loadJSON('playoff.json').catch(()=>null),loadJSON('meta.json').catch(()=>({}))]);
     document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
     if(!pl||!pl.sim){
-      document.getElementById('c-prob').innerHTML='<div class="empty">Chybí playoff.json — spusť build.R.</div>';
-      document.getElementById('t-prob').innerHTML='<tr><td colspan="10"><div class="empty">Chybí data.</div></td></tr>';
+      console.warn('playoff.json chybí — kartu build.R nevygeneroval.');document.getElementById('c-prob').innerHTML='<div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div>';
+      document.getElementById('t-prob').innerHTML='<tr><td colspan="10"><div class="empty">Zatím bez dat.</div></td></tr>';
       return;
     }
     renderProb(pl.sim); renderTable(pl.sim); renderBracket(pl);

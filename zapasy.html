@@ -354,8 +354,8 @@ const h2hNames = () => (H2H && H2H.tymy) ? H2H.tymy : [];
 function renderH2H(){
   renderInsights('insight-h2h', INS_H2H, h2hNames());
   if(!H2H || !H2H.tymy || !H2H.tymy.length){
-    document.getElementById('h2h-chips').innerHTML='<div class="empty">Chybí data (spusť build.R).</div>';
-    emptyBox('c-h2h','Chybí odehrané zápasy.');
+    console.warn('h2h.json chybí — kartu build.R nevygeneroval.');document.getElementById('h2h-chips').innerHTML='<div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div>';
+    emptyBox('c-h2h','Zatím bez odehraných zápasů.');
     return;
   }
   if(!h2hTym) h2hTym = H2H.tymy[0];
@@ -406,7 +406,7 @@ function drawH2H(){
 
 function renderPredikce(){
   renderInsights('insight-predikce', INS_PRED, predNames());
-  if(!PRED){ ['pred-body','hist-body'].forEach(id=>document.getElementById(id).innerHTML='<tr><td colspan="6"><div class="empty">Chybí predikce.json (spusť build.R).</div></td></tr>'); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Chybí data.</div>'; return; }
+  if(!PRED){ ['pred-body','hist-body'].forEach(id=>document.getElementById(id).innerHTML='<tr><td colspan="6"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>'); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Zatím bez dat.</div>'; return; }
   renderPredTable(); buildBreakdownSelect(); renderBreakdown(); renderAccuracy();
 }
 function renderPredTable(){
