@@ -164,7 +164,7 @@
     </div>
   </section>
 
-  <!-- ===================== PREDIKCE ===================== -->
+  <!-- ===================== KDO PROTI KOMU ===================== -->
   <section class="subpanel" id="panel-h2h">
 
     <div class="insight" id="insight-h2h" style="display:none">
@@ -212,7 +212,7 @@
 
     <div class="card">
       <div class="card-title gold">Predikce příštího kola <span id="pred-kolo" style="color:var(--gold);font-weight:700"></span></div>
-      <div class="card-sub">P = pravděpodobnost (<span style="color:var(--win)">domácí</span> / <span style="color:var(--text-faint)">remíza</span> / <span style="color:var(--otwin)">hosté</span>), očekávané skóre, jistota modelu.</div>
+      <div class="card-sub">P = pravděpodobnost výhry (<span style="color:var(--win)">domácí</span> / <span style="color:var(--otwin)">hosté</span>) včetně prodloužení a nájezdů, očekávané skóre a jistota modelu.</div>
       <div class="tbl-wrap">
         <table class="tbl">
           <thead><tr><th>Domácí</th><th>Šance&nbsp;(D/H)</th><th>Hosté</th><th>Skóre</th><th>Jistota</th><th>Tip</th></tr></thead>
@@ -256,6 +256,13 @@ const AX_LOCK={fixedrange:true};
 const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
 async function loadJSON(f){const r=await fetch(DATA+f);if(!r.ok)throw new Error('Nelze načíst '+f);return r.json();}
 const f1=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+function emptyBox(id,m){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="empty">${m}</div>`;}
+// "18.09.2026" -> Date. Odložený zápas se hraje o měsíce později, ale drží si číslo
+// kola, takže řadit výsledky jen podle kola by dohrávku schovalo doprostřed sezóny.
+function den(x){
+  const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(x||'').trim());
+  return m ? new Date(+m[3], +m[2]-1, +m[1]).getTime() : NaN;
+}
 
 let VYS=[], PRED=null, renderedPred=false, INS_PRED=[], H2H=null, INS_H2H=[], INS_VYS=[];
 const predNames = () => { const a=[]; (VYS||[]).forEach(v=>{a.push(v.Domaci);a.push(v.Hoste);}); return a; };
@@ -310,7 +317,11 @@ function renderVysledky(){
   let d=[...VYS];
   if(fk) d=d.filter(z=>+z.Kolo===+fk);
   if(ft) d=d.filter(z=>z.Domaci===ft||z.Hoste===ft);
-  d.sort((a,b)=>(+b.Kolo)-(+a.Kolo));
+  d.sort((a,b)=>{
+    const da=den(a.Datum), db=den(b.Datum);
+    if(!isNaN(da) && !isNaN(db) && da!==db) return db-da;   // nejnovější nahoře
+    return (+b.Kolo)-(+a.Kolo);
+  });
   const body=document.getElementById('vys-body');
   if(!d.length){ body.innerHTML='<tr><td colspan="5"><div class="empty">Žádné odehrané zápasy (doplň <code>zapasy_master.csv</code>).</div></td></tr>'; return; }
   body.innerHTML=d.map(z=>{
