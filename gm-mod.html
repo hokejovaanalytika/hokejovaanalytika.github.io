@@ -202,7 +202,7 @@
 
     <div class="card">
       <div class="card-title">Magic Number — kolik bodů ještě potřebuješ</div>
-      <div class="card-sub">Minimum bodů pro matematické zajištění cíle, bez ohledu na ostatní. ✅ = už zajištěno.</div>
+      <div class="card-sub">Minimum bodů pro matematické zajištění cíle, bez ohledu na ostatní. ✅ = už zajištěno. Na začátku sezóny jsou čísla vysoká a čistě teoretická — klesají s každým odehraným kolem.</div>
       <div class="chart-wrap-tall" id="gm-magic"></div>
       <div id="gm-magictext"></div>
     </div>
@@ -217,12 +217,14 @@
 
     <div class="card">
       <div class="card-title">What If simulátor — Moneyball laboratoř</div>
-      <div class="card-sub">Posuň metriky a sleduj, jak se změní projekce bodů a pozice v tabulce.</div>
+      <div class="card-sub">Posuň metriky a sleduj, jak se změní projekce bodů a pozice v tabulce. Góly z přesilovky se počítají i do gólů na zápas — když posuneš všechno najednou, efekt bude trochu nadsazený.</div>
       <div class="wi-grid">
         <div class="wi-sliders" id="gm-wi-sliders">
           <div class="wi-row"><label>PP % (přesilovka)</label><input type="range" id="wi-pp" min="10" max="35" step="0.5"><span id="wi-pp-v"></span></div>
           <div class="wi-row"><label>PK % (oslabení)</label><input type="range" id="wi-pk" min="65" max="95" step="0.5"><span id="wi-pk-v"></span></div>
           <div class="wi-row"><label>Sv % (brankář)</label><input type="range" id="wi-sv" min="85" max="95" step="0.1"><span id="wi-sv-v"></span></div>
+          <div class="wi-row"><label>Vstřelené góly na zápas</label><input type="range" id="wi-gf" min="1.5" max="4.5" step="0.05"><span id="wi-gf-v"></span></div>
+          <div class="wi-row"><label>Obdržené góly na zápas</label><input type="range" id="wi-ga" min="1.5" max="4.5" step="0.05"><span id="wi-ga-v"></span></div>
           <button class="wi-reset" id="wi-reset">↺ Reset na aktuální</button>
         </div>
         <div>
@@ -428,24 +430,41 @@ function renderMagic(t){
   const pos=gmCil==='top4'?5:13;
   let maxRival=null;
   if(sorted.length>=pos){const r=sorted[pos-1]; maxRival=r.Body+r.Zbyvajici*3;}
-  const d=sorted.map(tt=>{const magic=maxRival==null?null:Math.max(0,maxRival+1-tt.Body); return {Tym:tt.Tym,Poradi:tt.Poradi,Body:tt.Body,Max:tt.Body+tt.Zbyvajici*3,magic:magic,jist:magic===0};});
+  const d=sorted.map(tt=>{const magic=maxRival==null?null:Math.max(0,maxRival+1-tt.Body);
+    const maxZisk=tt.Zbyvajici*3;   // víc už tým do konce sezóny nasbírat nemůže
+    return {Tym:tt.Tym,Poradi:tt.Poradi,Body:tt.Body,Max:tt.Body+maxZisk,maxZisk:maxZisk,
+            magic:magic,jist:magic===0,mimo:magic!=null&&magic>maxZisk};});
   Plotly.newPlot('gm-magic',[{type:'bar',x:d.map(r=>r.Tym),y:d.map(r=>r.magic||0),
     marker:{color:d.map(r=>r.Tym===gmTeam?'#e76f51':r.jist?'#4CAF82':'#e9c46a')},
     text:d.map(r=>r.jist?'✅':(r.magic||0)),textposition:'outside',cliponaxis:false,textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    hoverinfo:'text',hovertext:d.map(r=>`${r.Tym} (${r.Poradi}.)<br>Body: ${r.Body} · max možné: ${r.Max}<br>Magic ${cilLabel()}: ${r.jist?'ZAJIŠTĚNO':r.magic+' b.'}`)}],
+    hoverinfo:'text',hovertext:d.map(r=>`${r.Tym} (${r.Poradi}.)<br>Body: ${r.Body} · max možné: ${r.Max}<br>Magic ${cilLabel()}: ${r.jist?'ZAJIŠTĚNO':r.magic+' b.'}${r.mimo?'<br>(zatím mimo dosah — víc než '+r.maxZisk+' b. už nejde získat)':''}`)}],
     Object.assign({},BASE_LAYOUT,{margin:{l:40,r:15,t:10,b:80},
       xaxis:{...AX_LOCK,tickangle:-45,color:'#4A6070',tickfont:{family:'DM Sans',size:9}},
       yaxis:{...AX_LOCK,title:{text:'potřebných bodů',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},showlegend:false}),LOCK_CONFIG);
   const t2=d.find(r=>r.Tym===gmTeam); const el=document.getElementById('gm-magictext');
   if(!t2||t2.magic==null){el.innerHTML='';return;}
   if(t2.magic===0){el.innerHTML=`<div class="verdict v-ok">✅ <b>${t.Tym}${vf(t.Tym,' má',' mají')} ${cilLabel()} matematicky jisté</b> — i v nejhorším případě už nevypadne.</div>`;}
+  else if(t2.mimo){
+    // Na začátku sezóny je "jistota" mimo dosah: i plný bodový zisk je míň, než
+    // kolik by bylo potřeba. Vypsat "50 výher ze 49 zápasů" je nesmysl.
+    el.innerHTML=`<div class="verdict" style="background:var(--slate);border-left:3px solid var(--teal-dim)">
+      <b>${t.Tym}: ${cilLabel()} zatím nejde matematicky zajistit.</b> Maximum ze zbývajících
+      ${t.Zbyvajici} zápasů je ${t2.maxZisk} b., na jistotu by bylo potřeba ${t2.magic} b.
+      Tohle číslo dostane smysl až ve druhé polovině sezóny, kdy soupeřům zbyde míň zápasů na dohánění.</div>`;
+  }
   else{el.innerHTML=`<div class="verdict v-warn"><b>${t.Tym}: Magic Number = ${t2.magic} b.</b> pro ${cilLabel()} — minimum <b>${Math.ceil(t2.magic/3)} výher</b> ze zbývajících ${t.Zbyvajici} zápasů pro jistotu.</div>`;}
 }
 
 /* ════════════════ ETAPA 2 — OPTIMALIZACE ════════════════ */
-const WI_IDS=['pp','pk','sv'];
-const WI_DEF={pp:20,pk:80,sv:91};
-const WI_KEY={pp:'PP_pct',pk:'PK_pct',sv:'Sv_pct'};
+const WI_IDS=['pp','pk','sv','gf','ga'];
+const WI_DEF={pp:20,pk:80,sv:91,gf:2.8,ga:2.8};
+const WI_KEY={pp:'PP_pct',pk:'PK_pct',sv:'Sv_pct',gf:'GF_na_zapas',ga:'GA_na_zapas'};
+const WI_LAB={pp:'PP%',pk:'PK%',sv:'Sv%',gf:'Vstřelené',ga:'Obdržené'};
+const WI_PCT={pp:1,pk:1,sv:1};                       // procenta vs góly na zápas
+// Body za jednotku zlepšení (stejné váhy jako karta ROI). U obdržených gólů je
+// zlepšením POKLES, proto záporný koeficient.
+const WI_COEF={pp:2.5,pk:2.0,sv:3.5,gf:3.0,ga:-2.5};
+const wiText=(k,v)=>WI_PCT[k]?f1(v)+' %':f2(v)+' g/záp.';
 let wiBound=false;
 function renderOpt(resetSliders){
   const t=team(); if(!t)return;
@@ -475,13 +494,13 @@ function resetWi(t){
     const el=document.getElementById('wi-'+k);
     let v=t[WI_KEY[k]]; if(v==null||isNaN(v))v=WI_DEF[k];
     v=Math.min(Math.max(v,+el.min),+el.max);
-    el.value=v; document.getElementById('wi-'+k+'-v').textContent=f1(v)+'%';
+    el.value=v; document.getElementById('wi-'+k+'-v').textContent=wiText(k,+el.value);
   });
 }
 function bindWi(){
   if(wiBound)return; wiBound=true;
   WI_IDS.forEach(k=>document.getElementById('wi-'+k).addEventListener('input',()=>{
-    document.getElementById('wi-'+k+'-v').textContent=f1(+document.getElementById('wi-'+k).value)+'%'; whatif();
+    document.getElementById('wi-'+k+'-v').textContent=wiText(k,+document.getElementById('wi-'+k).value); whatif();
   }));
   document.getElementById('wi-reset').addEventListener('click',()=>{resetWi(team());whatif();});
 }
@@ -490,8 +509,7 @@ function whatif(){
   const f=t.Zbyvajici/GM.celkem_kol;
   const cur={};WI_IDS.forEach(k=>cur[k]=+document.getElementById('wi-'+k).value);
   const o={};WI_IDS.forEach(k=>{let v=t[WI_KEY[k]];o[k]=(v==null||isNaN(v))?WI_DEF[k]:v;});
-  const coef={pp:2.5,pk:2.0,sv:3.5};
-  const bonus=Math.round(WI_IDS.reduce((s,k)=>s+(cur[k]-o[k])*coef[k]*f,0));
+  const bonus=Math.round(WI_IDS.reduce((s,k)=>s+(cur[k]-o[k])*WI_COEF[k]*f,0));
   const proj=GM.teams.map(tt=>({Tym:tt.Tym,Proj:tt.Body+Math.round(tt.B_na_zapas*tt.Zbyvajici)}));
   const me=proj.find(p=>p.Tym===t.Tym); me.Proj=t.Body+Math.round(t.B_na_zapas*t.Zbyvajici)+bonus;
   proj.sort((a,b)=>b.Proj-a.Proj); proj.forEach((p,i)=>p.pos=i+1);
@@ -507,7 +525,9 @@ function whatif(){
     Object.assign({},BASE_LAYOUT,{margin:{l:40,r:35,t:10,b:75},shapes:shapes,annotations:anns,
       xaxis:{...AX_LOCK,tickangle:-45,color:'#4A6070',tickfont:{family:'DM Sans',size:8}},
       yaxis:{...AX_LOCK,title:{text:'projekce bodů',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},showlegend:false}),LOCK_CONFIG);
-  const ch=[];WI_IDS.forEach(k=>{const d=cur[k]-o[k];if(Math.abs(d)>0.1)ch.push(`${k.toUpperCase()} ${d>0?'+':''}${f1(d)}`);});
+  const ch=[];WI_IDS.forEach(k=>{const d=cur[k]-o[k];
+    const prah=WI_PCT[k]?0.1:0.02;
+    if(Math.abs(d)>prah)ch.push(`${WI_LAB[k]} ${d>0?'+':''}${WI_PCT[k]?f1(d):f2(d)}`);});
   const el=document.getElementById('gm-whatif-text');
   if(!ch.length){el.innerHTML=`<div class="verdict" style="background:var(--slate);border-left:3px solid var(--teal-dim)">👉 Posuň posuvníky a sleduj, jak změna ovlivní projekci a pozici.</div>`;}
   else{const cls=bonus>0?'v-ok':bonus<0?'v-warn':'';el.innerHTML=`<div class="verdict ${cls}"><b>Změny:</b> ${ch.join(' · ')}<br><b style="font-size:17px">Efekt: ${bonus>=0?'+':''}${bonus} bodů</b> → projekce <b>${me.Proj} b.</b>, <b>${myPos}. místo</b> (zbývá ${t.Zbyvajici} z.)</div>`;}

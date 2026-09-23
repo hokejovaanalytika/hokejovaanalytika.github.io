@@ -455,10 +455,13 @@ function renderDomaVenku(dv){
   // Rozsah os se počítá z dat, ne napevno. Po jednom zápase doma a venku nabývá
   // bodová úspěšnost jen hodnot 0 / 33,3 / 66,7 / 100 %, takže pevný výřez
   // 20–85 % vykreslil všechny týmy mimo viditelnou plochu a v grafu zbyl jeden.
+  // Okraj se NEOŘEZÁVÁ na 0–100 %. Po pár kolech má spousta týmů přesně 0 nebo
+  // 100 %, a ořezaný rozsah je posadil na samou hranu grafu — bod napůl uříznutý
+  // a popisek týmu mimo plochu. Osa proto smí přesáhnout, popisky mají vzduch.
   const vals = d.flatMap(t=>[t.Bpct_doma, t.Bpct_venku]).filter(v=>v!=null && !isNaN(v));
-  let lo = Math.max(0,   Math.floor(Math.min(...vals) - 8));
-  let hi = Math.min(100, Math.ceil (Math.max(...vals) + 8));
-  if(hi - lo < 20){ const s=(20-(hi-lo))/2; lo=Math.max(0,lo-s); hi=Math.min(100,hi+s); }
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  const pad = Math.max(8, (mx - mn) * 0.12);
+  const lo = mn - pad, hi = mx + pad;
 
   Plotly.newPlot('chart-doma-venku', [{
     type:'scatter', mode:'markers+text',
@@ -475,8 +478,8 @@ function renderDomaVenku(dv){
     hovertext:d.map(t=>`${t.Tym_clean}<br>Doma: ${t.Bpct_doma}% úspěšnost<br>Venku: ${t.Bpct_venku}% úspěšnost`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:50,r:15,t:15,b:45},
-    xaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost DOMA (%) →',font:{size:11,color:'#4A6070'}},range:[lo,hi],color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost VENKU (%) →',font:{size:11,color:'#4A6070'}},range:[lo,hi],color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    xaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost DOMA (%) →',font:{size:11,color:'#4A6070'}},range:[lo,hi],tick0:0,dtick:20,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, title:{text:'Bodová úspěšnost VENKU (%) →',font:{size:11,color:'#4A6070'}},range:[lo,hi],tick0:0,dtick:20,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     shapes:[{type:'line',x0:lo,y0:lo,x1:hi,y1:hi,line:{dash:'dash',color:'rgba(143,163,176,0.4)',width:1}}],
     annotations:[
       {x:0.95,y:0.05,xref:'paper',yref:'paper',text:'🏠 Silní doma',showarrow:false,font:{size:10,color:'#FF5722'}},
