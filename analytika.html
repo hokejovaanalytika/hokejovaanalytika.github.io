@@ -728,7 +728,7 @@ function trestyMix(d){
 }
 
 function trestyScatter(d){
-  const q=d.filter(r=>r.GP>=10 && r.PIM_60!=null)
+  const q=d.filter(r=>r.PIM_60_ok===true && r.PIM_60!=null)
            .sort((a,b)=>b.PIM_60-a.PIM_60).slice(0,15).reverse();
   if(!q.length){ emptyBox('c-tresty-scatter','Málo dat (potřeba 10+ zápasů).'); return; }
   const y=q.map(r=>`${r.Jmeno} (${r.Tym_clean})`);
@@ -742,7 +742,7 @@ function trestyScatter(d){
     hoverinfo:'text',
     hovertext:q.map(r=>`${r.Jmeno} (${r.Tym_clean})<br>${g.lab}: ${f2(r[g.k]||0)} min/60<br>Celkem: ${f2(r.PIM_60)} min/60 · ${r.PIM} PIM · ${r.GP} zápasů`)
   }));
-  const liga=mean(d.filter(r=>r.GP>=10&&r.PIM_60!=null).map(r=>r.PIM_60));
+  const liga=mean(d.filter(r=>r.PIM_60_ok===true&&r.PIM_60!=null).map(r=>r.PIM_60));
   Plotly.newPlot('c-tresty-scatter', traces, Object.assign({},BASE_LAYOUT,{
     barmode:'stack', margin:{l:170,r:45,t:35,b:42},
     xaxis:{...AX_LOCK,title:{text:'trestné minuty na 60 minut hry',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},

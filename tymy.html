@@ -315,7 +315,7 @@
 
     <div class="card">
       <div class="card-title">Vzdálenost od playoff čáry v čase</div>
-      <div class="card-sub">Kumulativní body vůči 12. místu. Nad nulou = playoff, pod = mimo playoff. Klepni na týmy v legendě pro skrytí.</div>
+      <div class="card-sub">Kumulativní body vůči 12. místu po stejném počtu odehraných zápasů. Nad nulou = playoff, pod = mimo playoff. Klepni na týmy v legendě pro skrytí.</div>
       <div class="chart-wrap-tall" id="chart-playoff"></div>
     </div>
 
@@ -843,8 +843,8 @@ function renderMomentum(){
     document.getElementById('mom-pace-body').innerHTML='<tr><td colspan="9"><div class="empty">Zatím bez odehraných zápasů.</div></td></tr>';
     return;
   }
-  if(MOM.info) document.getElementById('mom-form-sub').textContent =
-    `Momentum = (body/zápas posledních ${MOM.info.X_kol} kol − předchozích ${MOM.info.X_kol}) × 10`;
+  if(MOM.info && MOM.summary && MOM.summary.length) document.getElementById('mom-form-sub').textContent =
+    `Momentum = (body/zápas posledních ${MOM.info.X_kol} zápasů − předchozích ${MOM.info.X_kol}) × 10`;
   renderFormIndex(); renderStreak(); buildDriversSelect(); renderDrivers();
   renderPace(); buildBlocksChips(); renderBlocks(); renderPlayoff();
 }
@@ -854,6 +854,16 @@ function trendStyle(t){
   return m[t]||'transparent';
 }
 function renderFormIndex(){
+  // Prázdné summary = krátký vzorek. Zamkne se JEN tahle tabulka, série,
+  // drivers, bloky i playoff čára dávají smysl i po pár zápasech.
+  if(!MOM.summary || !MOM.summary.length){
+    const minz=(MOM.info && MOM.info.forma_min_zapasu)||6;
+    document.getElementById('mom-form-sub').textContent=
+      `Porovnává poslední zápasy s předchozími — potřebuje aspoň ${minz} odehraných.`;
+    document.getElementById('mom-form-body').innerHTML=
+      `<tr><td colspan="8"><div class="empty">Tahle tabulka se odemkne po ${minz} odehraných zápasech. Na kratším vzorku by měřila hlavně náhodu.</div></td></tr>`;
+    return;
+  }
   const d=[...MOM.summary].sort((a,b)=>b.Momentum_index-a.Momentum_index);
   document.getElementById('mom-form-body').innerHTML = d.map((t,i)=>{
     const c = t.Momentum_index>0?'var(--win)':t.Momentum_index<0?'var(--loss)':'var(--text-dim)';
@@ -974,15 +984,17 @@ function renderPlayoff(){
   const maxK=Math.max(...MOM.playoff.map(p=>p.Kolo));
   const traces=teams.map(tm=>{
     const rows=MOM.playoff.filter(p=>p.Tym_clean===tm).sort((a,b)=>a.Kolo-b.Kolo);
-    return {type:'scatter',mode:'lines',name:tm,
+    // markery navíc: na začátku sezóny jsou čáry krátké a samotné linky jdou přehlédnout
+    return {type:'scatter',mode:'lines+markers',name:tm,
       x:rows.map(r=>r.Kolo), y:rows.map(r=>r.Vzdalenost),
-      line:{width:2,color:teamColor(tm)},
-      hoverinfo:'text', hovertext:rows.map(r=>`${tm}<br>Kolo ${r.Kolo}: ${r.Vzdalenost>0?'+':''}${r.Vzdalenost} b`)};
+      line:{width:2,color:teamColor(tm)}, marker:{size:5,color:teamColor(tm)},
+      hoverinfo:'text', hovertext:rows.map(r=>`${tm}<br>Po ${r.Kolo}. zápase: ${r.Vzdalenost>0?'+':''}${r.Vzdalenost} b`)};
   });
   Plotly.newPlot('chart-playoff', traces, Object.assign({}, BASE_LAYOUT, {
     margin:{l:45,r:15,t:10,b:50},
-    xaxis:{...AX_LOCK, title:{text:'Kolo',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Body nad/pod 12. místem',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    // tick0/dtick: bez nich Plotly u pár zápasů vyrábí popisky 1,5 a 2,5
+    xaxis:{...AX_LOCK, title:{text:'Odehraný zápas',font:{size:11,color:'#4A6070'}}, tick0:1, dtick:1, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, title:{text:'Body nad/pod 12. místem',font:{size:11,color:'#4A6070'}}, zeroline:false, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     shapes:[{type:'line',xref:'x',x0:1,x1:maxK,y0:0,y1:0,line:{color:'rgba(232,239,244,0.7)',width:2}}],
     showlegend:true, legend:{orientation:'h',x:0.5,xanchor:'center',y:-0.18,font:{size:9,color:'#8FA3B0'}}
   }), LOCK_CONFIG);

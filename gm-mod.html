@@ -259,7 +259,7 @@
 
     <div class="card">
       <div class="card-title gold">📦 Trade Help — koho potřebuješ?</div>
-      <div class="card-sub">Hráči z jiných týmů (mimo top 8 svého soupisky), kteří řeší přesně tvoje slabiny. Realistické cíle, ne hvězdy.</div>
+      <div class="card-sub">Hráči z jiných týmů, kteří ve svém kádru nepatří mezi osm nejproduktivnějších, ale řeší přesně tvoje slabiny. Realistické cíle, ne hvězdy.</div>
       <div class="needpills" id="gm-needpills"></div>
       <div class="gmtbl-wrap"><table class="gmtbl">
         <thead><tr><th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>Body</th><th>Rank</th><th>Řeší</th><th>Fit Score</th><th>Proč</th></tr></thead>
@@ -614,7 +614,7 @@ function renderTrade(){
   exp.style.display=all.length>15?'block':'none';
   exp.textContent=tradeExpanded?'▲ Zobrazit méně':`🔍 Zobrazit dalších ${Math.min(35,all.length-15)} hráčů`;
   exp.onclick=()=>{tradeExpanded=!tradeExpanded; renderTrade();};
-  note.innerHTML=`💡 <b>Fit Score</b> váží přínos hráče podle potřeb týmu ${t.Tym}. Vyšší = lépe sedí na tvé slabiny. Zobrazeni jen hráči mimo top 8 svého týmu (realistické cíle).`;
+  note.innerHTML=`💡 <b>Fit Score</b> váží přínos hráče podle potřeb týmu ${t.Tym}. Vyšší = lépe sedí na tvé slabiny. Zobrazeni jsou jen hráči, kteří ve svém týmu nepatří mezi osm nejproduktivnějších — tedy realistické posily, ne opory.`;
 }
 
 init();
