@@ -212,14 +212,15 @@
   <!-- 1. COMPLETE PLAYER INDEX -->
   <div class="card">
     <div class="card-title gold">Complete Player Index</div>
-    <div class="card-sub">Góly, asistence a body vedle kompozitního skóre: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %) — top 50 podle CPI</div>
+    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %) — top 50</div>
+    <div class="sort-toggle" id="cpi-sort">
+      <button data-sort="body" class="active">Řadit dle: Body</button>
+      <button data-sort="cpi">CPI (se změnou pořadí)</button>
+    </div>
     <div class="tbl-wrap">
       <table class="players">
-        <thead><tr>
-          <th>#</th><th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B</th><th>B/z</th>
-          <th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th><th>CPI</th>
-        </tr></thead>
-        <tbody id="cpi-body"><tr><td colspan="15"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+        <thead><tr id="cpi-head"></tr></thead>
+        <tbody id="cpi-body"><tr><td colspan="16"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table>
     </div>
   </div>
@@ -379,7 +380,7 @@
     <!-- CLUTCH -->
     <div class="card">
       <div class="card-title">🎯 Clutch Goalie Score</div>
-      <div class="card-sub">Pressure index: Win% (40 %) + čistá konta/zápas (30 %) + úspěšnost v nájezdech (30 %) — top 15</div>
+      <div class="card-sub">Pressure index: Win% (40 %) + čistá konta/zápas (30 %) + úspěšnost v nájezdech (30 %) — top 15. Kdo zatím nečelil nájezdu, počítá se jen z prvních dvou složek. Nula znamená žádnou výhru ani čisté konto.</div>
       <div class="chart-wrap" id="chart-clutch"></div>
     </div>
 
@@ -482,7 +483,7 @@ let ODEHRANO = 1;
 const prah = cil => Math.max(1, Math.min(cil, Math.ceil(0.5 * ODEHRANO)));
 const PRAH_FO = () => Math.max(5, Math.min(50, Math.ceil(50 * ODEHRANO / 26)));  // min. vhazování
 
-const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv'};
+const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body'};
 const rendered = {pole:true, skryti:false, brankari:false};  // pole se renderuje hned
 
 function filtered(){
@@ -595,6 +596,11 @@ function bindControls(){
   document.getElementById('f-pozice').addEventListener('change', e=>{ state.pozice=e.target.value; renderFiltered(); });
   document.getElementById('f-tym').addEventListener('change', e=>{ state.tym=e.target.value; renderFiltered(); });
   ['radar1','radar2','radar3'].forEach(id=>document.getElementById(id).addEventListener('change', renderRadar));
+  document.querySelectorAll('#cpi-sort button').forEach(b=>b.addEventListener('click',()=>{
+    state.hraciSort=b.dataset.sort;
+    document.querySelectorAll('#cpi-sort button').forEach(x=>x.classList.toggle('active',x.dataset.sort===state.hraciSort));
+    renderTable(filtered());
+  }));
 }
 
 // re-render všech bloků závislých na filtru (1,2,4,5,6,7,8); radar je nezávislý
@@ -615,16 +621,29 @@ function renderFiltered(){
 
 /* ── 1. COMPLETE PLAYER INDEX — tabulka ──────────────────────── */
 function renderTable(d){
-  const rows = d.filter(p=>p.CPI!=null).sort((a,b)=>b.CPI-a.CPI).slice(0,50);
+  // Výchozí je klasické bodování — to hledá většina lidí. CPI je druhý pohled.
+  const cpiMode = state.hraciSort==='cpi';
+  const set = d.filter(p=>p.CPI!=null);
+  const head = document.getElementById('cpi-head');
   const body = document.getElementById('cpi-body');
-  if(!rows.length){ body.innerHTML='<tr><td colspan="15"><div class="empty">Žádní hráči neodpovídají filtru.</div></td></tr>'; return; }
+  // Pořadí v OBOU žebříčcích přes celý filtrovaný výběr, ne jen přes zobrazenou
+  // padesátku — jinak by šipky u hráčů na konci tabulky lhaly.
+  [...set].sort((a,b)=>((b.Body||0)-(a.Body||0))||(b.CPI-a.CPI)).forEach((p,i)=>p._rBody=i+1);
+  [...set].sort((a,b)=>(b.CPI-a.CPI)||((b.Body||0)-(a.Body||0))).forEach((p,i)=>p._rCpi=i+1);
+  const rows = [...set].sort((a,b)=> cpiMode ? a._rCpi-b._rCpi : a._rBody-b._rBody).slice(0,50);
+  head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th><th>CPI</th>`;
+  if(!rows.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="16"><div class="empty">Žádní hráči neodpovídají filtru.</div></td></tr>'; return; }
   const pmCol = v => v==null ? 'var(--text-dim)' : v<0 ? 'var(--loss)' : v>0 ? 'var(--win)' : 'var(--text-dim)';
   body.innerHTML = rows.map((p,i)=>{
     const bz = (p.Body!=null && p.GP) ? p.Body/p.GP : null;
     const cpi = p.CPI==null ? 0 : Math.max(0,Math.min(100,p.CPI));
     const bar = `linear-gradient(90deg, rgba(76,175,130,.45) ${cpi}%, transparent ${cpi}%)`;
+    // Δ = o kolik míst si hráč polepšil oproti pořadí podle bodů
+    let delta='';
+    if(cpiMode){ const dd=p._rBody-p._rCpi;
+      delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
     return `<tr>
-      <td>${i+1}</td>
+      <td>${i+1}</td>${delta}
       <td>${p.Jmeno}</td>
       <td style="color:var(--text-dim)">${p.Tym_clean}</td>
       <td><span class="pos-pill">${p.Pozice||'—'}</span></td>
@@ -1069,8 +1088,13 @@ function renderGBS(){
 
 function renderClutch(){
   const d = BRANKARI.filter(g=>g.GP>=prah(2)).map(g=>{
-    const ps=(g.PS_SavePct!=null && g.PS_SA>=Math.max(1,prah(5)))?g.PS_SavePct:0;
-    return {g, cs:Math.round((g.Win_pct*0.4 + g.SO_rate*0.3 + ps*0.3)*10)/10};
+    // Brankář, který ještě nečelil nájezdu, za to nemůže — místo nuly za třetí
+    // složku se skóre počítá jen z dostupných složek a váhy se přeškálují.
+    const maNaj = g.PS_SavePct!=null && g.PS_SA>=Math.max(1,prah(5));
+    const slozky = maNaj ? [[g.Win_pct,0.4],[g.SO_rate,0.3],[g.PS_SavePct,0.3]]
+                         : [[g.Win_pct,0.4],[g.SO_rate,0.3]];
+    const vaha = slozky.reduce((s,x)=>s+x[1],0);
+    return {g, maNaj, cs:Math.round(slozky.reduce((s,x)=>s+(x[0]||0)*x[1],0)/vaha*10)/10};
   }).sort((a,b)=>b.cs-a.cs).slice(0,15);
   if(!d.length){ emptyBox('chart-clutch','Zatím bez dat.'); return; }
   Plotly.newPlot('chart-clutch', [{
@@ -1078,7 +1102,7 @@ function renderClutch(){
     text:d.map(o=>o.cs), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     marker:{color:d.map(o=>o.cs), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], showscale:false},
     hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.g)}<br>Clutch Score: ${o.cs}<br>Win%: ${f1(o.g.Win_pct)}<br>SO/zápas: ${f2(o.g.SO_rate/100)}<br>Nájezdy: ${o.g.PS_SA>=Math.max(1,prah(5))?f1(o.g.PS_SavePct)+' %':'málo dat'}`)
+    hovertext:d.map(o=>`${label(o.g)}<br>Clutch Score: ${o.cs}${o.cs===0?' (zatím bez výhry a čistého konta)':''}<br>Zápasů: ${o.g.GP}<br>Win%: ${f1(o.g.Win_pct)}<br>SO/zápas: ${f2(o.g.SO_rate/100)}<br>Nájezdy: ${o.maNaj?f1(o.g.PS_SavePct)+' %':'zatím nečelil — do skóre se nepočítá'}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:40,r:15,t:20,b:90},
     xaxis:{...AX_LOCK, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:10}},
@@ -1099,9 +1123,11 @@ function renderWorkloadPerf(){
       marker:{size:gg.map(g=>10+(g.SO||0)/maxSO*24), color:teamColor(t), opacity:0.85, line:{color:'#1B2B34',width:1.5}},
       hoverinfo:'text', hovertext:gg.map(g=>`${label(g)}<br>Zápasů: ${g.GP}<br>Sv%: ${f1(g.SavePct)}<br>Čistá konta: ${g.SO}<br>Win%: ${f1(g.Win_pct)}`)};
   });
+  // Zápasy jsou celá čísla — bez dtick vyrábí Plotly popisky 2,2 a 2,4.
+  const maxGP = Math.max(...set.map(g=>g.GP||0), 1);
   Plotly.newPlot('chart-workload-perf', traces, Object.assign({}, BASE_LAYOUT, {
     margin:{l:50,r:15,t:15,b:45},
-    xaxis:{...AX_LOCK, title:{text:'Počet zápasů (workload) →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    xaxis:{...AX_LOCK, title:{text:'Počet zápasů (workload) →',font:{size:11,color:'#4A6070'}},tick0:0,dtick:Math.max(1,Math.ceil(maxGP/10)),color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, title:{text:'Úspěšnost % →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     showlegend:true, legend:{font:{size:9,color:'#8FA3B0'}}
   }), LOCK_CONFIG);

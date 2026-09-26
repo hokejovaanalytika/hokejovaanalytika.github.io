@@ -96,6 +96,10 @@
     .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
     .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
+    .cest-defs{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:12px;color:var(--text-dim);margin:0 0 12px;}
+    .cest-defs dt{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;}
+    .cest-defs dd{margin:0;line-height:1.45;}
+    @media(max-width:480px){.cest-defs{grid-template-columns:1fr;gap:0;}.cest-defs dt{margin-top:6px;}}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
     footer a{color:var(--teal-light);text-decoration:none;}
     select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:var(--font-main);font-size:13px;}
@@ -145,6 +149,7 @@
     <button data-tab="tresty">Trestná lavice</button>
     <button data-tab="koncovky">Koncovky</button>
     <button data-tab="clutch">Clutch</button>
+    <button data-tab="cestovani">Cestování</button>
     <button data-tab="nhl">NHL Rating</button>
   </div>
 
@@ -416,6 +421,48 @@
 
   </section>
 
+  <section class="subpanel" id="panel-cestovani">
+
+    <div class="insight" id="insight-cestovani" style="display:none">
+      <div class="insight-h">Co ti to říká</div>
+      <div class="insight-body"></div>
+    </div>
+
+    <div class="intro">
+      <h1>Cestovní zátěž</h1>
+      <p>Kolik kilometrů tým za sezónu najezdí a kolik hodin stráví v autobuse. Rozpis je známý dopředu, takže jde spočítat celá sezóna — a sledovat, komu zbývá to nejtěžší. Vzdálenosti po silnici mezi zimními stadiony, dva venkovní zápasy krátce po sobě se berou jako jeden zájezd bez návratu domů.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kilometry za sezónu</div>
+      <div class="card-sub">Tmavá část = už najeto, světlá = ještě čeká. Celkové číslo je dané rozpisem, mění se jen poměr.</div>
+      <div class="chart-wrap-tall" id="c-cest-km"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Co ještě čeká</div>
+      <div class="card-sub">Pořadí podle zbývajících kilometrů se v průběhu sezóny přeskupuje — kdo má dlouhé zájezdy na podzim, spadne dolů rychle.</div>
+      <div class="chart-wrap" id="c-cest-zbyva"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Detailní přehled</div>
+      <div class="card-sub">Co znamenají sloupce:</div>
+      <dl class="cest-defs">
+        <dt>Ø na zápas</dt><dd>kilometry za sezónu děleno počtem venkovních zápasů</dd>
+        <dt>Nejdelší přesun</dt><dd>nejdelší jednotlivá cesta autobusem v sezóně — z domova, domů, nebo mezi dvěma venkovními zápasy</dd>
+        <dt>Cest 300+</dt><dd>kolik venkovních zápasů hraje tým dál než 300 km od domácího stadionu</dd>
+        <dt>Zájezdy</dt><dd>kolikrát tým vyrazí z domova na dva nebo víc venkovních zápasů a mezi nimi nejede domů — ze stadionu jede rovnou k dalšímu soupeři. Počítá se to jen tehdy, když mezi zápasy jsou nejvýš 2 dny a přímá cesta je výrazně kratší než cesta přes domov. Když autobus stejně projíždí kolem vlastní haly, tým se doma zastaví a zájezd to není.</dd>
+        <dt>Úspora</dt><dd>kolik kilometrů tým díky zájezdům neujede oproti tomu, kdyby se po každém venkovním zápase vracel domů</dd>
+      </dl>
+      <div class="tbl-wrap"><table class="tbl">
+        <thead><tr><th>#</th><th>Tým</th><th>Km celkem</th><th>Hodin</th><th>Najeto</th><th>Zbývá</th><th>Ø na zápas</th><th>Nejdelší přesun</th><th title="Venkovní zápasy dál než 300 km od domova">Cest 300+</th><th title="Dva a víc venkovních zápasů za sebou bez návratu domů">Zájezdy</th><th title="Kilometry ušetřené zájezdy">Úspora</th></tr></thead>
+        <tbody id="t-cestovani"><tr><td colspan="11"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+      </table></div>
+    </div>
+
+  </section>
+
   <section class="subpanel" id="panel-nhl">
 
   <div class="insight" id="insight-nhl" style="display:none">
@@ -534,7 +581,7 @@ function panelOdemkni(panelId){
 const LOGOS_DIR='logos/';
 function logoImages(items,xr,yr,frac){const fx=(xr[1]-xr[0])*frac,fy=(yr[1]-yr[0])*frac;return items.map(it=>({source:LOGOS_DIR+encodeURIComponent(it.t)+'.png',xref:'x',yref:'y',x:it.x,y:it.y,sizex:fx,sizey:fy,xanchor:'center',yanchor:'middle',layer:'above',sizing:'contain'}));}
 
-let LIGA=null, HRA=null, NHL=null, VYV=null, sitState='PP', INS_LIGA=[], INS_NHL=[], INS_HLUPA=[], INS_TRESTY=[], TRESTY=null, KONC=null, INS_KONC=[], CLUTCH=null, INS_CLUTCH=[];
+let LIGA=null, HRA=null, NHL=null, VYV=null, sitState='PP', INS_LIGA=[], INS_NHL=[], INS_HLUPA=[], INS_TRESTY=[], TRESTY=null, KONC=null, INS_KONC=[], CLUTCH=null, INS_CLUTCH=[], CEST=null, INS_CEST=[];
 const ligaNames = () => (LIGA && LIGA.tesne ? LIGA.tesne.map(r=>r.Tym) : []);
 const hlupaNames = () => { const a=[]; const R=HRA||{};
   ['mvp','dvojice'].forEach(k=>{ (R[k]||[]).forEach(x=>{ if(x.Jmeno)a.push(x.Jmeno); if(x.Strelec)a.push(x.Strelec); if(x.Asistent)a.push(x.Asistent); if(x.Tym)a.push(x.Tym); if(x.Tym_clean)a.push(x.Tym_clean); }); });
@@ -543,11 +590,11 @@ const hlupaNames = () => { const a=[]; const R=HRA||{};
 const nhlNames = () => { const a=[]; if(NHL&&NHL.players) NHL.players.forEach(p=>{a.push(p.Jmeno);a.push(p.Tym);}); if(NHL&&NHL.goalies) NHL.goalies.forEach(g=>a.push(g.Jmeno)); return a; };
 const TIER_COLOR={'Elite':'#FFD700','Star':'#4CAF82','Quality':'#5B9BD5','Role Player':'#8FA3B0','Depth':'#5E7384'};
 const NHL_SUBS=[['Strelba','Střelba'],['Tvorivost','Tvořivost'],['Produkce','Produkce'],['PP','Přesilovka'],['PK','Oslabení'],['Dvoucestnost','Dvoucestnost'],['Zakonceni','Zakončení'],['Fyzicnost','Fyzičnost'],['Clutch','Clutch'],['Duvera','Důvěra']];
-const rendered={liga:true,hraci:false,tresty:false,koncovky:false,clutch:false,nhl:false};
+const rendered={liga:true,hraci:false,tresty:false,koncovky:false,clutch:false,cestovani:false,nhl:false};
 
 async function init(){
   try{
-    const [liga,hra,vyv,meta,insLiga,insNhl,insHlupa,tresty,insTresty,konc,insKonc,clu,insClu]=await Promise.all([
+    const [liga,hra,vyv,meta,insLiga,insNhl,insHlupa,tresty,insTresty,konc,insKonc,clu,insClu,cest,insCest]=await Promise.all([
       loadJSON('analytika_liga.json').catch(()=>null),
       loadJSON('analytika_hraci.json').catch(()=>null),
       loadJSON('vyvoj_zapasu.json').catch(()=>null),
@@ -560,10 +607,12 @@ async function init(){
       loadJSON('koncovky.json').catch(()=>null),
       loadJSON('insights_koncovky.json').catch(()=>[]),
       loadJSON('clutch.json').catch(()=>null),
-      loadJSON('insights_clutch.json').catch(()=>[])
+      loadJSON('insights_clutch.json').catch(()=>[]),
+      loadJSON('cestovani.json').catch(()=>null),
+      loadJSON('insights_cestovani.json').catch(()=>[])
     ]);
     LIGA=liga; HRA=hra; VYV=vyv;
-    INS_LIGA=Array.isArray(insLiga)?insLiga:[]; INS_NHL=Array.isArray(insNhl)?insNhl:[]; INS_HLUPA=Array.isArray(insHlupa)?insHlupa:[]; TRESTY=tresty; INS_TRESTY=Array.isArray(insTresty)?insTresty:[]; KONC=konc; INS_KONC=Array.isArray(insKonc)?insKonc:[]; CLUTCH=clu; INS_CLUTCH=Array.isArray(insClu)?insClu:[];
+    INS_LIGA=Array.isArray(insLiga)?insLiga:[]; INS_NHL=Array.isArray(insNhl)?insNhl:[]; INS_HLUPA=Array.isArray(insHlupa)?insHlupa:[]; TRESTY=tresty; INS_TRESTY=Array.isArray(insTresty)?insTresty:[]; KONC=konc; INS_KONC=Array.isArray(insKonc)?insKonc:[]; CLUTCH=clu; INS_CLUTCH=Array.isArray(insClu)?insClu:[]; CEST=cest; INS_CEST=Array.isArray(insCest)?insCest:[];
     document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
     { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
     document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.addEventListener('click',()=>showSub(b.dataset.tab)));
@@ -578,7 +627,7 @@ function showSub(name){
   document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('panel-'+name).classList.add('active');
-  if(!rendered[name]){rendered[name]=true; if(name==='hraci')renderHraci(); if(name==='tresty')renderTresty(); if(name==='koncovky')renderKoncovky(); if(name==='clutch')renderClutch(); if(name==='nhl')loadNhl();}
+  if(!rendered[name]){rendered[name]=true; if(name==='hraci')renderHraci(); if(name==='tresty')renderTresty(); if(name==='koncovky')renderKoncovky(); if(name==='clutch')renderClutch(); if(name==='cestovani')renderCestovani(); if(name==='nhl')loadNhl();}
   else setTimeout(()=>document.querySelectorAll('#panel-'+name+' .js-plotly-plot').forEach(g=>{try{Plotly.Plots.resize(g);}catch(_){}}),40);
   window.scrollTo(0,0);
 }
@@ -864,6 +913,73 @@ function engChart(d){
   }),LOCK_CONFIG);
 }
 
+
+/* ══ CESTOVNÍ ZÁTĚŽ ══════════════════════════════════════════ */
+const cestNames = () => (CEST && CEST.tymy) ? CEST.tymy.map(t=>t.Tym_clean) : [];
+const cestKm = v => (v==null||isNaN(v)) ? '—' : Math.round(v).toLocaleString('cs-CZ');
+
+function renderCestovani(){
+  renderInsights('insight-cestovani', INS_CEST, cestNames());
+  const d = (CEST && CEST.tymy) ? CEST.tymy : [];
+  if(!d.length){
+    console.warn('cestovani.json chybí — zkontroluj, že vzdalenosti.csv leží v projektu.');
+    panelZamkni('panel-cestovani','Tahle karta potřebuje tabulku vzdáleností mezi stadiony.');
+    return;
+  }
+  panelOdemkni('panel-cestovani');
+  cestKmChart(d); cestZbyvaChart(d); cestTabulka(d);
+}
+
+function cestKmChart(d){
+  const q=[...d].sort((a,b)=>a.Km_celkem-b.Km_celkem);   // nejvíc nahoře
+  const y=q.map(t=>t.Tym_clean);
+  Plotly.newPlot('c-cest-km',[
+    {type:'bar',orientation:'h',name:'Najeto',y,x:q.map(t=>t.Km_najeto),marker:{color:'#2A8B8B'},
+     hoverinfo:'text',hovertext:q.map(t=>`${t.Tym_clean}<br>Najeto: ${cestKm(t.Km_najeto)} km (${f1(t.Podil_najeto)} %)<br>${f1(t.Hod_najeto)} h v autobuse`)},
+    {type:'bar',orientation:'h',name:'Zbývá',y,x:q.map(t=>t.Km_zbyva),marker:{color:'rgba(42,139,139,0.28)'},
+     text:q.map(t=>cestKm(t.Km_celkem)+' km'),textposition:'outside',cliponaxis:false,
+     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+     hoverinfo:'text',hovertext:q.map(t=>`${t.Tym_clean}<br>Zbývá: ${cestKm(t.Km_zbyva)} km<br>Celkem za sezónu: ${cestKm(t.Km_celkem)} km · ${Math.round(t.Hod_celkem)} h`)}
+  ],Object.assign({},BASE_LAYOUT,{
+    barmode:'stack',margin:{l:125,r:70,t:34,b:42},
+    xaxis:{...AX_LOCK,title:{text:'kilometrů za sezónu',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.1,font:{size:10,color:'#8FA3B0'}}
+  }),LOCK_CONFIG);
+}
+
+function cestZbyvaChart(d){
+  const q=[...d].sort((a,b)=>a.Km_zbyva-b.Km_zbyva);
+  const y=q.map(t=>t.Tym_clean);
+  Plotly.newPlot('c-cest-zbyva',[{
+    type:'bar',orientation:'h',y,x:q.map(t=>t.Km_zbyva),
+    marker:{color:q.map(t=>t.Podil_najeto>=50?'#4CAF82':'#E05555')},
+    text:q.map(t=>cestKm(t.Km_zbyva)),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    hoverinfo:'text',
+    hovertext:q.map(t=>`${t.Tym_clean}<br>Zbývá: ${cestKm(t.Km_zbyva)} km (${f1(100-t.Podil_najeto)} % sezóny)<br>Najeto: ${cestKm(t.Km_najeto)} km`)
+  }],Object.assign({},BASE_LAYOUT,{
+    margin:{l:125,r:70,t:12,b:42},
+    xaxis:{...AX_LOCK,title:{text:'zbývající kilometry',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+    showlegend:false
+  }),LOCK_CONFIG);
+}
+
+function cestTabulka(d){
+  document.getElementById('t-cestovani').innerHTML = d.map((t,i)=>`<tr>
+    <td>${i+1}</td><td style="text-align:left;color:var(--text);font-weight:500">${t.Tym_clean}</td>
+    <td style="font-family:var(--font-mono);color:var(--gold);font-weight:600">${cestKm(t.Km_celkem)}</td>
+    <td style="font-family:var(--font-mono)">${Math.round(t.Hod_celkem)} h</td>
+    <td style="font-family:var(--font-mono)">${cestKm(t.Km_najeto)}</td>
+    <td style="font-family:var(--font-mono)">${cestKm(t.Km_zbyva)}</td>
+    <td style="font-family:var(--font-mono)">${cestKm(t.Km_na_zapas)}</td>
+    <td style="font-family:var(--font-mono)">${cestKm(t.Nejdelsi_presun)} km</td>
+    <td style="font-family:var(--font-mono)">${t.Presuny_300}</td>
+    <td style="font-family:var(--font-mono)">${t.Zajezdy}</td>
+    <td style="font-family:var(--font-mono);color:${t.Km_uspora>0?'var(--win)':'var(--text-faint)'}">${t.Km_uspora>0?'−'+cestKm(t.Km_uspora):'—'}</td>
+  </tr>`).join('');
+}
 
 /* ══ CLUTCH (góly podle stavu zápasu) ════════════════════════ */
 const clutchNames = () => { const C=CLUTCH||{}; const a=[];
