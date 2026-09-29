@@ -315,7 +315,7 @@
 
     <div class="card">
       <div class="card-title">Vzdálenost od playoff čáry v čase</div>
-      <div class="card-sub">Kumulativní body vůči 12. místu po stejném počtu odehraných zápasů. Nad nulou = playoff, pod = mimo playoff. Klepni na týmy v legendě pro skrytí.</div>
+      <div class="card-sub">Kumulativní body vůči 12. místu po stejném počtu odehraných zápasů. <b style="color:var(--text)">Bílá čára</b> = playoffová hranice (12. místo), <b style="color:var(--gold)">zlatá tečkovaná</b> = hranice Top 4. Červené pásmo dole je mimo playoff. Klepni na týmy v legendě pro skrytí.</div>
       <div class="chart-wrap-tall" id="chart-playoff"></div>
     </div>
 
@@ -982,20 +982,68 @@ function renderPlayoff(){
   if(!MOM.playoff || !MOM.playoff.length){ emptyBox('chart-playoff','Zatím bez dat.'); return; }
   const teams=[...new Set(MOM.playoff.map(p=>p.Tym_clean))].sort((a,b)=>a.localeCompare(b,'cs'));
   const maxK=Math.max(...MOM.playoff.map(p=>p.Kolo));
-  const traces=teams.map(tm=>{
+  // Hranice Top 4 přichází z buildu ve stejné soustavě (0 = playoffová čára).
+  // Array.isArray: starší momentum.json tenhle klíč nemá vůbec a prázdný
+  // data.frame se navíc umí serializovat jako {} — graf musí projít i tak.
+  const t4=Array.isArray(MOM.playoff_top4)
+    ? MOM.playoff_top4.slice().sort((a,b)=>a.Kolo-b.Kolo) : [];
+
+  // Rozsah osy Y si počítáme sami: pásmo "mimo playoff" je shape, a ten by
+  // rozsah neovlivnil — bez toho by se barevné pásmo oříznulo u nejnižší čáry.
+  const vals=MOM.playoff.map(p=>p.Vzdalenost).concat(t4.map(r=>r.Odstup));
+  let yLo=Math.min(...vals), yHi=Math.max(...vals);
+  const pad=Math.max(1,(yHi-yLo)*0.12); yLo-=pad; yHi+=pad;
+
+  // Pásmo Top 4 kopíruje čáru, která se v čase mění — proto výplň mezi dvěma
+  // trasami, ne obdélník. Jde do pole jako první, aby leželo pod týmy.
+  const bands=[];
+  if(t4.length){
+    bands.push({type:'scatter',mode:'lines',x:t4.map(r=>r.Kolo),y:t4.map(()=>yHi),
+      line:{width:0},hoverinfo:'skip',showlegend:false});
+    bands.push({type:'scatter',mode:'lines',x:t4.map(r=>r.Kolo),y:t4.map(r=>r.Odstup),
+      line:{width:0},fill:'tonexty',fillcolor:'rgba(212,168,67,0.07)',
+      hoverinfo:'skip',showlegend:false});
+  }
+  const traces=bands.concat(teams.map(tm=>{
     const rows=MOM.playoff.filter(p=>p.Tym_clean===tm).sort((a,b)=>a.Kolo-b.Kolo);
     // markery navíc: na začátku sezóny jsou čáry krátké a samotné linky jdou přehlédnout
     return {type:'scatter',mode:'lines+markers',name:tm,
       x:rows.map(r=>r.Kolo), y:rows.map(r=>r.Vzdalenost),
       line:{width:2,color:teamColor(tm)}, marker:{size:5,color:teamColor(tm)},
       hoverinfo:'text', hovertext:rows.map(r=>`${tm}<br>Po ${r.Kolo}. zápase: ${r.Vzdalenost>0?'+':''}${r.Vzdalenost} b`)};
-  });
+  }));
+  // Referenční čáry kreslíme jako traces (ne shapes), aby se daly v legendě
+  // vypnout a aby ležely nad barevnými čárami týmů.
+  traces.push({type:'scatter',mode:'lines',name:'🏒 Playoff (12. místo)',
+    x:[1,maxK], y:[0,0], line:{width:3,color:'#E8EFF4'},
+    hoverinfo:'text', hovertext:['Playoffová čára — 12. místo','Playoffová čára — 12. místo']});
+  if(t4.length) traces.push({type:'scatter',mode:'lines',name:'🥇 Top 4',
+    x:t4.map(r=>r.Kolo), y:t4.map(r=>r.Odstup),
+    line:{width:3,color:'#D4A843',dash:'dot'},
+    hoverinfo:'text', hovertext:t4.map(r=>`Hranice Top 4<br>Po ${r.Kolo}. zápase: +${r.Odstup} b nad playoffovou čárou`)});
+
+  // popisky na opačné strany svých čar, ať se při malém odstupu Top 4 nepřekryjí
+  const ann=[{xref:'paper',x:0.995,xanchor:'right',yref:'y',y:0,yanchor:'top',
+    text:'12. místo · playoff',showarrow:false,
+    font:{family:'JetBrains Mono',size:9,color:'#E8EFF4'},
+    bgcolor:'rgba(27,43,52,0.8)',borderpad:2}];
+  if(t4.length) ann.push({xref:'paper',x:0.995,xanchor:'right',yref:'y',
+    y:t4[t4.length-1].Odstup,yanchor:'bottom',
+    text:'Top 4',showarrow:false,
+    font:{family:'JetBrains Mono',size:9,color:'#D4A843'},
+    bgcolor:'rgba(27,43,52,0.8)',borderpad:2});
+
   Plotly.newPlot('chart-playoff', traces, Object.assign({}, BASE_LAYOUT, {
     margin:{l:45,r:15,t:10,b:50},
     // tick0/dtick: bez nich Plotly u pár zápasů vyrábí popisky 1,5 a 2,5
-    xaxis:{...AX_LOCK, title:{text:'Odehraný zápas',font:{size:11,color:'#4A6070'}}, tick0:1, dtick:1, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Body nad/pod 12. místem',font:{size:11,color:'#4A6070'}}, zeroline:false, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
-    shapes:[{type:'line',xref:'x',x0:1,x1:maxK,y0:0,y1:0,line:{color:'rgba(232,239,244,0.7)',width:2}}],
+    xaxis:{...AX_LOCK, title:{text:'Odehraný zápas',font:{size:11,color:'#4A6070'}}, tick0:1, dtick:1, range:[0.7,maxK+0.3], color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, title:{text:'Body nad/pod 12. místem',font:{size:11,color:'#4A6070'}}, zeroline:false, range:[yLo,yHi], color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    shapes:[
+      // pásmo pod playoffovou čárou = mimo playoff (ta je vodorovná, stačí obdélník)
+      {type:'rect',xref:'x',x0:0.7,x1:maxK+0.3,yref:'y',y0:yLo,y1:0,
+       fillcolor:'rgba(224,85,85,0.08)',line:{width:0},layer:'below'}
+    ],
+    annotations:ann,
     showlegend:true, legend:{orientation:'h',x:0.5,xanchor:'center',y:-0.18,font:{size:9,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }

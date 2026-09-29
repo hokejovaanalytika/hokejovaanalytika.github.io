@@ -134,13 +134,13 @@
     .sort-toggle{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:12px;}
     .sort-toggle button{background:var(--slate);color:var(--text-dim);border:none;font-family:var(--font-main);font-size:12px;font-weight:600;padding:7px 14px;cursor:pointer;}
     .sort-toggle button.active{background:var(--gold);color:var(--slate);}
+    .expandbtn{display:block;margin:14px auto 4px;background:transparent;border:1px solid var(--border);color:var(--gold);font-family:var(--font-main);font-size:13px;font-weight:600;padding:8px 16px;border-radius:7px;cursor:pointer;}
+    .expandbtn:hover{border-color:var(--gold);}
     td.delta-up{color:var(--win);font-weight:600;}
     td.delta-down{color:var(--loss);font-weight:600;}
     td.delta-zero{color:var(--text-faint);}
     .gpi-bar{font-weight:600;background-repeat:no-repeat;background-position:left center;border-radius:3px;}
 
-    tr.maly-vzorek td{opacity:.55;}
-    tr.maly-sep td{text-align:left !important;font-family:var(--font-main);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.6px;padding:12px 8px 6px;border-bottom:1px dashed var(--border);background:transparent;}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
     footer a{color:var(--teal-light);text-decoration:none;}
   </style>
@@ -214,7 +214,7 @@
   <!-- 1. COMPLETE PLAYER INDEX -->
   <div class="card">
     <div class="card-title gold">Complete Player Index</div>
-    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %) — top 50</div>
+    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem.</div>
     <div class="sort-toggle" id="cpi-sort">
       <button data-sort="body" class="active">Řadit dle: Body</button>
       <button data-sort="cpi">CPI (se změnou pořadí)</button>
@@ -225,6 +225,7 @@
         <tbody id="cpi-body"><tr><td colspan="16"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table>
     </div>
+    <button class="expandbtn" id="cpi-expand" style="display:none"></button>
   </div>
 
   <!-- 2. WORKLOAD VS OUTPUT -->
@@ -359,15 +360,15 @@
     <!-- MASTER TABULKA -->
     <div class="card">
       <div class="card-title gold">Hodnocení brankářů</div>
-      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Do pořadí se počítají brankáři s aspoň <span class="prah" data-cil="3">3</span> zápasy, ostatní jsou pod čarou jen pro přehled.</div>
-      <div class="sort-toggle">
+      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Min. <span class="prah" data-cil="3">3</span> zápasy.</div>
+      <div class="sort-toggle" id="goalie-sort">
         <button data-sort="sv" class="active">Řadit dle: Úspěšnost %</button>
         <button data-sort="gpi">GPI</button>
       </div>
       <div class="tbl-wrap">
         <table class="players">
           <thead><tr id="goalie-head"></tr></thead>
-          <tbody id="goalie-body"><tr><td colspan="14"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+          <tbody id="goalie-body"><tr><td colspan="11"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -485,7 +486,7 @@ let ODEHRANO = 1;
 const prah = cil => Math.max(1, Math.min(cil, Math.ceil(0.5 * ODEHRANO)));
 const PRAH_FO = () => Math.max(5, Math.min(50, Math.ceil(50 * ODEHRANO / 26)));  // min. vhazování
 
-const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body'};
+const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body', cpiExpanded:false};
 const rendered = {pole:true, skryti:false, brankari:false};  // pole se renderuje hned
 
 function filtered(){
@@ -569,10 +570,14 @@ function vypisPrahy(){
 function bindSubnav(){
   document.querySelectorAll('.subnav button').forEach(b=>
     b.addEventListener('click', ()=>showSub(b.dataset.tab)));
-  document.querySelectorAll('.sort-toggle button').forEach(b=>
+  // POZOR: musí to být zacílené na brankářský přepínač. Obecné '.sort-toggle button'
+  // chytalo i přepínač Body/CPI v Complete Player Indexu — kliknutí na CPI pak
+  // přepsalo state.goalieSort a zhaslo aktivní tlačítko u brankářů.
+  const gs = document.getElementById('goalie-sort');
+  if(gs) gs.querySelectorAll('button').forEach(b=>
     b.addEventListener('click', ()=>{
       state.goalieSort = b.dataset.sort;
-      document.querySelectorAll('.sort-toggle button').forEach(x=>x.classList.toggle('active', x===b));
+      gs.querySelectorAll('button').forEach(x=>x.classList.toggle('active', x===b));
       renderGoalieTable();
     }));
 }
@@ -603,6 +608,13 @@ function bindControls(){
     document.querySelectorAll('#cpi-sort button').forEach(x=>x.classList.toggle('active',x.dataset.sort===state.hraciSort));
     renderTable(filtered());
   }));
+  const exp=document.getElementById('cpi-expand');
+  if(exp) exp.addEventListener('click',()=>{
+    state.cpiExpanded=!state.cpiExpanded;
+    renderTable(filtered());
+    // po sbalení se ať uživatel neocitne někde uprostřed prázdna
+    if(!state.cpiExpanded) exp.scrollIntoView({block:'center'});
+  });
 }
 
 // re-render všech bloků závislých na filtru (1,2,4,5,6,7,8); radar je nezávislý
@@ -622,17 +634,29 @@ function renderFiltered(){
 }
 
 /* ── 1. COMPLETE PLAYER INDEX — tabulka ──────────────────────── */
+const CPI_ZAKLAD = 50;      // kolik hráčů je vidět před rozbalením
 function renderTable(d){
   // Výchozí je klasické bodování — to hledá většina lidí. CPI je druhý pohled.
   const cpiMode = state.hraciSort==='cpi';
   const set = d.filter(p=>p.CPI!=null);
   const head = document.getElementById('cpi-head');
   const body = document.getElementById('cpi-body');
+  const exp  = document.getElementById('cpi-expand');
   // Pořadí v OBOU žebříčcích přes celý filtrovaný výběr, ne jen přes zobrazenou
   // padesátku — jinak by šipky u hráčů na konci tabulky lhaly.
   [...set].sort((a,b)=>((b.Body||0)-(a.Body||0))||(b.CPI-a.CPI)).forEach((p,i)=>p._rBody=i+1);
   [...set].sort((a,b)=>(b.CPI-a.CPI)||((b.Body||0)-(a.Body||0))).forEach((p,i)=>p._rCpi=i+1);
-  const rows = [...set].sort((a,b)=> cpiMode ? a._rCpi-b._rCpi : a._rBody-b._rBody).slice(0,50);
+  const all  = [...set].sort((a,b)=> cpiMode ? a._rCpi-b._rCpi : a._rBody-b._rBody);
+  const rows = state.cpiExpanded ? all : all.slice(0, CPI_ZAKLAD);
+  // Tlačítko dává smysl jen tehdy, když je vůbec co rozbalovat.
+  if(exp){
+    if(all.length > CPI_ZAKLAD){
+      exp.style.display='block';
+      exp.textContent = state.cpiExpanded
+        ? `▲ Zobrazit jen top ${CPI_ZAKLAD}`
+        : `🔍 Zobrazit všech ${all.length} hráčů do pole`;
+    } else { exp.style.display='none'; }
+  }
   head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th><th>CPI</th>`;
   if(!rows.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="16"><div class="empty">Žádní hráči neodpovídají filtru.</div></td></tr>'; return; }
   const pmCol = v => v==null ? 'var(--text-dim)' : v<0 ? 'var(--loss)' : v>0 ? 'var(--win)' : 'var(--text-dim)';
@@ -1040,40 +1064,28 @@ function renderBrankari(){
 }
 
 function renderGoalieTable(){
-  // Do pořadí jdou jen brankáři s dost zápasy (1 zápas a 100 % by vedl tabulku).
-  // Ostatní se ale neschovávají — ukážou se pod čarou, ztlumení a bez pořadí.
-  const minGP = prah(3);
-  const all  = (BRANKARI||[]).filter(g=>g.GP>0);
-  const set  = all.filter(g=>g.GP>=minGP);
-  const rest = all.filter(g=>g.GP<minGP)
-                  .sort((a,b)=>(b.GP-a.GP)||((b.SavePct||0)-(a.SavePct||0)));
+  const set = BRANKARI.filter(g=>g.GP>=prah(3));
   const head=document.getElementById('goalie-head'), body=document.getElementById('goalie-body');
-  if(!all.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="14"><div class="empty">Zatím bez brankářských dat.</div></td></tr>'; return; }
+  if(!set.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="13"><div class="empty">Zatím bez brankářských dat.</div></td></tr>'; return; }
   [...set].sort((a,b)=>b.SavePct-a.SavePct).forEach((g,i)=>g._rSv=i+1);
   [...set].sort((a,b)=>b.GPI-a.GPI).forEach((g,i)=>g._rGpi=i+1);
   const gpiMode = state.goalieSort==='gpi';
   const ordered = [...set].sort((a,b)=> gpiMode ? b.GPI-a.GPI : b.SavePct-a.SavePct);
   const catCls = k => k==='Elite'?'cat-hidden':k==='Spolehlivy'?'cat-star':k==='Prumer'?'cat-tahoun':k==='Podprumer'?'cat-grind':'cat-tahoun';
   head.innerHTML = `<th>#</th>${gpiMode?'<th>Δ</th>':''}<th>Brankář</th><th>Tým</th><th>GP</th><th>W</th><th>L</th><th>Sv%</th><th>GAA</th><th>SO</th><th>GSAA</th><th>GBS</th><th>GPI</th><th>Kat</th>`;
-  const ncol = gpiMode ? 14 : 13;
-  const row = (g,i,maly)=>{
+  body.innerHTML = ordered.map((g,i)=>{
     const v=Math.max(0,Math.min(100,g.GPI||0));
     const bar=`linear-gradient(90deg, rgba(212,168,67,.42) ${v}%, transparent ${v}%)`;
     let delta='';
-    if(gpiMode && maly) delta='<td class="delta-zero"></td>';
-    else if(gpiMode){ const dd=g._rSv-g._rGpi;
+    if(gpiMode){ const dd=g._rSv-g._rGpi;
       delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
     const gsaaCol=(g.GSAA||0)>=0?'var(--win)':'var(--loss)';
-    return `<tr${maly?' class="maly-vzorek"':''}><td>${maly?'–':i+1}</td>${delta}<td>${g.Jmeno}</td><td style="color:var(--text-dim)">${g.Tym_clean}</td>
+    return `<tr><td>${i+1}</td>${delta}<td>${g.Jmeno}</td><td style="color:var(--text-dim)">${g.Tym_clean}</td>
       <td>${g.GP}</td><td>${g.W}</td><td>${g.L}</td><td>${f1(g.SavePct)}</td><td>${f2(g.GAA)}</td><td>${g.SO}</td>
       <td style="color:${gsaaCol};font-weight:600">${(g.GSAA>0?'+':'')+f1(g.GSAA)}</td>
       <td>${f1(g.GBS)}</td><td class="gpi-bar" style="background-image:${bar}">${f1(g.GPI)}</td>
       <td><span class="cat-pill ${catCls(g.Kategorie)}">${g.Kategorie}</span></td></tr>`;
-  };
-  const sklonZap = n => n===1?'zápas':(n>=2&&n<=4?'zápasy':'zápasů');
-  body.innerHTML = ordered.map((g,i)=>row(g,i,false)).join('') +
-    (rest.length ? `<tr class="maly-sep"><td colspan="${ncol}">Méně než ${minGP} ${sklonZap(minGP)} — zatím bez pořadí (${rest.length})</td></tr>` +
-                   rest.map((g,i)=>row(g,i,true)).join('') : '');
+  }).join('');
 }
 
 function renderGBS(){
