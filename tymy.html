@@ -357,8 +357,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Rozložení bodů — kolektiv vs hvězdy</div>
-      <div class="card-sub">Podíl bodů top 3 hráčů vs zbytek týmu (hráči s ≥ 5 zápasy). Vyšší top 3 = větší závislost na hvězdách.</div>
+      <div class="card-title">Rozložení kanadských bodů — kolektiv vs hvězdy</div>
+      <div class="card-sub">Podíl tří hráčů s nejvíc kanadskými body (góly + asistence) na bodech celého týmu. Vyšší podíl = větší závislost na hvězdách. GM mód počítá závislost jen z gólů, proto tam může vyjít jiné pořadí.</div>
       <div class="chart-wrap-tall" id="chart-scoring-dist"></div>
     </div>
 
@@ -886,7 +886,7 @@ function renderStreak(){
     hovertext:d.map(t=>`${t.Tym_clean}<br>Aktuální série: ${t.Streak>0?t.Streak+' výher':t.Streak<0?(-t.Streak)+' proher':'žádná'}<br>Nejdelší šňůra výher: ${t.Max_win}<br>Nejdelší šňůra proher: ${t.Max_loss}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:120,r:40,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:'← prohry v řadě | výhry v řadě →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
+    xaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(t=>Math.abs(+t.Streak||0)))), title:{text:'← prohry v řadě | výhry v řadě →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     showlegend:false
   }), LOCK_CONFIG);
@@ -1128,8 +1128,10 @@ function renderFaceoffDna(){
 function renderScoringDist(){
   if(!HRACI.length){ emptyBox('chart-scoring-dist','Zatím bez hráčských dat.'); return; }
   const byTeam={};
-  HRACI.filter(p=>p.GP>=5 && p.Body!=null && p.Tym_clean).forEach(p=>{
-    (byTeam[p.Tym_clean]=byTeam[p.Tym_clean]||[]).push(p);
+  // (5. 10.) všichni hráči týmu — dřív jen s 5+ zápasy, takže do 5. kola byl graf
+  // prázdný a body hráčů, kteří pár zápasů vynechali, v součtu týmu chyběly
+  HRACI.filter(p=>p.Body!=null && isFinite(+p.Body) && p.Tym_clean).forEach(p=>{
+    (byTeam[p.Tym_clean]=byTeam[p.Tym_clean]||[]).push(Object.assign({},p,{Body:+p.Body}));
   });
   const rows=Object.keys(byTeam).map(tm=>{
     const ps=byTeam[tm].sort((a,b)=>b.Body-a.Body);
@@ -1170,6 +1172,15 @@ function renderHomeAway(){
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     showlegend:false
   }), LOCK_CONFIG);
+}
+
+/* Celočíselná osa pro počty (comebacky, série, góly). Bez tick0/dtick Plotly u malých
+   čísel vyrábí popisky −0,5 / 0,5 / 1,5 — počet comebacků ale nemůže být 1,5.
+   U velkých čísel (nad 30) nechá rozestup na Plotly, ten už půlky nedělá. */
+function osaPocty(maxAbs){
+  const m=Math.max(1,Math.ceil(Math.abs(+maxAbs||0)));
+  if(m>30) return {};
+  return {tickmode:'linear', tick0:0, dtick: m<=6?1 : m<=12?2 : 5};
 }
 
 /* ════════════════ COMEBACK KINGS ════════════════ */
@@ -1214,7 +1225,7 @@ function renderCbClutch(){
     hovertext:d.map(t=>`${t.Tym_clean}<br>Comebacky: ${t.Pocet_comebacku}<br>Udržení vedení: ${f1(t.Uspesnost_udrzeni)} %`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:55,r:20,t:15,b:45},
-    xaxis:{...AX_LOCK, title:{text:'Počet comebacků →',font:{size:11,color:'#4A6070'}}, range:xr, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    xaxis:{...AX_LOCK, ...osaPocty(Math.max(...xs)), title:{text:'Počet comebacků →',font:{size:11,color:'#4A6070'}}, range:xr, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, title:{text:'Udržení vedení (%)',font:{size:11,color:'#4A6070'}}, range:yr, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     shapes:[
       {type:'line',x0:avgX,x1:avgX,y0:yr[0],y1:yr[1],line:{dash:'dash',color:'rgba(143,163,176,0.3)',width:1}},
@@ -1238,7 +1249,7 @@ function smallBar(id, rows, color){
     hoverinfo:'text', hovertext:rows.map(r=>`${r.label}: ${r.pocet} obratů`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:150,r:35,t:5,b:25},
-    xaxis:{...AX_LOCK, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:9}},
+    xaxis:{...AX_LOCK, ...osaPocty(Math.max(...rows.map(r=>+r.pocet||0))), color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:9}},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}, automargin:true},
     showlegend:false
   }), LOCK_CONFIG);
@@ -1301,7 +1312,7 @@ function renderGtBuckets(){
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:45,r:15,t:15,b:55},
     xaxis:{...AX_LOCK, title:{text:'Minuta zápasu',font:{size:11,color:'#4A6070'}}, color:'#4A6070', tickangle:-45, tickfont:{family:'JetBrains Mono',size:9}},
-    yaxis:{...AX_LOCK, title:{text:'Počet gólů ('+label+')',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, ...osaPocty(Math.max(...vals.map(v=>+v||0))), title:{text:'Počet gólů ('+label+')',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     showlegend:false
   }), LOCK_CONFIG);
 }
@@ -1317,7 +1328,7 @@ function renderGtTretiny(){
   })), Object.assign({}, BASE_LAYOUT, {
     barmode:'group', margin:{l:40,r:15,t:35,b:90},
     xaxis:{...AX_LOCK, categoryorder:'array', categoryarray:cats, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:9}},
-    yaxis:{...AX_LOCK, title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(t=>Math.max(+t.T1||0,+t.T2||0,+t.T3||0)))), title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     legend:{orientation:'h',x:0.5,xanchor:'center',y:1.1,font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
@@ -1335,7 +1346,7 @@ function renderGtRychle(){
   ], Object.assign({}, BASE_LAYOUT, {
     barmode:'overlay', margin:{l:45,r:15,t:35,b:110},
     xaxis:{...AX_LOCK, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:9}},
-    yaxis:{...AX_LOCK, title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(r=>+r.pocet||0))), title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
     legend:{orientation:'h',x:0.5,xanchor:'center',y:1.1,font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
@@ -1352,7 +1363,7 @@ function renderGtKiller(){
      hoverinfo:'text', hovertext:d.map(t=>`${t.Tym}<br>Obdržené: ${t.Obdrzene}<br>Bilance: ${t.Bilance>0?'+':''}${t.Bilance}`)}
   ], Object.assign({}, BASE_LAYOUT, {
     barmode:'overlay', margin:{l:120,r:40,t:35,b:40},
-    xaxis:{...AX_LOCK, title:{text:'← obdržené | vstřelené → (góly v koncovce)',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}, zeroline:true, zerolinewidth:2, zerolinecolor:'rgba(232,239,244,0.6)'},
+    xaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(t=>Math.max(+t.Vstrelene||0,+t.Obdrzene||0)))), title:{text:'← obdržené | vstřelené → (góly v koncovce)',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}, zeroline:true, zerolinewidth:2, zerolinecolor:'rgba(232,239,244,0.6)'},
     yaxis:{...AX_LOCK, categoryorder:'array', categoryarray:cats, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     legend:{orientation:'h',x:0.5,xanchor:'center',y:1.08,font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
