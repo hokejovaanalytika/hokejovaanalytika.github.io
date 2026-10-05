@@ -203,7 +203,7 @@
 
     <div class="card">
       <div class="card-title">Gólová efektivita</div>
-      <div class="card-sub">Góly na zápas vs body na zápas. Nad diagonálou = tým urve hodně bodů i z méně gólů (efektivní / clutch).</div>
+      <div class="card-sub">Góly na zápas vs body na zápas. Čárkovaná čára = kolik bodů v lize obvykle odpovídá danému počtu vstřelených gólů. Nad čarou = tým má víc bodů, než by odpovídalo jeho útoku — většinou díky obraně (málo inkasuje), někdy i díky štěstí v těsných zápasech. Pod čarou = góly dává, ale hodně jich i dostává.</div>
       <div class="chart-wrap-tall" id="c-efekt"></div>
     </div>
 
@@ -400,13 +400,13 @@
 
     <div class="card">
       <div class="card-title">Góly podle stavu zápasu</div>
-      <div class="card-sub">Rozpad gólů podle toho, jak se zrovna vyvíjel zápas. Zlatá = za těsného stavu (vyrovnáno nebo rozdíl jedné branky), tedy góly, které nejvíc rozhodují. Min. <span id="cl-min">8</span> gólů.</div>
+      <div class="card-sub">Rozpad gólů podle toho, jak se zrovna vyvíjel zápas. Zlatá = za těsného stavu (vyrovnáno nebo rozdíl jedné branky), tedy góly, které nejvíc rozhodují. 15 hráčů s nejvíc góly za těsného stavu.</div>
       <div class="chart-wrap-tall" id="c-clutch-stav"></div>
     </div>
 
     <div class="card">
       <div class="card-title">Kdo hraje o výsledek a kdo si vylepšuje statistiku</div>
-      <div class="card-sub">Odchylka od ligového mediánu. Většina střelců dá zhruba tři čtvrtiny gólů za těsného stavu — zlatě ti výrazně nad, modře ti, kdo skórují hlavně za rozhodnutého stavu. V popisku je skutečný podíl.</div>
+      <div class="card-sub">Odchylka od ligového mediánu<span id="cl-med"></span>. Zlatě ti výrazně nad, modře ti, kdo skórují hlavně za rozhodnutého stavu. V popisku je skutečný podíl. Jen hráči s aspoň <span id="cl-min">8</span> góly — s menším počtem by o pořadí rozhodovala hlavně náhoda.</div>
       <div class="chart-wrap-tall" id="c-clutch-podil"></div>
     </div>
 
@@ -689,20 +689,34 @@ function stnet(){const d=[...(LIGA.st_net||[])].sort((a,b)=>a.Net-b.Net);
   hbar('c-stnet',d,'Net','Tym',{colors:d.map(r=>r.Net>=0?'#4CAF82':'#E05555'),txt:r=>(r.Net>0?'+':'')+r.Net,hover:r=>`${r.Tym}<br>PP góly: ${r.PP_skore} · obdržené v oslabení: ${r.PK_inkaso}<br>Net: ${r.Net>0?'+':''}${r.Net}`,xaxis:{title:{text:'čistý přínos speciálních formací (góly)',font:{size:11,color:'#4A6070'}},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'}});}
 function odpoved(){const d=[...(LIGA.odpoved||[])].filter(r=>r.Min!=null).sort((a,b)=>b.Min-a.Min);
   hbar('c-odpoved',d,'Min','Tym',{colors:'#5B9BD5',txt:r=>f1(r.Min)+'′',hover:r=>`${r.Tym}<br>Ø reakce po inkasu: ${f1(r.Min)} min`,xaxis:{title:{text:'minuty do odpovědi (méně = lépe)',font:{size:11,color:'#4A6070'}}}});}
-function scatterLogo(id,d,xk,yk,xt,yt){
+function scatterLogo(id,d,xk,yk,xt,yt,opt){
   if(!d||!d.length){emptyBox(id,'Zatím bez dat.');return;}
+  opt=opt||{};
   const xs=d.map(r=>r[xk]),ys=d.map(r=>r[yk]);
   const xr=[Math.min(...xs)*0.97,Math.max(...xs)*1.03],yr=[Math.min(...ys)*0.92,Math.max(...ys)*1.08];
+  // volitelně trend ligy (přímka nejmenších čtverců): y = a + b·x
+  let tr=null;
+  if(opt.trend&&d.length>=3){
+    const mx=xs.reduce((s,v)=>s+v,0)/xs.length, my=ys.reduce((s,v)=>s+v,0)/ys.length;
+    const sxx=xs.reduce((s,v)=>s+(v-mx)*(v-mx),0);
+    if(sxx>0){const b=xs.reduce((s,v,i)=>s+(v-mx)*(ys[i]-my),0)/sxx; tr={a:my-b*mx,b:b};}
+  }
+  const odch=r=>tr?r[yk]-(tr.a+tr.b*r[xk]):null;
+  const traces=[];
+  if(tr) traces.push({type:'scatter',mode:'lines',x:xr,y:xr.map(x=>tr.a+tr.b*x),
+    line:{color:'rgba(212,168,67,0.7)',dash:'dash',width:1.5},hoverinfo:'skip',showlegend:false});
   // logo je popiskem samo o sobě — text pod ním jen prosvítá, proto jen markery
-  Plotly.newPlot(id,[{type:'scatter',mode:'markers',x:xs,y:ys,
+  traces.push({type:'scatter',mode:'markers',x:xs,y:ys,
     marker:{size:13,color:'#3AADAD',opacity:0,line:{width:0}},
-    hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>${xt}: ${f1(r[xk])}<br>${yt}: ${f1(r[yk])}`)}],
+    hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>${xt.replace(/\s*→\s*$/,'')}: ${f1(r[xk])}<br>${yt.replace(/\s*→\s*$/,'')}: ${f1(r[yk])}`+
+      (tr?`<br>${opt.trendTxt||'proti trendu ligy'}: ${odch(r)>=0?'+':''}${(Math.round(odch(r)*100)/100).toFixed(2)}`:''))});
+  Plotly.newPlot(id,traces,
     Object.assign({},BASE_LAYOUT,{margin:{l:55,r:20,t:15,b:45},
       xaxis:{...AX_LOCK,title:{text:xt,font:{size:11,color:'#4A6070'}},range:xr,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
       yaxis:{...AX_LOCK,title:{text:yt,font:{size:11,color:'#4A6070'}},range:yr,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
       images:logoImages(d.map(r=>({t:r.Tym,x:r[xk],y:r[yk]})),xr,yr,0.10),showlegend:false}),LOCK_CONFIG);
 }
-function efekt(){scatterLogo('c-efekt',LIGA.efektivita,'GF_gp','B_gp','Góly / zápas →','Body / zápas →');}
+function efekt(){scatterLogo('c-efekt',LIGA.efektivita,'GF_gp','B_gp','Góly / zápas →','Body / zápas →',{trend:true,trendTxt:'Body/zápas proti čáře'});}
 function disciplina(){const d=(LIGA.disciplina||[]).filter(r=>r.PIM_gp!=null&&r.PK_pct!=null);scatterLogo('c-disc',d,'PIM_gp','PK_pct','Tresty / zápas →','Úspěšnost oslabení (%) →');}
 function navst(){const d=(LIGA.navstevnost||[]).filter(r=>r.Prum_doma!=null);scatterLogo('c-navst',d,'Prum_doma','V_doma','Ø domácí návštěvnost →','Domácí výhry →');}
 function tlak(){const d=LIGA.tlak||[];if(!d.length){emptyBox('c-tlak','Zatím bez dat.');return;}
@@ -989,16 +1003,20 @@ const clutchNames = () => { const C=CLUTCH||{}; const a=[];
 function renderClutch(){
   renderInsights('insight-clutch', INS_CLUTCH, clutchNames());
   const C = CLUTCH||{};
-  // clutch.json se negeneruje, dokud nikdo nemá dost gólů (viz MIN_G v build.R)
+  // clutch.json chybí jen před prvním gólem sezóny; srovnání podílů má vlastní
+  // limit (CLUTCH_MIN_G / CLUTCH_MIN_HRACU v build.R) a čeká uvnitř karty
   const prazdno = !((C.stav||[]).length) && !((C.nejclutch||[]).length)
                && !((C.padderi||[]).length) && !((C.rozhoduji||[]).length);
   if(prazdno){
-    console.warn('Clutch: clutch.json chybí nebo je prázdný (málo hráčů nad limitem gólů).');
+    console.warn('Clutch: clutch.json chybí nebo je prázdný (zatím žádné góly podle stavu).');
     panelZamkni('panel-clutch', KARTA_ZAMCENA);
     return;
   }
   panelOdemkni('panel-clutch');
-  const el=document.getElementById('cl-min'); if(el && C.limity) el.textContent=C.limity.min_golu;
+  const L=C.limity||{};
+  const el=document.getElementById('cl-min'); if(el && L.min_golu!=null) el.textContent=L.min_golu;
+  const em=document.getElementById('cl-med');
+  if(em) em.textContent = L.srovnani && L.median_podil!=null ? ` (teď ${f1(L.median_podil)} % gólů za těsného stavu)` : '';
   clutchStav(C.stav); clutchPodil(C); clutchRozhod(C.rozhoduji);
 }
 
@@ -1025,8 +1043,17 @@ function clutchStav(d){
 }
 
 function clutchPodil(C){
-  const nc=(C&&C.nejclutch)||[], pd=(C&&C.padderi)||[];
-  if(!nc.length&&!pd.length){ emptyBox('c-clutch-podil','Zatím bez dat.'); return; }
+  const nc=(C&&C.nejclutch)||[], pd=(C&&C.padderi)||[], L=(C&&C.limity)||{};
+  const box=document.getElementById('c-clutch-podil');
+  box.style.height = (!nc.length&&!pd.length) ? 'auto' : '';   // čekací poznámka nepotřebuje výšku grafu
+  if(!nc.length&&!pd.length){
+    // srovnání čeká na dost hráčů s dost góly — ukázat, kolik ještě chybí
+    if(L.min_hracu!=null && L.min_golu!=null && L.pocet!=null){
+      const n=+L.nejvic_golu||0, gol=n===1?'gól':(n>=2&&n<=4?'góly':'gólů');
+      emptyBox('c-clutch-podil',`Srovnání se ukáže, až bude mít aspoň ${L.min_hracu} hráčů ${L.min_golu} a víc gólů — do té doby by o pořadí rozhodovala hlavně náhoda.<br>Zatím: ${L.pocet} z ${L.min_hracu}, nejlepší střelec má ${n} ${gol}.`);
+    } else emptyBox('c-clutch-podil','Zatím bez dat.');
+    return;
+  }
   const med=(C&&C.limity&&C.limity.median_podil)||0;
   // sloučit oba póly, seřadit vzestupně podle odchylky
   const seen=new Set(), q=[];
