@@ -33,7 +33,7 @@
     body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
     header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
     .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .logo-text{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;} a.logo-text:hover .site-title{opacity:.85;}
     .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
     .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;}
     .site-title span{color:var(--teal-light);}
@@ -46,16 +46,42 @@
     nav a:hover{color:var(--text);}
     nav a.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
     main{max-width:1100px;margin:0 auto;padding:16px 12px 40px;}
-    .hero{background:linear-gradient(135deg,#0d1b2a 0%,#1b263b 50%,#415a77 100%);border-radius:12px;padding:20px;margin-bottom:16px;text-align:center;}
+    .hero{background:linear-gradient(135deg,#0d1b2a 0%,#1b263b 50%,#415a77 100%);border-radius:12px;padding:20px 16px;margin-bottom:16px;text-align:center;}
     .hero h1{font-size:22px;font-weight:700;color:var(--gold);}
     .hero p{font-size:13px;color:var(--text-dim);margin-top:4px;}
+    /* (8. 10.) hranice a rozehranost pod nadpisem */
+    .stat-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+    .stat{flex:1;min-width:92px;max-width:180px;background:rgba(15,30,38,.55);border:1px solid var(--border);border-radius:9px;padding:9px 6px;}
+    .stat .num{font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--text);}
+    .stat .num.gold{color:var(--gold);} .stat .num.teal{color:var(--teal-light);}
+    .stat .lab{font-size:11px;color:var(--text-dim);margin-top:1px;}
     .card{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;}
     .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
     .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--gold);border-radius:2px;}
     .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .card-sub b{color:var(--text);font-weight:600;}
+    /* "Co ti to říká" — insight box (stejný jako na ostatních záložkách) */
+    .insight{background:linear-gradient(135deg,rgba(42,139,139,.10) 0%,rgba(27,43,52,.35) 100%);border:1px solid var(--teal-dim);border-left:3px solid var(--teal);border-radius:var(--radius);padding:13px 15px;margin-bottom:16px;}
+    .insight-h{font-size:11px;font-weight:600;color:var(--teal-light);text-transform:uppercase;letter-spacing:.9px;margin-bottom:9px;}
+    .insight-item{display:flex;gap:10px;align-items:flex-start;padding:6px 0;}
+    .insight-item+.insight-item{border-top:1px solid rgba(42,139,139,.15);}
+    .insight-ic{font-size:16px;line-height:1.35;flex-shrink:0;}
+    .insight-tx{font-size:13.5px;line-height:1.5;color:var(--text);}
+    .insight-tx b{font-weight:600;}
+    .insight-tx b.teal{color:var(--teal-light);} .insight-tx b.gold{color:var(--gold);}
+    .insight-tx b.loss{color:var(--loss);} .insight-tx b.blue{color:var(--otwin);}
+    .insight-pozn{font-size:11.5px;line-height:1.45;color:var(--text-dim);border-top:1px dashed rgba(42,139,139,.25);margin-top:6px;padding-top:8px;}
+    .insight-pozn+.insight-pozn{border-top:0;margin-top:2px;padding-top:0;}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:16px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;transition:all .15s;font-family:var(--font-main);}
+    .chip:hover{color:var(--text);}
+    .chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .chip .tecka{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+    .chips.metrika .chip.active{background:var(--gold-dim);border-color:var(--gold-dim);}
     .chart-wrap-tall{width:100%;height:540px;}
+    .chart-wrap-mid{width:100%;height:400px;}
     .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-    table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:620px;}
+    table.tbl{width:100%;border-collapse:collapse;font-size:13px;min-width:640px;}
     .tbl thead tr{background:var(--slate-light);}
     .tbl th{padding:8px 6px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap;}
     .tbl th:nth-child(2){text-align:left;}
@@ -63,26 +89,41 @@
     .tbl td:first-child{text-align:center;color:var(--text-faint);}
     .tbl td:nth-child(2){text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500;}
     .tbl tbody tr:hover{background:rgba(42,139,139,0.06);}
-    .tbl .pbar{position:relative;min-width:90px;}
-    .tbl .pbar i{position:absolute;left:0;top:0;bottom:0;background:rgba(59,130,246,0.35);border-radius:3px;}
+    .tbl .pbar{position:relative;min-width:84px;}
+    .tbl .pbar i{position:absolute;left:0;top:4px;bottom:4px;background:rgba(42,139,139,0.35);border-radius:3px;}
     .tbl .pbar span{position:relative;padding-left:5px;font-weight:600;color:var(--text);}
     .tbl tr.z4{box-shadow:inset 3px 0 0 var(--win);}
     .tbl tr.z12{box-shadow:inset 3px 0 0 var(--gold);}
-    .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .tbl tr.z14{box-shadow:inset 3px 0 0 var(--loss);}
+    .tbl .jiste{color:var(--win);font-weight:600;}
+    .tbl .venku{color:var(--text-faint);}
+    .tbl small{font-size:10px;color:var(--text-faint);}
+    .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-dim);margin-bottom:12px;}
     .legend span{display:inline-flex;align-items:center;gap:6px;}
     .legend i{width:12px;height:12px;border-radius:3px;display:inline-block;}
-    .bracket{display:flex;gap:14px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px;}
-    .bcol{flex:0 0 auto;min-width:160px;display:flex;flex-direction:column;justify-content:space-around;gap:10px;}
-    .bcol h4{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;text-align:center;margin-bottom:4px;}
+    /* pavouk: na počítači kola vedle sebe, na mobilu pod sebou */
+    .bracket{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;}
+    .bcol{display:flex;flex-direction:column;justify-content:space-around;gap:10px;min-width:0;}
+    .bcol h4{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;text-align:center;margin-bottom:2px;}
+    .bcol h4 small{display:block;text-transform:none;letter-spacing:0;color:var(--text-faint);font-weight:400;font-size:10.5px;}
     .match{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;}
-    .match.qf{border-left:3px solid #3B82F6;}
-    .match.pre{border-left:3px solid #93C5FD;}
-    .match.sf{border-left:3px solid #1D4ED8;}
+    .match.qf{border-left:3px solid var(--teal-light);}
+    .match.pre{border-left:3px solid var(--gold);}
+    .match.sf{border-left:3px solid var(--otwin);}
     .match.fin{border-left:3px solid var(--gold);background:rgba(212,168,67,0.08);}
-    .match .team{display:flex;justify-content:space-between;gap:8px;padding:2px 0;}
-    .match .team .seed{color:var(--text-faint);font-family:var(--font-mono);font-size:11px;margin-right:6px;}
-    .match .team .nm{color:var(--text);font-weight:500;flex:1;}
+    .match .team{display:flex;align-items:baseline;gap:6px;padding:2px 0;min-width:0;}
+    .match .team .seed{color:var(--text-faint);font-family:var(--font-mono);font-size:11px;min-width:22px;}
+    .match .team .nm{color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .match .team.vyhled .nm{color:var(--text-dim);font-weight:400;}
     .match .vs{color:var(--text-faint);font-size:11px;font-style:italic;}
+    .match .pravidlo{color:var(--text-dim);font-size:12px;line-height:1.45;}
+    .bracket-pozn{font-size:11px;color:var(--text-faint);margin-top:10px;}
+    @media (max-width:760px){
+      .bracket{grid-template-columns:1fr;gap:16px;}
+      .bcol{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+      .bcol h4{grid-column:1 / -1;text-align:left;}
+      .bcol.jeden{grid-template-columns:1fr;}
+    }
     .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
     .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
@@ -95,7 +136,7 @@
 
 <header>
   <div class="header-inner">
-    <div class="logo-text"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></div>
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></a>
     <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
   </div>
 </header>
@@ -114,103 +155,269 @@
 
 <main>
   <div class="hero">
-    <h1>🏆 Playoff Extraliga 2026/27</h1>
-    <p>Monte Carlo simulace — šance na playoff se mění po každém kole. Top 12 postupuje (1–4 přímo do QF, 5–12 předkolo).</p>
+    <h1>🏆 Playoff Extraliga <span id="hero-sezona">2026/27</span></h1>
+    <p>Simulace zbytku základní části — šance se přepočítávají po každém kole. Top 12 postupuje (1.–4. přímo do čtvrtfinále, 5.–12. předkolo), 13. tým končí, 14. hraje baráž.</p>
+    <div class="stat-row" id="hero-stats"></div>
+  </div>
+
+  <div class="insight" id="insight-playoff" style="display:none">
+    <div class="insight-h">Co ti to říká</div>
+    <div class="insight-body"></div>
   </div>
 
   <div class="card">
-    <div class="card-title">Šance na playoff — Monte Carlo</div>
-    <div class="card-sub">5 000 simulací zbývajících zápasů podle aktuální bodové úspěšnosti a síly týmů.</div>
-    <div class="legend">
-      <span><i style="background:#4CAF82"></i> Top 4 (přímo QF)</span>
-      <span><i style="background:#D4A843"></i> Předkolo (5–12)</span>
-      <span><i style="background:#5E7384"></i> Mimo playoff</span>
+    <div class="card-title">Šance na playoff — simulace</div>
+    <div class="card-sub" id="sub-prob">20 000 simulací zbývajících zápasů. Síla týmu = bodová úspěšnost, na začátku sezóny tlumená k průměru ligy; protože ji po pár kolech nikdo nezná přesně, simulace ji v každém běhu losuje kolem odhadu. <b>✓</b> = matematicky jisté (i kdyby tým už všechno prohrál), <b>✗</b> = matematicky ztracené. 100 % a 0 % jen při jistotě.</div>
+    <div class="legend" id="leg-prob">
+      <span><i style="background:#4CAF82"></i> Top 4 (přímo do čtvrtfinále)</span>
+      <span><i style="background:#D4A843"></i> Předkolo (5.–12.)</span>
+      <span><i style="background:#71879A"></i> 13. místo (konec sezóny)</span>
+      <span><i style="background:#D6605B"></i> Baráž (14.)</span>
     </div>
     <div class="chart-wrap-tall" id="c-prob"></div>
   </div>
 
   <div class="card">
     <div class="card-title">Detailní pravděpodobnosti</div>
-    <div class="card-sub">Šance jednotlivých zón + projekce konečných bodů. Zelený pruh = Top 4, zlatý = předkolo.</div>
+    <div class="card-sub"># = očekávané konečné pořadí (průměrné místo ze simulací). <b>Odhad b.</b> = průměrný počet bodů na konci základní části. <b>Na playoff potřebuje</b> = body na zápas, které tým ve zbývajících zápasech potřebuje na odhadovanou hranici 12. místa, a v závorce jeho dosavadní tempo.</div>
     <div class="tbl-wrap">
       <table class="tbl">
-        <thead><tr><th>#</th><th>Tým</th><th>Body</th><th>Odehr.</th><th>Zbývá</th><th>Playoff %</th><th>Top 4 %</th><th>Předkolo %</th><th>Mimo %</th><th>Odhad b.</th></tr></thead>
+        <thead><tr><th>#</th><th>Tým</th><th>Body</th><th>Playoff</th><th>Top 4</th><th>Baráž</th><th>Odhad b.</th><th>Na playoff potřebuje</th><th>Odehr.</th><th>Zbývá</th></tr></thead>
         <tbody id="t-prob"><tr><td colspan="10"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table>
     </div>
   </div>
 
   <div class="card">
+    <div class="card-title">Kde kdo skončí</div>
+    <div class="card-sub">Pravděpodobnost každého konečného místa v procentech (prázdné políčko = méně než 1 %). Čím sytější barva, tím pravděpodobnější místo. Svislé čáry oddělují Top 4, předkolo, 13. místo a baráž.</div>
+    <div class="chart-wrap-mid" id="c-mista"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Vývoj šancí po kolech</div>
+    <div class="card-sub">Jak se šance měnily po každém odehraném kole — spočítané stejným modelem jako dnešní čísla (i zpětně od 1. kola). Body nad čarou ukazuje graf <a href="tymy.html#momentum" style="color:var(--teal-light)">Vzdálenost od playoff čáry</a> na Týmech; tady jde o to, co ty body znamenají se zbývajícími zápasy. Klepni na týmy (nejvýš 6 naráz).</div>
+    <div class="chips metrika" id="vyv-metrika"></div>
+    <div class="chips" id="vyv-chips"></div>
+    <div class="chart-wrap-mid" id="c-vyvoj"></div>
+  </div>
+
+  <div class="card">
     <div class="card-title">Projekce nasazení — playoff pavouk</div>
-    <div class="card-sub">Podle aktuální tabulky: 1–4 přímo do čtvrtfinále, 5–12 předkolo (best of 5). Po předkole se ze všech 8 postupujících udělá nové nasazení 1–8.</div>
+    <div class="card-sub">Kdyby základní část skončila dnes. Předkolo se hraje na tři vítězství, čtvrtfinále, semifinále i finále na čtyři. Po každém kole se dvojice nasazují znovu: <b>nejlépe umístěný postupující hraje s nejhůř umístěným</b> (podle pořadí v základní části) — pavouk tedy není pevný.</div>
     <div class="bracket" id="bracket"></div>
+    <div class="bracket-pozn" id="bracket-pozn"></div>
   </div>
 </main>
 
-<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a></footer>
+<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a></footer>
 
 <script>
 const DATA='data/';
 const LOCK_CONFIG={responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false};
 const AX_LOCK={fixedrange:true};
-const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
+const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',separators:', ',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
 async function loadJSON(f){const r=await fetch(DATA+f);if(!r.ok)throw new Error('Nelze načíst '+f);return r.json();}
 const f1=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+const f2=x=>x==null||isNaN(x)?'—':(Math.round(x*100)/100).toFixed(2);
+// (8. 10.) české desetinné čárky; celé číslo bez ",0"
+const c1=x=>f1(x).replace('.',',');
+const c2=x=>f2(x).replace('.',',');
+const pc=x=>x==null||isNaN(x)?'—':c1(x).replace(/,0$/,'');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const jeTrue=v=>v===true||v==='TRUE'||v===1;
+const isMobile=()=>window.innerWidth<600;
+const DNY=['ne','po','út','st','čt','pá','so'];
+function den(x){const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(x||'').trim());return m?new Date(+m[3],+m[2]-1,+m[1]):null;}
+const dKratce=s=>{const d=den(s);return d?`${d.getDate()}. ${d.getMonth()+1}.`:'';};
 
+let PL=null, SIM=[];
 async function init(){
   try{
-    const [pl,meta]=await Promise.all([loadJSON('playoff.json').catch(()=>null),loadJSON('meta.json').catch(()=>({}))]);
+    const [pl,meta,ins]=await Promise.all([loadJSON('playoff.json').catch(()=>null),loadJSON('meta.json').catch(()=>({})),loadJSON('insights_playoff.json').catch(()=>[])]);
     document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
+    if(meta.sezona){document.getElementById('hero-sezona').textContent=meta.sezona;document.getElementById('foot-sezona').textContent=meta.sezona;}
     if(!pl||!pl.sim){
-      console.warn('playoff.json chybí — kartu build.R nevygeneroval.');document.getElementById('c-prob').innerHTML='<div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div>';
+      console.warn('playoff.json chybí — kartu build.R nevygeneroval.');
+      ['c-prob','c-mista','c-vyvoj'].forEach(id=>document.getElementById(id).innerHTML='<div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div>');
       document.getElementById('t-prob').innerHTML='<tr><td colspan="10"><div class="empty">Zatím bez dat.</div></td></tr>';
       return;
     }
-    renderProb(pl.sim); renderTable(pl.sim); renderBracket(pl);
-  }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+e.message+'</div>';}
+    PL=pl;
+    // starší playoff.json (do 8. 10.) nemá průměrné místo → řadit podle šancí
+    SIM=[...pl.sim].sort((a,b)=>(a.Prum_misto!=null&&b.Prum_misto!=null)?(a.Prum_misto-b.Prum_misto):((b.Playoff_pct-a.Playoff_pct)||(b.Top4_pct-a.Top4_pct)));
+    renderHero(); renderInsights('insight-playoff',ins,SIM.map(r=>r.Tym));
+    renderProb(); renderTable(); renderMista(); renderVyvoj(); renderBracket();
+  }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+esc(e.message)+'</div>';}
 }
 
-function renderProb(sim){
-  const d=[...sim].sort((a,b)=>(a.Playoff_pct-b.Playoff_pct)||(a.Top4_pct-b.Top4_pct));
-  const cats=d.map(r=>r.Tym);
-  Plotly.newPlot('c-prob',[
-    {type:'bar',orientation:'h',name:'Top 4',y:cats,x:d.map(r=>r.Top4_pct),marker:{color:'#4CAF82'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Top 4: ${f1(r.Top4_pct)} %`)},
-    {type:'bar',orientation:'h',name:'Předkolo',y:cats,x:d.map(r=>r.Predkolo_pct),marker:{color:'#D4A843'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Předkolo: ${f1(r.Predkolo_pct)} %<br>Playoff celkem: ${f1(r.Playoff_pct)} %`)},
-    {type:'bar',orientation:'h',name:'Mimo',y:cats,x:d.map(r=>r.Mimo_pct),marker:{color:'#5E7384'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Mimo playoff: ${f1(r.Mimo_pct)} %`)}
-  ],Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:100,r:20,t:10,b:40},
-    xaxis:{...AX_LOCK,range:[0,100],ticksuffix:'%',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},title:{text:'pravděpodobnost',font:{size:11,color:'#4A6070'}}},
-    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.04,font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+/* ── Insight box "Co ti to říká" — stejný renderer jako na ostatních záložkách ── */
+function renderInsights(boxId, data, names){
+  const box=document.getElementById(boxId); if(!box) return;
+  const body=box.querySelector('.insight-body'); const arr=Array.isArray(data)?data:[];
+  if(!arr.length){box.style.display='none';return;}
+  const rxe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const jePozn=o=>o&&(o.pozn===true||o.pozn==='TRUE'||(Array.isArray(o.pozn)&&o.pozn[0]===true));
+  let hlavni=arr.filter(o=>!jePozn(o)), pozn=arr.filter(jePozn);
+  if(!hlavni.length){hlavni=pozn;pozn=[];}
+  const uniq=[...new Set((names||[]).filter(Boolean))].sort((a,b)=>b.length-a.length);
+  const rxAll=uniq.length?new RegExp('('+uniq.map(n=>rxe(esc(n))).join('|')+')','g'):null;
+  body.innerHTML=hlavni.map(o=>{let t=esc(o.text||''); if(rxAll) t=t.replace(rxAll,m=>`<b class="${o.tone||'teal'}">${m}</b>`);
+    return `<div class="insight-item"><span class="insight-ic">${o.icon||'•'}</span><span class="insight-tx">${t}</span></div>`;}).join('')+
+    pozn.map(o=>`<div class="insight-pozn">${o.icon||''} ${esc(o.text||'')}</div>`).join('');
+  box.style.display='';
 }
 
-function renderTable(sim){
-  const d=[...sim].sort((a,b)=>(b.Playoff_pct-a.Playoff_pct)||(b.Top4_pct-a.Top4_pct));
-  const mimoColor=v=>v<20?'#7FE0AC':v<50?'var(--gold)':'#F0A0A0';
-  document.getElementById('t-prob').innerHTML=d.map((r,i)=>{
-    const cls=i<4?'z4':i<12?'z12':'';
-    return `<tr class="${cls}"><td>${i+1}</td><td>${r.Tym}</td><td>${r.Body}</td><td>${r.Zapasy}</td><td>${r.Zbyvajici}</td>
-      <td class="pbar"><i style="width:${Math.max(2,r.Playoff_pct)}%"></i><span>${f1(r.Playoff_pct)}</span></td>
-      <td>${f1(r.Top4_pct)}</td><td>${f1(r.Predkolo_pct)}</td>
-      <td style="color:${mimoColor(r.Mimo_pct)};font-weight:600">${f1(r.Mimo_pct)}</td>
-      <td style="color:var(--text)">${r.Avg_body}</td></tr>`;
+function renderHero(){
+  const odehr=PL.info&&PL.info.odehrano!=null?+PL.info.odehrano:Math.max(...SIM.map(r=>+r.Zapasy||0));
+  const box=(n,l,cls)=>`<div class="stat"><div class="num ${cls||''}">${n}</div><div class="lab">${l}</div></div>`;
+  document.getElementById('hero-stats').innerHTML=
+    (PL.prah_top12!=null?box('~'+PL.prah_top12+' b.','hranice playoff (12.)','teal'):'')+
+    (PL.prah_top4!=null?box('~'+PL.prah_top4+' b.','hranice Top 4','gold'):'')+
+    box(`${odehr} / ${PL.celkem_kol||52}`,'odehraná kola');
+}
+
+// zóny pro graf: starší JSON nemá 13. místo / baráž zvlášť → jen "mimo"
+function zony(r){
+  const ma=r.Baraz_pct!=null;
+  return {t4:+r.Top4_pct||0, pk:+r.Predkolo_pct||0, m13:ma?+r.Misto13_pct||0:+r.Mimo_pct||0, br:ma?+r.Baraz_pct||0:0, ma};
+}
+function znacka(r){ return jeTrue(r.Jiste_top4)?' ✓✓':jeTrue(r.Jiste_playoff)?' ✓':jeTrue(r.Venku_playoff)?' ✗':''; }
+function renderProb(){
+  const d=[...SIM].reverse();                       // Plotly kreslí první kategorii dole → nejlepší nahoře
+  const cats=d.map(r=>r.Tym), lab=d.map(r=>r.Tym+znacka(r)), z=d.map(zony);
+  const ma=z.some(x=>x.ma);
+  if(!ma) document.getElementById('leg-prob').innerHTML='<span><i style="background:#4CAF82"></i> Top 4</span><span><i style="background:#D4A843"></i> Předkolo (5.–12.)</span><span><i style="background:#71879A"></i> Mimo playoff</span>';
+  const hov=r=>{const q=zony(r);return `<b>${esc(r.Tym)}</b>${znacka(r)}<br>Top 4: ${pc(q.t4)} %<br>Předkolo: ${pc(q.pk)} %<br>Playoff celkem: ${pc(r.Playoff_pct)} %`+(q.ma?`<br>13. místo: ${pc(q.m13)} %<br>Baráž: ${pc(q.br)} %`:`<br>Mimo playoff: ${pc(q.m13)} %`);};
+  const tr=(name,vals,color)=>({type:'bar',orientation:'h',name,y:cats,x:vals,marker:{color,line:{color:'#243545',width:1}},hoverinfo:'text',hovertext:d.map(hov)});
+  const traces=[tr('Top 4',z.map(x=>x.t4),'#4CAF82'),tr('Předkolo',z.map(x=>x.pk),'#D4A843'),tr(ma?'13. místo':'Mimo',z.map(x=>x.m13),'#71879A')];
+  if(ma) traces.push(tr('Baráž',z.map(x=>x.br),'#D6605B'));
+  Plotly.newPlot('c-prob',traces,Object.assign({},BASE_LAYOUT,{barmode:'stack',showlegend:false,bargap:0.25,
+    margin:{l:isMobile()?104:118,r:22,t:6,b:40},
+    xaxis:{...AX_LOCK,range:[0,100],ticksuffix:' %',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},title:{text:'pravděpodobnost',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickvals:cats,ticktext:lab,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
+
+function bunka(pct,jiste,venku,sJistou){
+  if(jiste) return `<span class="jiste">✓ ${sJistou||'jisté'}</span>`;
+  if(venku) return `<span class="venku">✗ 0 %</span>`;
+  return pc(pct)+' %';
+}
+function renderTable(){
+  const tempoBarva=(pot,tem)=>pot==null||tem==null||isNaN(pot)||isNaN(tem)?'var(--text-dim)':pot<=tem?'var(--win)':pot<=tem+0.3?'var(--gold)':'#F0A0A0';
+  document.getElementById('t-prob').innerHTML=SIM.map((r,i)=>{
+    const cls=i<4?'z4':i<12?'z12':i===13?'z14':'';
+    const jp=jeTrue(r.Jiste_playoff), vp=jeTrue(r.Venku_playoff), j4=jeTrue(r.Jiste_top4), v4=jeTrue(r.Venku_top4);
+    const jb=jeTrue(r.Jista_baraz), bb=jeTrue(r.Bez_baraze);
+    let pot='—';
+    if(jp) pot='<span class="jiste">jisté</span>';
+    else if(vp) pot='<span class="venku">ztracené</span>';
+    else if(r.Potreba_na_zapas!=null){
+      pot=+r.Potreba_b<=0?'<span class="jiste">už má</span>':
+        `<span style="color:${tempoBarva(+r.Potreba_na_zapas,+r.Tempo)};font-weight:600">${c2(r.Potreba_na_zapas)}</span> <small>(teď ${c2(r.Tempo)})</small>`;
+    }
+    const plo=jp||vp?bunka(r.Playoff_pct,jp,vp):`<i style="width:${Math.max(2,Math.min(100,+r.Playoff_pct))}%"></i><span>${pc(r.Playoff_pct)} %</span>`;
+    const brz=r.Baraz_pct==null?'—':jb?'<span style="color:var(--loss);font-weight:600">jistá</span>':bb?'<span class="venku">0 %</span>':pc(r.Baraz_pct)+' %';
+    return `<tr class="${cls}"><td>${i+1}</td><td>${esc(r.Tym)}</td><td style="color:var(--text)">${r.Body}</td>
+      <td class="${jp||vp?'':'pbar'}">${plo}</td>
+      <td>${bunka(r.Top4_pct,j4,v4)}</td><td>${brz}</td>
+      <td style="color:var(--text)">${r.Avg_body!=null?'~'+r.Avg_body:'—'}</td>
+      <td>${pot}</td><td>${r.Zapasy}</td><td>${r.Zbyvajici}</td></tr>`;
   }).join('');
 }
 
-function renderBracket(pl){
-  const pre=pl.predkolo||[], qf=pl.qf||[];
-  const teamRow=(seed,nm)=>`<div class="team"><span class="nm"><span class="seed">${seed}.</span>${nm}</span></div>`;
-  const preCol=pre.map(m=>`<div class="match pre">${teamRow(m.s1,m.t1)}<div class="vs">vs</div>${teamRow(m.s2,m.t2)}</div>`).join('');
-  const qfCol=qf.map(m=>`<div class="match qf">${teamRow(m.seed,m.top)}</div>`).join('');
-  const sfCol=`<div class="match sf"><div class="team"><span class="nm">Vítěz QF1</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz QF4</span></div></div>
-               <div class="match sf"><div class="team"><span class="nm">Vítěz QF2</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz QF3</span></div></div>`;
-  const finCol=`<div class="match fin"><div class="team"><span class="nm">Vítěz SF1</span></div><div class="vs">vs</div><div class="team"><span class="nm">Vítěz SF2</span></div></div>`;
-  document.getElementById('bracket').innerHTML=`
-    <div class="bcol"><h4>Předkolo</h4>${preCol}</div>
-    <div class="bcol"><h4>Čtvrtfinále</h4>${qfCol}</div>
-    <div class="bcol"><h4>Semifinále</h4>${sfCol}</div>
-    <div class="bcol"><h4>Finále</h4>${finCol}</div>`;
+// (8. 10.) Kde kdo skončí — pravděpodobnost každého místa (sim.Misto_pct z build.R)
+function renderMista(){
+  if(!SIM.every(r=>Array.isArray(r.Misto_pct))){document.getElementById('c-mista').innerHTML='<div class="empty">Rozdělení míst se ukáže po dalším spuštění build.R.</div>';return;}
+  const nT=SIM.length, d=[...SIM].reverse(), x=[...Array(nT)].map((_,i)=>i+1);
+  const zz=d.map(r=>r.Misto_pct.map(Number));
+  const txt=zz.map(row=>row.map(v=>v>=99.95?'100':v>=1?String(Math.round(v)):''));
+  // (8. 10. večer) nula v simulaci ≠ nemožné: "0 %" jen když místo vylučuje matematická jistota
+  //   (Top 4 / playoff / baráž), jinak 0,1 % — stejné pravidlo jako u šancí v grafu výš
+  const vylouceno=(r,m)=>(m>4&&jeTrue(r.Jiste_top4))||(m<=4&&jeTrue(r.Venku_top4))||(m>12&&jeTrue(r.Jiste_playoff))||(m<=12&&jeTrue(r.Venku_playoff))||
+    (m>13&&jeTrue(r.Bez_baraze))||(m<=13&&jeTrue(r.Jista_baraz));
+  const hodn=(r,m,v)=>v>=0.05?pc(v)+' %':vylouceno(r,m)?'0 %':'0,1 %';
+  const hov=d.map((r,ri)=>x.map((m,ci)=>`${esc(r.Tym)} — ${m}. místo: ${hodn(r,m,zz[ri][ci])}`));
+  const mob=isMobile();
+  Plotly.newPlot('c-mista',[{type:'heatmap',x,y:d.map(r=>r.Tym),z:zz,text:txt,texttemplate:'%{text}',
+    textfont:{family:'JetBrains Mono',size:mob?8:10,color:'#E8EFF4'},hoverinfo:'text',hovertext:hov,
+    zmin:0,zmax:Math.max(30,...zz.flat()),showscale:false,xgap:1,ygap:1,
+    colorscale:[[0,'rgba(42,139,139,0.04)'],[0.02,'rgba(42,139,139,0.16)'],[0.1,'rgba(42,139,139,0.38)'],[0.3,'rgba(42,139,139,0.65)'],[0.6,'rgba(58,173,173,0.88)'],[1,'#4FC4C4']]}],
+    Object.assign({},BASE_LAYOUT,{margin:{l:mob?92:110,r:6,t:26,b:34},
+      xaxis:{...AX_LOCK,tickvals:x,ticktext:x.map(String),tickfont:{family:'JetBrains Mono',size:mob?9:10,color:'#8FA3B0'},title:{text:'konečné místo',font:{size:11,color:'#4A6070'}},showgrid:false,zeroline:false},
+      yaxis:{...AX_LOCK,tickfont:{family:'DM Sans',size:mob?10:11,color:'#8FA3B0'},showgrid:false},
+      shapes:[4.5,12.5,13.5].map(v=>({type:'line',x0:v,x1:v,yref:'paper',y0:0,y1:1,line:{color:'rgba(232,239,244,0.55)',width:1.5}})),
+      annotations:[[2.5,'Top 4'],[8.5,'předkolo'],[13,'13.'],[14,'baráž']].map(([xx,t])=>({x:xx,y:1,yref:'paper',yanchor:'bottom',text:t,showarrow:false,font:{size:mob?9:10,color:'#8FA3B0'}}))}),LOCK_CONFIG);
 }
 
+// (8. 10.) Vývoj šancí po kolech (playoff.json → vyvoj, z playoff_log.csv)
+let vyvMetrika='Playoff', vyvSel=[], vyvBarva={};
+// (8. 10.) čáry: 6 dobře rozlišitelných barev (i pro barvoslepé, ověřeno na tmavém pozadí stránky).
+//   Barvu dostane tým při výběru a drží si ji, dokud ho neodznačíš; nejvýš 6 týmů naráz.
+const VYV_BARVY=['#3987e5','#d95926','#199e70','#c98500','#d55181','#9085e9'];
+function vyvPridel(){ Object.keys(vyvBarva).forEach(t=>{ if(!vyvSel.includes(t)) delete vyvBarva[t]; });
+  vyvSel.forEach(t=>{ if(!vyvBarva[t]){ const vol=VYV_BARVY.find(c=>!Object.values(vyvBarva).includes(c)); if(vol) vyvBarva[t]=vol; } }); }
+const METRIKY=[['Playoff','Playoff'],['Top4','Top 4'],['Baraz','Baráž']];
+function renderVyvoj(){
+  const V=Array.isArray(PL.vyvoj)?PL.vyvoj:[];
+  const stavy=[]; V.forEach(v=>{const k=v.Typ+'|'+v.Datum; if(!stavy.some(s=>s.k===k)) stavy.push({k,Kolo:v.Kolo,Datum:v.Datum,Typ:v.Typ});});
+  if(stavy.length<2){ document.getElementById('c-vyvoj').innerHTML=`<div class="empty">${stavy.length?'Zatím je spočítané jen jedno kolo — graf se začne kreslit po dalším kole.':'Vývoj šancí se ukáže po dalším spuštění build.R.'}</div>`;
+    document.getElementById('vyv-chips').innerHTML=''; document.getElementById('vyv-metrika').innerHTML=''; return; }
+  if(!vyvSel.length){
+    // výchozí: až 4 týmy, jejichž šance na playoff je dnes nejvíc otevřená (nejblíž 50 %)
+    vyvSel=[...SIM].filter(r=>!jeTrue(r.Jiste_playoff)&&!jeTrue(r.Venku_playoff)).sort((a,b)=>Math.abs(a.Playoff_pct-50)-Math.abs(b.Playoff_pct-50)).slice(0,4).map(r=>r.Tym);
+    if(!vyvSel.length) vyvSel=SIM.slice(0,4).map(r=>r.Tym);
+  }
+  document.getElementById('vyv-metrika').innerHTML=METRIKY.map(([k,l])=>`<button class="chip${k===vyvMetrika?' active':''}" data-m="${k}" type="button">Šance: ${l}</button>`).join('');
+  document.querySelectorAll('#vyv-metrika .chip').forEach(b=>b.onclick=()=>{vyvMetrika=b.dataset.m;renderVyvoj();});
+  vyvPridel();
+  document.getElementById('vyv-chips').innerHTML=SIM.map(r=>`<button class="chip${vyvSel.includes(r.Tym)?' active':''}" data-t="${esc(r.Tym)}" type="button">${vyvSel.includes(r.Tym)?`<span class="tecka" style="background:${vyvBarva[r.Tym]}"></span>`:''}${esc(r.Tym)}</button>`).join('');
+  document.querySelectorAll('#vyv-chips .chip').forEach(b=>b.onclick=()=>{const t=b.dataset.t;
+    if(vyvSel.includes(t)) vyvSel=vyvSel.filter(x=>x!==t);
+    else if(vyvSel.length>=VYV_BARVY.length) vyvSel=[...vyvSel.slice(1),t];      // 7. tým vystřídá nejstarší výběr
+    else vyvSel=[...vyvSel,t];
+    renderVyvoj();});
+  const xi=stavy.map((s,i)=>i), lab=stavy.map(s=>s.Typ==='dnes'?'dnes':`${s.Kolo}.`);
+  const step=Math.max(1,Math.ceil(stavy.length/(isMobile()?9:18)));
+  const tv=xi.filter(i=>i%step===0||i===stavy.length-1);
+  const nazev=METRIKY.find(m=>m[0]===vyvMetrika)[1];
+  const traces=vyvSel.map(t=>{
+    const y=stavy.map(s=>{const r=V.find(v=>v.Tym===t&&v.Typ+'|'+v.Datum===s.k);return r?+r[vyvMetrika]:null;});
+    const h=stavy.map(s=>{const r=V.find(v=>v.Tym===t&&v.Typ+'|'+v.Datum===s.k); if(!r) return '';
+      return `<b>${esc(t)}</b> ${s.Typ==='dnes'?'dnes':'po '+s.Kolo+'. kole'} (${dKratce(s.Datum)})<br>Šance na ${nazev.toLowerCase()==='playoff'?'playoff':nazev}: ${pc(r[vyvMetrika])} %<br>${r.Body} b. po ${r.Zapasy} zápasech · odhad ~${r.Projekce} b.`;});
+    return {type:'scatter',mode:'lines+markers',name:t,x:xi,y,line:{width:2,color:vyvBarva[t]},marker:{size:7,color:vyvBarva[t],line:{color:'#243545',width:2}},hoverinfo:'text',hovertext:h,connectgaps:true};
+  });
+  if(!traces.length){ Plotly.purge('c-vyvoj'); document.getElementById('c-vyvoj').innerHTML='<div class="empty">Vyber aspoň jeden tým.</div>'; return; }
+  Plotly.newPlot('c-vyvoj',traces,Object.assign({},BASE_LAYOUT,{margin:{l:44,r:12,t:10,b:44},
+    xaxis:{...AX_LOCK,tickvals:tv,ticktext:tv.map(i=>lab[i]),color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:10},title:{text:'po kole',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,range:[-3,103],ticksuffix:' %',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    showlegend:true,legend:{orientation:'h',x:0,y:-0.22,font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
+
+function renderBracket(){
+  const pre=PL.predkolo||[], qf=PL.qf||[];
+  const radek=(seed,nm,cls)=>`<div class="team${cls?' '+cls:''}"><span class="seed">${seed!=null&&seed!==''?seed+'.':''}</span><span class="nm">${esc(nm)}</span></div>`;
+  const preCol=pre.map(m=>`<div class="match pre">${radek(m.s1,m.t1)}<div class="vs">proti</div>${radek(m.s2,m.t2)}</div>`).join('');
+  // čtvrtfinále: soupeř = nejhůř umístěný postupující z předkola; když předkolo vyhrají výš nasazení, je to 8., 7., 6., 5.
+  const maSoupere=qf.length&&qf[0].souper!=null;
+  const qfCol=qf.map(m=>`<div class="match qf">${radek(m.seed,m.top)}<div class="vs">proti</div>${maSoupere?radek(m.s_souper,m.souper+' *','vyhled'):'<div class="pravidlo">nejhůř umístěný postupující z předkola</div>'}</div>`).join('');
+  const sfCol=`<div class="match sf"><div class="pravidlo">Nejlépe umístěný postupující<br><span class="vs">proti</span><br>nejhůř umístěnému</div></div>
+               <div class="match sf"><div class="pravidlo">Zbylí dva postupující<br><span class="vs">(druhý proti třetímu)</span></div></div>`;
+  const finCol=`<div class="match fin"><div class="pravidlo">Vítězové semifinále<br><span class="vs">výhoda domácího ledu pro lépe umístěný tým</span></div></div>`;
+  document.getElementById('bracket').innerHTML=`
+    <div class="bcol"><h4>Předkolo<small>na 3 vítězství</small></h4>${preCol}</div>
+    <div class="bcol"><h4>Čtvrtfinále<small>na 4 vítězství</small></h4>${qfCol}</div>
+    <div class="bcol"><h4>Semifinále<small>nové nasazení</small></h4>${sfCol}</div>
+    <div class="bcol jeden"><h4>Finále<small>na 4 vítězství</small></h4>${finCol}</div>`;
+  document.getElementById('bracket-pozn').textContent=maSoupere?'* Když předkolo vyhrají výš nasazené týmy (5.–8.). Při překvapení v předkole hraje první tým s tím nejhůř umístěným, kdo postoupil — třeba s 12.':'';
+}
+
+// při změně šířky (otočení telefonu) překreslit grafy s okraji pro mobil — jen když se šířka opravdu změní
+//   (na telefonu posílá "resize" i schovávání adresního řádku při scrollu)
+let resizeT=null, sirka=window.innerWidth;
+window.addEventListener('resize',()=>{clearTimeout(resizeT);resizeT=setTimeout(()=>{
+  if(window.innerWidth===sirka) return; sirka=window.innerWidth;
+  if(PL&&PL.sim){renderProb();renderMista();renderVyvoj();}},250);});
 init();
 </script>
 </body>

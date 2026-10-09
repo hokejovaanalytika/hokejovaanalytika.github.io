@@ -34,7 +34,7 @@
     body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
     header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
     .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .logo-text{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;} a.logo-text:hover .site-title{opacity:.85;}
     .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
     .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text);}
     .site-title span{color:var(--teal-light);}
@@ -62,6 +62,9 @@
     .insight-tx b{font-weight:600;}
     .insight-tx b.teal{color:var(--teal-light);} .insight-tx b.gold{color:var(--gold);}
     .insight-tx b.loss{color:var(--loss);} .insight-tx b.blue{color:var(--otwin);}
+    /* (7. 10.) poznámka pod boxem — malý vzorek apod. */
+    .insight-pozn{font-size:11.5px;line-height:1.45;color:var(--text-dim);border-top:1px dashed rgba(42,139,139,.25);margin-top:6px;padding-top:8px;}
+    .insight-pozn+.insight-pozn{border-top:0;margin-top:2px;padding-top:0;}
     .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
     .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;}
     .card-title.gold::before{background:var(--gold);}
@@ -95,6 +98,8 @@
     .pill-low{background:rgba(76,175,130,.18);color:#7FE0AC;}
     .pill-mid{background:rgba(212,168,67,.18);color:var(--gold);}
     .pill-high{background:rgba(224,85,85,.16);color:#F0A0A0;}
+    /* (7. 10.) mezititulek zápasu mimo hlavní kolo v tabulce tipů */
+    tr.pred-skup td{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);text-align:left;padding-top:10px;padding-bottom:2px;border-bottom:0;}
     .res-ok{background:rgba(76,175,130,.18);color:#7FE0AC;}
     .res-bad{background:rgba(224,85,85,.16);color:#F0A0A0;}
     .res-none{background:rgba(143,163,176,.14);color:var(--text-dim);}
@@ -149,6 +154,28 @@
     .fm{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 3px;border-radius:4px;font-family:var(--font-mono);font-size:9.5px;font-weight:700;color:#0F1E26;}
     .fm-V{background:#4CAF82;} .fm-VP{background:#9AD6B5;} .fm-PP{background:#D4A843;} .fm-P{background:#E05555;color:#fff;}
     .fm-sum{font-size:12px;color:var(--text-dim);line-height:1.6;} .fm-sum b{color:var(--text);}
+    /* (8. 10.) příští zápasy týmu pod formou */
+    .fm-next{margin-top:8px;padding-top:8px;border-top:1px dashed rgba(42,139,139,.25);font-size:12px;color:var(--text-dim);line-height:1.6;}
+    .fm-next .fm-nh{font-weight:600;color:var(--text);margin-bottom:2px;}
+    .fm-next .fm-nr{display:flex;flex-wrap:wrap;gap:0 8px;}
+    .fm-next .fm-nd{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);min-width:74px;}
+    .fm-next .fm-ns{color:var(--text);font-weight:500;}
+    .fm-next .fm-np{font-family:var(--font-mono);font-size:11px;}
+    /* (8. 10.) hráč zápasu v rozkliku */
+    .d-hz{color:var(--text-dim);margin-bottom:6px;line-height:1.5;} .d-hz b{color:var(--text);font-weight:600;}
+    /* (8. 10.) model proti jednoduchým tipům */
+    .cmp{background:var(--slate);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:14px;}
+    .cmp-h{font-size:12px;color:var(--text-dim);margin-bottom:8px;line-height:1.5;}
+    .cmp-r{display:grid;grid-template-columns:minmax(0,1fr) 1.2fr auto;gap:8px;align-items:center;font-size:12.5px;padding:3px 0;}
+    .cmp-l{color:var(--text-dim);min-width:0;} .cmp-r.model .cmp-l{color:var(--text);font-weight:600;}
+    .cmp-b{position:relative;height:10px;background:rgba(42,139,139,.10);border-radius:5px;overflow:hidden;}
+    .cmp-b i{position:absolute;left:0;top:0;bottom:0;background:var(--text-faint);border-radius:5px;}
+    .cmp-r.model .cmp-b i{background:var(--gold);}
+    .cmp-b::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px dashed rgba(232,239,244,.45);}
+    .cmp-v{font-family:var(--font-mono);font-weight:600;color:var(--text);min-width:52px;text-align:right;}
+    .cmp-pozn{font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.45;}
+    .hist-more{margin-top:10px;}
+    tr.nepotkali td{color:var(--text-faint);}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
     footer a{color:var(--teal-light);text-decoration:none;}
   </style>
@@ -157,7 +184,7 @@
 
 <header>
   <div class="header-inner">
-    <div class="logo-text"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></div>
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></a>
     <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
   </div>
 </header>
@@ -221,16 +248,16 @@
 
     <div class="card">
       <div class="card-title">Bilance proti soupeřům</div>
-      <div class="card-sub">Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, červená = trápení. V popisku celkové skóre.</div>
+      <div class="card-sub">Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, červená = trápení. V popisku celkové skóre. Soupeři, se kterými se tým ještě nepotkal, jsou jen v tabulce pod grafem.</div>
       <div class="chart-wrap-tall" id="c-h2h"></div>
     </div>
 
     <div class="card">
       <div class="card-title">Detailní přehled</div>
-      <div class="card-sub">V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra</div>
+      <div class="card-sub">Všichni soupeři včetně těch, se kterými se tým letos ještě nepotkal. V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra · Příště = další vzájemný zápas.</div>
       <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Body</th><th>Úspěšnost</th></tr></thead>
-        <tbody id="t-h2h"><tr><td colspan="9"><div class="empty">Vyber tým výše.</div></td></tr></tbody>
+        <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Body</th><th>Úspěšnost</th><th>Příště</th></tr></thead>
+        <tbody id="t-h2h"><tr><td colspan="10"><div class="empty">Vyber tým výše.</div></td></tr></tbody>
       </table></div>
     </div>
 
@@ -260,7 +287,7 @@
 
     <div class="card">
       <div class="card-title">Match Breakdown — proč model tipuje takhle</div>
-      <div class="card-sub">Příspěvek 10 faktorů. Doprava (zelená) = nahrává domácím, doleva (červená) = hostům.</div>
+      <div class="card-sub">Model začíná na 50 : 50 a každý faktor přidá <b>procentní body</b> domácím (zelená, doprava) nebo hostům (červená, doleva) — dohromady dají šanci z tabulky nahoře. Nahoře jsou faktory, které rozhodují nejvíc.</div>
       <div class="bd-head">
         <select id="bd-match"></select>
         <span id="bd-info"></span>
@@ -270,14 +297,15 @@
 
     <div class="card">
       <div class="card-title">Úspěšnost předchozích predikcí</div>
-      <div class="card-sub">Automaticky vyhodnoceno proti skutečným výsledkům. Úspěšnost se počítá jen ze zápasů, kde model tipoval vítěze — u vyrovnaného zápasu (47–53 %) netipuje.</div>
+      <div class="card-sub">Automaticky vyhodnoceno proti skutečným výsledkům. Úspěšnost se počítá jen ze zápasů, kde model tipoval vítěze — u vyrovnaného zápasu (47–53 %) netipuje. Šance = kolik model dával tipovanému týmu.</div>
       <div id="acc-summary"></div>
       <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th>Kolo</th><th>Domácí</th><th>Hosté</th><th>Tip</th><th>Skutečnost</th><th>Hodnocení</th></tr></thead>
+          <thead><tr><th id="hist-h1">Den</th><th>Domácí</th><th>Hosté</th><th>Tip</th><th>Šance</th><th>Skutečnost</th><th>Hodnocení</th></tr></thead>
           <tbody id="hist-body"></tbody>
         </table>
       </div>
+      <button class="chip hist-more" id="hist-more" type="button" style="display:none"></button>
     </div>
   </section>
 </main>
@@ -290,9 +318,13 @@
 const DATA='data/';
 const LOCK_CONFIG={responsive:true,displayModeBar:false,scrollZoom:false,doubleClick:false};
 const AX_LOCK={fixedrange:true};
-const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
+const BASE_LAYOUT={paper_bgcolor:'transparent',plot_bgcolor:'transparent',separators:', ',font:{family:'DM Sans',color:'#E8EFF4'},dragmode:false,hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}};
 async function loadJSON(f){const r=await fetch(DATA+f);if(!r.ok)throw new Error('Nelze načíst '+f);return r.json();}
 const f1=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+// (8. 10.) české desetinné čárky jako na Týmech, Hráčích a Přehledu
+const c1=x=>f1(x).replace('.',',');
+const pct=x=>x==null||isNaN(x)?'—':c1(x)+' %';                       // 53,1 %
+const pct0=x=>x==null||isNaN(x)?'—':c1(x).replace(/,0$/,'')+' %';     // 100 %, 66,7 %
 function emptyBox(id,m){const el=document.getElementById(id);if(el)el.innerHTML=`<div class="empty">${m}</div>`;}
 // "18.09.2026" -> Date. Odložený zápas se hraje o měsíce později, ale drží si číslo
 // kola, takže řadit výsledky jen podle kola by dohrávku schovalo doprostřed sezóny.
@@ -301,12 +333,12 @@ function den(x){
   return m ? new Date(+m[3], +m[2]-1, +m[1]).getTime() : NaN;
 }
 
-let VYS=[], PRED=null, renderedPred=false, INS_PRED=[], H2H=null, INS_H2H=[], INS_VYS=[], DETAIL=null;
+let VYS=[], PRED=null, renderedPred=false, INS_PRED=[], H2H=null, INS_H2H=[], INS_VYS=[], DETAIL=null, PRISTI=[];
 const predNames = () => { const a=[]; (VYS||[]).forEach(v=>{a.push(v.Domaci);a.push(v.Hoste);}); return a; };
 
 async function init(){
   try{
-    const [vys, pred, meta, insPred, h2h, insH2h, insVys, det] = await Promise.all([
+    const [vys, pred, meta, insPred, h2h, insH2h, insVys, det, pristi] = await Promise.all([
       loadJSON('vysledky.json').catch(()=>[]),
       loadJSON('predikce.json').catch(()=>null),
       loadJSON('meta.json').catch(()=>({})),
@@ -314,12 +346,14 @@ async function init(){
       loadJSON('h2h.json').catch(()=>null),
       loadJSON('insights_h2h.json').catch(()=>[]),
       loadJSON('insights_vysledky.json').catch(()=>[]),
-      loadJSON('zapasy_detail.json').catch(()=>null)
+      loadJSON('zapasy_detail.json').catch(()=>null),
+      loadJSON('pristi_zapasy.json').catch(()=>[])        // (8. 10.) příští zápasy týmu pod formou
     ]);
     // detail zápasů: mapa podle klíče s názvy z vysledky.json (záloha: klíč s očištěnými názvy)
     if(Array.isArray(det)){ DETAIL={}; det.forEach(x=>{ if(x.kr)DETAIL[x.kr]=x; if(x.k&&!DETAIL[x.k])DETAIL[x.k]=x; }); }
     else console.warn('zapasy_detail.json chybí — výsledky půjdou bez detailu a štítků.');
     VYS = Array.isArray(vys)?vys:[];
+    PRISTI = Array.isArray(pristi)?pristi:[];
     PRED = pred;
     INS_PRED = Array.isArray(insPred)?insPred:[];
     H2H = h2h; INS_H2H = Array.isArray(insH2h)?insH2h:[];
@@ -328,12 +362,19 @@ async function init(){
     { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
     document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.addEventListener('click',()=>showSub(b.dataset.tab)));
     buildFilters(); renderInsights('insight-vysledky', INS_VYS, predNames()); renderVysledky();
+    // (7. 10.) zapasy.html#predikce (odkaz z Přehledu) otevře rovnou Predikci
+    const zHashe = location.hash.replace('#','');
+    if(zHashe && zHashe!=='vysledky' && document.getElementById('panel-'+zHashe)) showSub(zHashe, false);
+    window.addEventListener('hashchange', ()=>{ const h=location.hash.replace('#','');
+      if(h && document.getElementById('panel-'+h)) showSub(h, false); });
   }catch(e){
     console.error(e);
     document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ Nepodařilo se načíst data. Spusť <code>build.R</code> a ověř <code>vysledky.json</code> / <code>predikce.json</code>.<br><small>'+e.message+'</small></div>';
   }
 }
-function showSub(name){
+function showSub(name, zapsatHash = true){
+  // adresa se záložkou jde sdílet (replaceState nepřidává krok "zpět")
+  if(zapsatHash){ try{ history.replaceState(null, '', '#'+name); }catch(_){ } }
   document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('panel-'+name).classList.add('active');
@@ -378,6 +419,25 @@ function seradZapasy(d,nejnovejsiNahore){
     if(!isNaN(da)&&!isNaN(db)&&da!==db) return nejnovejsiNahore?db-da:da-db;
     return nejnovejsiNahore?(+b.Kolo)-(+a.Kolo):(+a.Kolo)-(+b.Kolo);});
 }
+// (8. 10.) příští zápasy týmu: nejbližší podle data. Zápas s datem víc než den před
+//   posledním odehraným je odložený bez nového termínu → přeskočí se (jako vyber_pristi v build.R).
+function pristiTymu(t, n=3){
+  const hrano=VYS.map(z=>den(z.Datum)).filter(x=>!isNaN(x));
+  const hranice=hrano.length?Math.max(...hrano)-86400000:-Infinity;
+  return seradZapasy(PRISTI.filter(z=>(z.Domaci===t||z.Hoste===t)&&!isNaN(den(z.Datum))&&den(z.Datum)>=hranice),false).slice(0,n);
+}
+function pristiHtml(t){
+  const nx=pristiTymu(t); if(!nx.length) return '';
+  const nr=(PRED&&Array.isArray(PRED.next_round))?PRED.next_round:[];
+  return `<div class="fm-next"><div class="fm-nh">Příští zápasy</div>`+nx.map(z=>{
+    const doma=z.Domaci===t, s=doma?z.Hoste:z.Domaci;
+    const tp=nr.find(m=>m.Domaci===z.Domaci&&m.Hoste===z.Hoste);
+    const p=tp?+(doma?tp.P_domaci:tp.P_hoste):null;
+    const barva=p==null?'':(p>=53?'var(--win)':p<=47?'var(--loss)':'var(--gold)');
+    return `<div class="fm-nr"><span class="fm-nd">${esc(fmtDen(z.Datum))}</span><span>${doma?'doma':'venku'} · <span class="fm-ns">${esc(s)}</span></span>`+
+      (p!=null&&!isNaN(p)?`<span class="fm-np" style="color:${barva}" title="šance na výhru podle modelu (vč. prodloužení)">šance ${pct(p)}</span>`:'')+`</div>`;
+  }).join('')+`</div>`;
+}
 function renderForma(t){
   const box=document.getElementById('forma-tym');
   if(!t){ box.style.display='none'; box.innerHTML=''; return; }
@@ -392,7 +452,7 @@ function renderForma(t){
   box.innerHTML=`<div class="fm-h">${esc(t)} — průběh sezóny <small>(nejstarší vlevo)</small></div>
     <div class="fm-strip">${ctverce}</div>
     <div class="fm-sum"><b>${body(r)} b.</b> za ${zap(r.length)} (možných ${r.length*3}) · V ${pocty.V} · VP ${pocty.VP} · PP ${pocty.PP} · P ${pocty.P}<br>
-      doma ${body(doma)} b. za ${zap(doma.length)} · venku ${body(venku)} b. za ${zap(venku.length)} · posledních ${posl.length}: <b>${body(posl)} b.</b></div>`;
+      doma ${body(doma)} b. za ${zap(doma.length)} · venku ${body(venku)} b. za ${zap(venku.length)} · posledních ${posl.length}: <b>${body(posl)} b.</b></div>${pristiHtml(t)}`;
   box.style.display='';
 }
 function renderVysledky(){
@@ -421,6 +481,25 @@ function renderVysledky(){
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();prepni();}});
   });
 }
+// (8. 10.) HRÁČ ZÁPASU — nejvíc kanadských bodů z gólového detailu (bez nájezdů),
+//   při shodě bodů rozhodnou góly; od 2 bodů. Asistence patří týmu střelce.
+//   Jen základní statistika (góly + asistence), licenci nevadí.
+function hracZapasu(z,g){
+  const B={};
+  g.filter(o=>o.sit!=='SN'&&(o.k==='D'||o.k==='H')).forEach(o=>{
+    const tym=o.k==='D'?z.Domaci:z.Hoste;
+    const pridej=(j,gol)=>{ if(!j) return; const k=j+'|'+tym; B[k]=B[k]||{j,tym,G:0,A:0}; if(gol)B[k].G++; else B[k].A++; };
+    pridej(o.st,true); [o.a1,o.a2].filter(a=>a&&a!==o.st).forEach(a=>pridej(a,false));
+  });
+  const r=Object.values(B).sort((a,b)=>(b.G+b.A)-(a.G+a.A)||b.G-a.G||a.j.localeCompare(b.j,'cs'));
+  if(!r.length||r[0].G+r[0].A<2) return '';
+  const top=r.filter(x=>x.G+x.A===r[0].G+r[0].A&&x.G===r[0].G);
+  const jm=x=>`<b>${esc(x.j)}</b> (${esc(x.tym)})`;
+  if(top.length===1) return `<div class="d-hz">⭐ Hráč zápasu: ${jm(top[0])} ${top[0].G}+${top[0].A}</div>`;
+  if(top.length>3) return '';
+  const sez=top.map(jm); const spoj=sez.length===2?sez.join(' a '):sez.slice(0,-1).join(', ')+' a '+sez[sez.length-1];
+  return `<div class="d-hz">⭐ Nejvíc bodů: ${spoj} — ${top.length===2?'oba':'všichni'} ${top[0].G}+${top[0].A}</div>`;
+}
 // osa zápasu: góly domácích nad čarou, hostů pod ní; prodloužení a nájezdy vpravo
 function osaSvg(g){
   const ma_ot=g.some(x=>minut(x.m)>=60)||g.some(x=>x.sit==='SN');
@@ -429,7 +508,7 @@ function osaSvg(g){
   s+=`<line x1="${X0}" y1="33" x2="${X1}" y2="33" stroke="#4A6070" stroke-width="1"/>`;
   [20,40,60].filter(m=>m<L||m===60&&ma_ot).forEach(m=>{s+=`<line x1="${xp(m)}" y1="25" x2="${xp(m)}" y2="41" stroke="#4A6070" stroke-width="1" stroke-dasharray="2,2"/>`;});
   [['1.',10],['2.',30],['3.',50]].forEach(([t,m])=>{s+=`<text x="${xp(m)}" y="64" text-anchor="middle" font-size="9" fill="#4A6070">${t}</text>`;});
-  if(ma_ot) s+=`<text x="${xp(62.5)}" y="64" text-anchor="middle" font-size="9" fill="#D4A843">PP</text>`;
+  if(ma_ot) s+=`<text x="${xp(62.5)}" y="64" text-anchor="middle" font-size="9" fill="#D4A843">prodl.</text>`;   // (8. 10.) ne "PP" — to je přesilovka
   g.forEach(x=>{const m=x.sit==='SN'?64.5:minut(x.m); if(isNaN(m))return;
     const y=x.k==='D'?17:49, c=x.k==='D'?'#3AADAD':'#5B9BD5';
     const tit=`${x.sit==='SN'?'nájezdy':x.m} ${x.s} ${x.st}`;
@@ -452,17 +531,19 @@ function detailHtml(z,x){
   if(x&&x.tip&&x.tip.pd!=null&&x.tip.ph!=null){
     const pd=+x.tip.pd, ph=+x.tip.ph, vyr=Math.abs(pd-ph)<6, favD=pd>=ph;
     const verdikt=vyr?'<span class="d-v">vyrovnaný tip</span>':(favD===vitD?'<span class="d-v ok">favorit vyhrál ✓</span>':'<span class="d-v bad">vyhrál outsider</span>');
-    h+=`<div class="d-tip">Model před zápasem: <b style="color:#3AADAD">${esc(z.Domaci)} ${f1(pd)} %</b> · <b style="color:#5B9BD5">${esc(z.Hoste)} ${f1(ph)} %</b> ${verdikt}</div>`;
+    h+=`<div class="d-tip">Model před zápasem: <b style="color:#3AADAD">${esc(z.Domaci)} ${pct(pd)}</b> · <b style="color:#5B9BD5">${esc(z.Hoste)} ${pct(ph)}</b> ${verdikt}</div>`;
   }
   // osa a góly
   const g=x&&Array.isArray(x.g)?x.g:[];
+  h+=hracZapasu(z,g);
   if(g.length){
     h+=osaSvg(g)+`<div class="d-leg"><span style="color:#3AADAD">●</span> ${esc(z.Domaci)} nahoře · <span style="color:#5B9BD5">●</span> ${esc(z.Hoste)} dole</div>`;
     // nájezdy: "rozhodl" jen u posledního proměněného (kdyby jich v datech bylo víc)
     const posledniSN=g.map(o=>o.sit).lastIndexOf('SN');
     h+='<div class="g-list">'+g.map((o,i)=>{
       const as=[o.a1,o.a2].filter(a=>a&&a!==o.st);
-      const kdy=o.sit==='SN'?'nájezdy':(minut(o.m)>=60?o.m+' PP':o.m);
+      // (8. 10.) gól v prodloužení "64:36 prodl." — "PP" vedle štítku přesilovky znamenal dvě různé věci
+      const kdy=o.sit==='SN'?'nájezdy':(minut(o.m)>=60?o.m+' prodl.':o.m);
       const jm=o.sit==='SN'?(i===posledniSN?`rozhodl ${esc(o.st)}`:esc(o.st)):`${esc(o.st)}${as.length?` <small>(${as.map(esc).join(', ')})</small>`:''}`;
       return `<div class="g-row ${o.k==='D'?'gd':'gh'}"><span class="g-t">${esc(kdy)}</span><span class="g-s">${esc(o.s)}</span><span class="g-n">${jm}</span>${sitLabel(o)}</div>`;}).join('')+'</div>';
   } else h+=`<div class="d-pozn">Gólový detail k tomuhle zápasu zatím není.</div>`;
@@ -491,13 +572,17 @@ function renderInsights(boxId, data, names){
   if(!arr.length){ box.style.display='none'; return; }
   const esc = s => String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   const rxe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  // (7. 10.) "pozn": true (malý vzorek) = poznámka POD boxem, nezabírá řádek
+  const jePozn = o => o && (o.pozn===true || o.pozn==='TRUE' || (Array.isArray(o.pozn) && o.pozn[0]===true));
+  let hlavni = arr.filter(o=>!jePozn(o)), pozn = arr.filter(jePozn);
+  if(!hlavni.length){ hlavni = pozn; pozn = []; }
   const uniq = [...new Set((names||[]).filter(Boolean))].sort((a,b)=>b.length-a.length);
   const rxAll = uniq.length ? new RegExp('('+uniq.map(n=>rxe(esc(n))).join('|')+')','g') : null;
-  body.innerHTML = arr.map(o=>{
+  body.innerHTML = hlavni.map(o=>{
     let t = esc(o.text||'');
     if(rxAll) t = t.replace(rxAll, m=>`<b class="${o.tone||'teal'}">${m}</b>`);
     return `<div class="insight-item"><span class="insight-ic">${o.icon||'\u2022'}</span><span class="insight-tx">${t}</span></div>`;
-  }).join('');
+  }).join('') + pozn.map(o=>`<div class="insight-pozn">${o.icon||''} ${esc(o.text||'')}</div>`).join('');
   box.style.display='';
 }
 
@@ -525,11 +610,23 @@ function buildH2HChips(){
   }));
 }
 
+// (8. 10.) příští vzájemný zápas z h2h.json → pristi (build.R); starší JSON ho nemá → "—"
+function h2hPriste(t,o){
+  const p=(H2H&&Array.isArray(H2H.pristi))?H2H.pristi.find(x=>x.Tym===t&&x.Souper===o):null;
+  if(!p) return '—';
+  if(p.Odlozeno===true||p.Odlozeno==='TRUE'||!p.Datum) return 'odložený';
+  return `${esc(fmtDen(p.Datum))} ${p.Doma===true||p.Doma==='TRUE'?'doma':'venku'}`;
+}
 function drawH2H(){
   const rows=(H2H.pary||[]).filter(r=>r.Tym===h2hTym).sort((a,b)=>a.Uspesnost-b.Uspesnost);
-  if(!rows.length){ emptyBox('c-h2h','Tento tým zatím nikoho nepotkal.');
-    document.getElementById('t-h2h').innerHTML='<tr><td colspan="9"><div class="empty">Zatím bez vzájemných zápasů.</div></td></tr>';
-    return; }
+  // (8. 10.) i soupeři, se kterými se tým ještě nepotkal
+  const vsichni=[...new Set([...(H2H.tymy||[]), ...((H2H.pristi||[]).map(x=>x.Tym))])].filter(t=>t!==h2hTym);
+  const potkani=new Set(rows.map(r=>r.Souper));
+  const nepotkani=vsichni.filter(t=>!potkani.has(t)).sort((a,b)=>{
+    const da=den(((H2H.pristi||[]).find(x=>x.Tym===h2hTym&&x.Souper===a)||{}).Datum), db=den(((H2H.pristi||[]).find(x=>x.Tym===h2hTym&&x.Souper===b)||{}).Datum);
+    return (isNaN(da)?Infinity:da)-(isNaN(db)?Infinity:db)||a.localeCompare(b,'cs');});
+  if(!rows.length) emptyBox('c-h2h','Tento tým zatím nikoho nepotkal.');
+  else {
   const y=rows.map(r=>r.Souper);
   Plotly.newPlot('c-h2h',[{
     // podkladová stopa — aby byl vidět i soupeř s nulovým ziskem bodů
@@ -541,7 +638,7 @@ function drawH2H(){
     text:rows.map(r=>`${r.GF}:${r.GA}`),textposition:'outside',cliponaxis:false,
     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:rows.map(r=>`${h2hTym} – ${r.Souper}<br>Zápasů: ${r.Z} · bilance ${r.V}-${r.VP}-${r.PP}-${r.P}<br>Skóre: ${r.GF}:${r.GA}<br>Body: ${r.Body} z ${r.Body_max} (${r.Uspesnost} %)`)
+    hovertext:rows.map(r=>`${h2hTym} – ${r.Souper}<br>Zápasů: ${r.Z} · bilance ${r.V}-${r.VP}-${r.PP}-${r.P}<br>Skóre: ${r.GF}:${r.GA}<br>Body: ${r.Body} z ${r.Body_max} (${pct0(r.Uspesnost)})`)
   }],Object.assign({},BASE_LAYOUT,{
     barmode:'overlay',
     margin:{l:125,r:60,t:14,b:42},
@@ -550,33 +647,46 @@ function drawH2H(){
     shapes:[{type:'line',x0:50,x1:50,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'rgba(143,163,176,.4)',width:1}}],
     showlegend:false
   }),LOCK_CONFIG);
-
+  }
   const d=[...rows].sort((a,b)=>b.Uspesnost-a.Uspesnost);
+  const barva=u=>u>=66?'var(--win)':u>=34?'var(--gold)':'var(--loss)';
   document.getElementById('t-h2h').innerHTML=d.map(r=>`<tr>
     <td>${r.Souper}</td><td>${r.Z}</td><td>${r.V}</td><td>${r.VP}</td><td>${r.PP}</td><td>${r.P}</td>
     <td>${r.GF}:${r.GA}</td><td style="font-weight:600">${r.Body}</td>
-    <td style="color:${r.Uspesnost>=66?'var(--win)':r.Uspesnost>=34?'var(--gold)':'var(--loss)'};font-weight:600">${r.Uspesnost} %</td>
-  </tr>`).join('');
+    <td style="color:${barva(r.Uspesnost)};font-weight:600">${pct0(r.Uspesnost)}</td>
+    <td>${h2hPriste(h2hTym,r.Souper)}</td>
+  </tr>`).join('')+nepotkani.map(t=>{ const pr=h2hPriste(h2hTym,t);
+    // termín rovnou do sloučené buňky — na mobilu je sloupec Příště až za okrajem tabulky
+    return `<tr class="nepotkali">
+    <td>${esc(t)}</td><td>0</td><td colspan="7" style="text-align:left">letos ještě nehráli${pr!=='—'?` · příště <span style="color:var(--text-dim)">${pr}</span>`:''}</td><td></td>
+  </tr>`;}).join('');
 }
 
 function renderPredikce(){
   renderInsights('insight-predikce', INS_PRED, predNames());
-  if(!PRED){ ['pred-body','hist-body'].forEach(id=>document.getElementById(id).innerHTML='<tr><td colspan="6"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>'); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Zatím bez dat.</div>'; return; }
+  if(!PRED){ [['pred-body',6],['hist-body',7]].forEach(([id,n])=>document.getElementById(id).innerHTML=`<tr><td colspan="${n}"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>`); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Zatím bez dat.</div>'; return; }
   renderPredTable(); buildBreakdownSelect(); renderBreakdown(); renderAccuracy();
 }
 function renderPredTable(){
   const nr=PRED.next_round||[];
-  document.getElementById('pred-kolo').textContent = PRED.info&&PRED.info.kolo_pristi?('· '+PRED.info.kolo_pristi+'. kolo'):'';
+  // (7. 10.) "13. kolo + dohrávka 6. kola" — starší predikce.json pole popis nemá
+  const un = x => Array.isArray(x) ? x[0] : x;
+  const popis = PRED.info && un(PRED.info.popis);
+  document.getElementById('pred-kolo').textContent = popis ? ('· '+popis) : (PRED.info&&PRED.info.kolo_pristi?('· '+un(PRED.info.kolo_pristi)+'. kolo'):'');
   const body=document.getElementById('pred-body');
   if(!nr.length){ body.innerHTML='<tr><td colspan="6"><div class="empty">Žádné nadcházející zápasy (doplň rozpis do <code>zapasy_master.csv</code>).</div></td></tr>'; return; }
+  // zápas mimo hlavní kolo (dohrávka / předehrávka / zbytek kola) dostane mezititulek s datem
+  const DNYp=['ne','po','út','st','čt','pá','so'];
+  const dTxt=s=>{const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(s||'').trim()); if(!m) return ''; const d=new Date(+m[3],+m[2]-1,+m[1]); return `${DNYp[d.getDay()]} ${+m[1]}. ${+m[2]}.`;};
   body.innerHTML=nr.map(m=>{
     const conf = m.Confidence>=65?'pill-low':m.Confidence>=56?'pill-mid':'pill-high';
-    return `<tr>
+    const skup = m.Skupina ? `<tr class="pred-skup"><td colspan="6">${m.Skupina}${m.Datum?' · '+dTxt(m.Datum):''}</td></tr>` : '';
+    return skup + `<tr>
       <td class="home">${m.Domaci}</td>
-      <td><span class="prob prob-d">${f1(m.P_domaci)}</span><span class="prob prob-h">${f1(m.P_hoste)}</span></td>
+      <td><span class="prob prob-d">${c1(m.P_domaci)}</span><span class="prob prob-h">${c1(m.P_hoste)}</span></td>
       <td class="away">${m.Hoste}</td>
-      <td class="score">${f1(m.Skore_domaci)} : ${f1(m.Skore_hoste)}</td>
-      <td><span class="pill ${conf}">${m.Confidence}%</span></td>
+      <td class="score">${c1(m.Skore_domaci)} : ${c1(m.Skore_hoste)}</td>
+      <td><span class="pill ${conf}">${pct(m.Confidence)}</span></td>
       <td class="tip">${m.Tip}</td>
     </tr>`;
   }).join('');
@@ -585,29 +695,54 @@ function buildBreakdownSelect(){
   const nr=PRED.next_round||[];
   const sel=document.getElementById('bd-match');
   if(!nr.length){ sel.innerHTML='<option>—</option>'; return; }
-  sel.innerHTML=nr.map((m,i)=>`<option value="${i}">${m.Domaci} vs ${m.Hoste}</option>`).join('');
+  sel.innerHTML=nr.map((m,i)=>`<option value="${i}">${m.Domaci} – ${m.Hoste}</option>`).join('');
   sel.onchange=renderBreakdown;
 }
 function renderBreakdown(){
   const nr=PRED.next_round||[];
   if(!nr.length){ document.getElementById('chart-breakdown').innerHTML='<div class="empty">Žádný zápas k rozkladu.</div>'; document.getElementById('bd-info').textContent=''; return; }
   const i=+(document.getElementById('bd-match').value||0); const m=nr[i];
-  document.getElementById('bd-info').innerHTML=`<span class="match">${m.Tip}</span> · jistota ${m.Confidence}%`;
-  const vals=PRED_FACTORS.map(f=>m[f.k]||0);
-  const labs=PRED_FACTORS.map(f=>f.lab);
+  document.getElementById('bd-info').innerHTML=`<span class="match">${esc(m.Tip)}</span> · ${esc(m.Domaci)} ${pct(m.P_domaci)} : ${pct(m.P_hoste)} ${esc(m.Hoste)}`;
+  // (8. 10.) PROCENTNÍ BODY místo surových čísel (+0,022 nic neříkalo). Šance domácích
+  //   = sigmoid(součet faktorů), takže příspěvek se rozpočítá poměrem: faktor × (P_domácí − 50) / součet.
+  //   Součet příspěvků = P_domácí − 50 přesně. Když se faktory skoro vyruší (součet ≈ 0),
+  //   použije se sklon sigmoidy v 50 % (× 75).
+  const raw=PRED_FACTORS.map(f=>+m[f.k]||0), celk=raw.reduce((a,b)=>a+b,0), pd=+m.P_domaci;
+  const k=Math.abs(celk)>=0.002&&isFinite(pd)&&(pd-50)/celk>0?(pd-50)/celk:75;
+  const pb=raw.map(v=>v*k);
+  // největší vliv nahoře (Plotly kreslí první kategorii dole)
+  const poradi=pb.map((v,j)=>j).sort((a,b)=>Math.abs(pb[a])-Math.abs(pb[b])||b-a);
+  const labs=poradi.map(j=>PRED_FACTORS[j].lab), vals=poradi.map(j=>pb[j]);
+  const zn=v=>Math.abs(v)<0.05?'':(v>0?'+':'−');
+  // osa souměrná kolem nuly a s rezervou, aby popisek u nejdelšího pruhu nepřekryl název faktoru
+  const M=Math.max(1,...vals.map(Math.abs))*1.7;
   Plotly.newPlot('chart-breakdown',[{
     type:'bar',orientation:'h',y:labs,x:vals,
     marker:{color:vals.map(v=>v>=0?'#4CAF82':'#E05555')},
-    text:vals.map(v=>(v>0?'+':'')+v.toFixed(3)),textposition:'outside',cliponaxis:false,
-    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    hoverinfo:'text',hovertext:PRED_FACTORS.map((f,j)=>`${f.lab}: ${(vals[j]>0?'+':'')+vals[j].toFixed(3)} ${vals[j]>=0?'(domácí)':'(hosté)'}`)
+    text:vals.map(v=>zn(v)+c1(Math.abs(v))),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'},
+    hoverinfo:'text',hovertext:vals.map((v,j)=>Math.abs(v)<0.05?`${labs[j]}: bez vlivu`:`${labs[j]}: ${zn(v)}${c1(Math.abs(v))} p. b. pro ${v>0?m.Domaci:m.Hoste}`)
   }],Object.assign({},BASE_LAYOUT,{
-    margin:{l:130,r:50,t:10,b:30},
-    xaxis:{...AX_LOCK,zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:9},color:'#4A6070',title:{text:'← hosté | domácí →',font:{size:11,color:'#4A6070'}}},
-    yaxis:{...AX_LOCK,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'},automargin:true},
+    margin:{l:130,r:16,t:10,b:42},
+    xaxis:{...AX_LOCK,range:[-M,M],zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:9},color:'#4A6070',ticksuffix:'',title:{text:'← hosté · procentní body · domácí →',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:labs,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'},automargin:true},
     showlegend:false
   }),LOCK_CONFIG);
 }
+// (8. 10.) model proti jednoduchým tipům na STEJNÝCH zápasech (accuracy.srovnani z build.R)
+function srovnaniHtml(a){
+  const c=a&&a.srovnani; if(!c||!(+c.zapasu>0)) return '';
+  const radky=[
+    {l:'Model', v:+a.pct_spravne, n:+a.spravne, cls:'model'},
+    {l:'Tým s víc body na zápas', v:+c.body_pct, n:+c.body, cls:''},
+    {l:'Vždy domácí', v:+c.domaci_pct, n:+c.domaci, cls:''}
+  ];
+  return `<div class="cmp"><div class="cmp-h">Je model lepší než jednoduchý tip? Na stejných ${+c.zapasu} ${+c.zapasu===1?'zápase':'zápasech'} by trefil:</div>`+
+    radky.map(r=>`<div class="cmp-r ${r.cls}"><span class="cmp-l">${r.l}</span><span class="cmp-b"><i style="width:${Math.max(0,Math.min(100,r.v))}%"></i></span><span class="cmp-v">${pct(r.v)}</span></div>`).join('')+
+    `<div class="cmp-pozn">„Tým s víc body na zápas“ = kdo měl před zápasem lepší průměr bodů (při shodě domácí). Čárkovaná čára = 50 %, hod mincí.</div></div>`;
+}
+const HIST_N=14;   // (8. 10.) na začátku jen poslední zápasy (zhruba dvě kola), zbytek tlačítkem
+let histVse=false;
 function renderAccuracy(){
   const a=PRED.accuracy, sum=document.getElementById('acc-summary');
   if(a){
@@ -615,21 +750,31 @@ function renderAccuracy(){
     const sp=+a.spravne||0, ba=+a.spatne||0;
     const tip=a.tipovano!=null?+a.tipovano:sp+ba;
     const vyr=a.vyrovnane!=null?+a.vyrovnane:(+a.castecne||0);
-    const pct=a.tipovano!=null?a.pct_spravne:(tip?sp/tip*100:null);
+    const pr=a.tipovano!=null?a.pct_spravne:(tip?sp/tip*100:null);
     sum.innerHTML=`<div class="acc-row">
-      <div class="acc-box"><div class="num">${pct==null?'—':f1(pct)+'%'}</div><div class="lab">Správně (${sp}/${tip})</div></div>
+      <div class="acc-box"><div class="num">${pr==null?'—':pct(pr)}</div><div class="lab">Správně (${sp}/${tip})</div></div>
       <div class="acc-box"><div class="num">${ba}</div><div class="lab">Špatně</div></div>
       <div class="acc-box"><div class="num">${vyr}</div><div class="lab">Vyrovnané (bez tipu)</div></div>
-    </div>`;
+    </div>`+srovnaniHtml(a);
   } else sum.innerHTML='';
-  const h=PRED.history||[], body=document.getElementById('hist-body');
-  if(!h.length){ body.innerHTML='<tr><td colspan="6"><div class="empty">Zatím žádné vyhodnocené predikce — naběhne po odehrání zalogovaných kol.</div></td></tr>'; return; }
+  const h=PRED.history||[], body=document.getElementById('hist-body'), btn=document.getElementById('hist-more');
+  if(!h.length){ body.innerHTML='<tr><td colspan="7"><div class="empty">Zatím žádné vyhodnocené predikce — naběhne po odehrání zalogovaných kol.</div></td></tr>'; btn.style.display='none'; return; }
+  // starší predikce.json nemá Datum → první sloupec je kolo
+  const sDatem=h.some(r=>r.Datum);
+  document.getElementById('hist-h1').textContent=sDatem?'Den':'Kolo';
   // "Částečně" = starší predikce.json, vyrovnaný tip se dnes vyhodnocuje jako "Bez tipu"
   const cls=v=>v==='Správně'?'res-ok':v==='Špatně'?'res-bad':'res-none';
   const txt=v=>v==='Částečně'?'Bez tipu':v;
-  body.innerHTML=h.map(r=>`<tr><td>${r.Kolo}</td><td class="home">${r.Domaci}</td><td class="away">${r.Hoste}</td>
-    <td>${r.Tip}</td><td style="font-family:var(--font-mono);font-size:11px">${r.Skutecnost}</td>
+  const vid=histVse?h:h.slice(0,HIST_N);
+  body.innerHTML=vid.map(r=>`<tr><td title="${r.Kolo}. kolo">${sDatem?esc(fmtDen(r.Datum)):r.Kolo}</td><td class="home">${r.Domaci}</td><td class="away">${r.Hoste}</td>
+    <td>${r.Tip}</td><td style="font-family:var(--font-mono);font-size:11px">${r.P_tip!=null&&!isNaN(r.P_tip)?pct0(Math.round(+r.P_tip)):'—'}</td>
+    <td style="font-family:var(--font-mono);font-size:11px">${r.Skutecnost}</td>
     <td><span class="pill ${cls(r.Vysledek)}">${txt(r.Vysledek)}</span></td></tr>`).join('');
+  if(h.length>HIST_N){
+    btn.style.display='';
+    btn.textContent=histVse?'Ukázat jen posledních '+HIST_N:'Zobrazit všech '+h.length+' vyhodnocených zápasů';
+    btn.onclick=()=>{histVse=!histVse; renderAccuracy();};
+  } else btn.style.display='none';
 }
 
 init();

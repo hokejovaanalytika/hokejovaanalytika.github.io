@@ -35,7 +35,7 @@
 
     header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
     .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-    .logo-text{display:flex;align-items:center;gap:10px;}
+    .logo-text{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;} a.logo-text:hover .site-title{opacity:.85;}
     .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
     .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text);}
     .site-title span{color:var(--teal-light);}
@@ -62,6 +62,9 @@
     .insight-tx b{font-weight:600;}
     .insight-tx b.teal{color:var(--teal-light);} .insight-tx b.gold{color:var(--gold);}
     .insight-tx b.loss{color:var(--loss);} .insight-tx b.blue{color:var(--otwin);}
+    /* (7. 10.) poznámka pod boxem — malý vzorek apod. */
+    .insight-pozn{font-size:11.5px;line-height:1.45;color:var(--text-dim);border-top:1px dashed rgba(42,139,139,.25);margin-top:6px;padding-top:8px;}
+    .insight-pozn+.insight-pozn{border-top:0;margin-top:2px;padding-top:0;}
     .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
     .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;}
     .card-title.gold::before{background:var(--gold);}
@@ -71,6 +74,9 @@
     .intro{background:linear-gradient(135deg,var(--slate-mid) 0%,#16242c 100%);border:1px solid var(--border);border-left:4px solid var(--teal);border-radius:var(--radius);padding:16px;margin-bottom:16px;}
     .intro h1{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;}
     .intro p{font-size:13px;color:var(--text-dim);}
+    .slovnik{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:10px;font-size:13px;line-height:1.45;}
+    .slovnik dt{font-family:var(--font-mono);font-weight:600;color:var(--teal-light);white-space:nowrap;}
+    .slovnik dd{color:var(--text-dim);margin:0;}
     .filters{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px;}
     @media(min-width:640px){.filters{grid-template-columns:1.4fr 1fr 1fr;}}
     .filter-group label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text-faint);margin-bottom:6px;}
@@ -89,11 +95,14 @@
     table.players{width:100%;border-collapse:collapse;font-size:13px;min-width:760px;}
     .players thead tr{background:var(--slate-light);}
     .players th{padding:8px 8px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border);}
-    .players th:nth-child(2){text-align:left;}
+    .players th.l{text-align:left;}
     .players td{padding:7px 8px;text-align:right;border-bottom:1px solid rgba(42,139,139,0.08);font-family:var(--font-mono);font-size:12px;color:var(--text-dim);white-space:nowrap;}
     .players td:first-child{text-align:center;color:var(--text-faint);font-size:11px;}
-    .players td:nth-child(2){text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500;font-size:13px;}
-    .players td:nth-child(3),.players td:nth-child(4){text-align:left;}
+    /* (8. 10.) jméno a textové sloupce podle třídy, ne podle pořadí — hlavní číslo jde hned za jméno */
+    .players td.nm{text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500;font-size:13px;}
+    .players td.l{text-align:left;}
+    .hledat{width:100%;background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-family:var(--font-main);font-size:13px;margin-bottom:10px;}
+    .hledat:focus{outline:none;border-color:var(--teal-light);}
     .players tbody tr:hover{background:rgba(42,139,139,0.06);}
     .players td.cpi{color:var(--text);font-weight:600;background-repeat:no-repeat;background-position:left center;border-radius:3px;}
     .pos-pill{font-family:var(--font-mono);font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid var(--border);color:var(--text-dim);}
@@ -149,10 +158,10 @@
 
 <header>
   <div class="header-inner">
-    <div class="logo-text">
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku">
       <img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo">
       <div class="site-title">Hokejová<span>Analytika</span></div>
-    </div>
+    </a>
     <div class="meta-badge">
       <div>Tipsport Extraliga</div>
       <div>Aktualizováno: <strong id="meta-datum">—</strong></div>
@@ -214,7 +223,8 @@
   <!-- 1. COMPLETE PLAYER INDEX -->
   <div class="card">
     <div class="card-title gold">Complete Player Index</div>
-    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem.</div>
+    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem. Hledání najde hráče v celém výběru.</div>
+    <input type="search" id="cpi-hledat" class="hledat" placeholder="🔍 Hledat hráče podle jména…" autocomplete="off">
     <div class="sort-toggle" id="cpi-sort">
       <button data-sort="body" class="active">Řadit dle: Body</button>
       <button data-sort="cpi">CPI (se změnou pořadí)</button>
@@ -231,14 +241,14 @@
   <!-- 2. WORKLOAD VS OUTPUT -->
   <div class="card">
     <div class="card-title">Workload vs Output</div>
-    <div class="card-sub">Produktivita za 60 minut relativně k ligovému průměru — top 25</div>
-    <div class="chart-wrap-xl" id="chart-workload"></div>
+    <div class="card-sub">Vodorovně minuty na ledě za zápas, svisle body na 60 minut. Vlevo nahoře boduje rychle i s málo minutami (kandidát na větší roli), vpravo nahoře hraje hodně a boduje. Čáry = medián výběru. Popisky u 8 nejlepších v bodech na 60 minut, ostatní v bublině.</div>
+    <div class="chart-wrap-tall" id="chart-workload"></div>
   </div>
 
   <!-- 3. PLAYER COMPARISON RADAR -->
   <div class="card">
     <div class="card-title">Player Comparison Radar</div>
-    <div class="card-sub">Porovnání 2–3 hráčů přes 6 metrik (normalizováno 0–100 v rámci ligy)</div>
+    <div class="card-sub">Porovnání 2–3 hráčů přes 6 metrik (normalizováno 0–100 v rámci ligy; vše na zápas nebo na 60 minut)</div>
     <div class="radar-selects">
       <select id="radar1"></select>
       <select id="radar2"></select>
@@ -250,7 +260,7 @@
   <!-- 4. SHOOTING MATRIX -->
   <div class="card">
     <div class="card-title">Shooting Matrix — Typy střelců</div>
-    <div class="card-sub">Střely vs úspěšnost | Velikost = góly | Elite / Sniper / Volume Shooter — top 40 dle gólů</div>
+    <div class="card-sub">Střely vs úspěšnost | velikost = góly | top 40 dle gólů, jen hráči aspoň s <span class="prah" data-strely="1">5</span> střelami (z pár střel je úspěšnost náhoda). Čáry = medián.</div>
     <div class="chart-wrap" id="chart-shooting"></div>
   </div>
 
@@ -261,24 +271,31 @@
     <div class="chart-wrap-xl" id="chart-icetime"></div>
   </div>
 
+  <!-- 5b. PŘESILOVKOVÍ SPECIALISTÉ (8. 10.) -->
+  <div class="card">
+    <div class="card-title">Přesilovkoví specialisté</div>
+    <div class="card-sub">Body v přesilovce (góly + asistence) na 60 minut přesilovky — kdo z času v přesilovce vytěží nejvíc. Min. <span class="prah" data-pp="1">5</span> minut v přesilovce — top 15.</div>
+    <div class="chart-wrap-tall" id="chart-ppspec"></div>
+  </div>
+
   <!-- 6. TRUE DEFENSIVE VALUE -->
   <div class="card">
     <div class="card-title">True Defensive Value</div>
-    <div class="card-sub">Rozklad defenzivní hodnoty: Bloky (×1.5) + Hity (×1.0) + SH TOI% (×0.5) — top 20</div>
+    <div class="card-sub">Defenzivní hodnota na zápas: bloky ×1,5 + hity + minuty v oslabení ×0,5 — top 20. Stejné číslo používá Moneyball.</div>
     <div class="chart-wrap-tall" id="chart-tdv"></div>
   </div>
 
   <!-- 7. GRIT INDEX -->
   <div class="card">
     <div class="card-title">Grit Index — Fyzická hra hráčů</div>
-    <div class="card-sub">Rozklad: Hity + Bloky + PIM (×0.5) + SHG (×10) + SH TOI/GP (×2) — top 20</div>
+    <div class="card-sub">Hity a zblokované střely na zápas — top 20. Stejná definice jako Grit týmů na stránce Týmy; trestné minuty se nepočítají (vyloučení týmu škodí).</div>
     <div class="chart-wrap-tall" id="chart-grit"></div>
   </div>
 
   <!-- 8. FACEOFF SPECIALISTS -->
   <div class="card">
     <div class="card-title">Faceoff Specialists</div>
-    <div class="card-sub">Top 20 hráčů na buly — odchylka od 50 % (min. <span class="prah" data-fo="1">50</span> vhazování)</div>
+    <div class="card-sub">Top 20 hráčů na buly — odchylka od 50 % (min. <span class="prah" data-fo="1">45</span> vhazování, tedy aspoň 5 na odehrané kolo)</div>
     <div class="chart-wrap-tall" id="chart-faceoff"></div>
   </div>
 
@@ -297,49 +314,30 @@
       <p>Hráči mimo TOP 30 bodování, kteří podle analytiky táhnou tým</p>
     </div>
 
-    <!-- 0. MONEYBALL STARS -->
+    <!-- MONEYBALL (8. 10.: Moneyball Stars a Moneyball Index spojené — ukazovaly stejné pořadí) -->
     <div class="card">
-      <div class="card-title gold">Moneyball Stars — kdo si zaslouží víc pozornosti?</div>
-      <div class="card-sub">On-ice (+/−, 30 %) · Defenzivní hodnota (25 %) · Fyzická hra (15 %) · Efektivita P/60+G/60 (15 %) · Bonus za skrytost (15 %) — top 30</div>
+      <div class="card-title gold">Moneyball Index — kdo si zaslouží víc pozornosti?</div>
+      <div class="card-sub">Body na 60 min (30 %) + defenzivní hodnota na zápas (25 %) + +/− proti týmu (20 %) + hity a bloky na zápas (15 %) + minuty v oslabení na zápas (10 %). Každá složka je pořadí mezi hráči na stejném postu mimo top 30 bodování — útočníci se srovnávají s útočníky, obránci s obránci (80 = v té věci lepší než 80 % z nich). Kategorie podle toho, v čem hráč vyčnívá — top 30.</div>
       <div class="tbl-wrap">
         <table class="players">
-          <thead><tr><th>#</th><th>Hráč</th><th>Poz</th><th>Tým</th><th>GP</th><th>Body</th><th>MB Score</th><th>Kategorie</th></tr></thead>
-          <tbody id="mbstars-body"><tr><td colspan="8"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- 1. MONEYBALL INDEX -->
-    <div class="card">
-      <div class="card-title">Moneyball Index</div>
-      <div class="card-sub">P/60 (30 %) + Def. hodnota (25 %) + +/− (20 %) + Hity+Bloky/z (15 %) + SH TOI% (10 %) — top 40</div>
-      <div class="tbl-wrap">
-        <table class="players">
-          <thead><tr><th>#</th><th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>Body</th><th>P/60</th><th>+/−</th><th>Def</th><th>H</th><th>AB</th><th>SH TOI%</th><th>MI</th></tr></thead>
-          <tbody id="mbindex-body"><tr><td colspan="13"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+          <thead><tr><th>#</th><th class="l">Hráč</th><th>MI</th><th class="l">Kategorie</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>Body</th><th>P/60</th><th>+/−&nbsp;tým</th><th>Def/z</th><th>H</th><th>AB</th><th>SH/z</th></tr></thead>
+          <tbody id="mbindex-body"><tr><td colspan="14"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
         </table>
       </div>
     </div>
 
     <!-- 2. HIDDEN GEMS -->
     <div class="card">
-      <div class="card-title">Hidden Gems — Underlying vs Body</div>
-      <div class="card-sub">On-ice +/− — kladné = tým s ním na ledě boduje kladně, ale sám má málo bodů | top 25</div>
+      <div class="card-title">Hidden Gems — +/− proti týmu</div>
+      <div class="card-sub">O kolik má hráč lepší +/− než průměrný spoluhráč za stejný počet zápasů. Holé +/− kopíruje sílu týmu (u lídra má plus skoro každý), tohle ukazuje, s kým na ledě je tým lepší než bez něj — top 25 mimo top 30 bodování.</div>
       <div class="chart-wrap-xl" id="chart-hidden-gems"></div>
     </div>
 
     <!-- 3. DEFENSIVE ANCHORS -->
     <div class="card">
       <div class="card-title">Defensive Anchors — defenzivní opory</div>
-      <div class="card-sub">Bloky (×1.5) + Hity (×1.0) + SH TOI% (×0.5) — top 15</div>
+      <div class="card-sub">Defenzivní hodnota na zápas (bloky ×1,5 + hity + minuty v oslabení ×0,5) mezi hráči mimo top 30 bodování — top 15</div>
       <div class="chart-wrap-tall" id="chart-def-anchors"></div>
-    </div>
-
-    <!-- 4. TRENÉROVA DŮVĚRA -->
-    <div class="card">
-      <div class="card-title">Trenérova důvěra vs Analytická hodnota</div>
-      <div class="card-sub">Odchylka Moneyball Indexu od průměru — top 15 (čím méně bodů a vyšší MI, tím větší skrytý hrdina)</div>
-      <div class="chart-wrap-tall" id="chart-zone-profile"></div>
     </div>
 
   </section><!-- /panel-skryti -->
@@ -354,13 +352,20 @@
 
     <div class="intro">
       <h1>Hodnocení brankářů</h1>
-      <p>Vlastní metriky: <b>GPI</b> (složené skóre 0–100), <b>GBS</b> (síla týmu před brankářem), <b>GSAA</b> (góly zachráněné nad průměr) a segmentace. GPI spojuje úspěšnost, GSAA, výhry, GAA, kontext týmu, vytíženost i clutch do jednoho čísla.</p>
+      <p>Co znamenají zkratky v tabulce a grafech:</p>
+      <dl class="slovnik">
+        <dt>Sv%</dt><dd>úspěšnost — kolik procent střel chytil.</dd>
+        <dt>GAA</dt><dd>obdržené góly na zápas (60 minut). Záleží i na obraně: na koho letí víc střel, má GAA horší, i když chytá stejně dobře.</dd>
+        <dt>GSAA</dt><dd>kolik gólů ušetřil proti průměrnému brankáři ligy, který by čelil stejným střelám (+ lepší, − horší).</dd>
+        <dt>GBS</dt><dd>0–100, jak moc mu pomáhá tým — z úspěšnosti týmu v oslabení a z počtu střel na bránu. Nízké číslo = brankář je víc na ráně.</dd>
+        <dt>GPI</dt><dd>0–100, celkové hodnocení: ze 70 % úspěšnost, u které se krátký vzorek bere opatrně, a z 30 % to, kolik minut svého týmu odchytal. Dva skvělé zápasy na první místo nestačí a kdo dlouho nechytá (třeba po zranění), postupně klesá.</dd>
+      </dl>
     </div>
 
     <!-- MASTER TABULKA -->
     <div class="card">
       <div class="card-title gold">Hodnocení brankářů</div>
-      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Min. <span class="prah" data-cil="3">3</span> zápasy.</div>
+      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Pro GPI se k zásahům brankáře přičte 300 střel s průměrnou úspěšností ligy: po dvou zápasech tak jeho procenta skoro nic neznamenají, po dvaceti už skoro všechno. Min. <span class="prah" data-cil="3">3</span> zápasy. Kategorie podle GPI: Elitní 70+ · Spolehlivý 55+ · Průměr 40+ · Podprůměr · Málo dat (pod 3 zápasy).</div>
       <div class="sort-toggle" id="goalie-sort">
         <button data-sort="sv" class="active">Řadit dle: Úspěšnost %</button>
         <button data-sort="gpi">GPI</button>
@@ -376,22 +381,15 @@
     <!-- GBS LOLLIPOP -->
     <div class="card">
       <div class="card-title">Goalie Behind Score — kdo to táhne sám?</div>
-      <div class="card-sub">Nízké GBS = slabý tým před brankářem = brankář musí víc zachraňovat. Min. <span class="prah" data-cil="5">5</span> zápasů.</div>
+      <div class="card-sub">Nízké GBS = slabý tým před brankářem = brankář musí víc zachraňovat. Počítá se z úspěšnosti týmu v oslabení a z počtu střel, které na brankáře letí za 60 minut. Min. <span class="prah" data-cil="5">5</span> zápasů.</div>
       <div class="chart-wrap-tall" id="chart-gbs"></div>
     </div>
 
-    <!-- CLUTCH -->
+    <!-- PRÁCE × ÚSPĚŠNOST (9. 10. místo Workload vs Performance a Nejvytíženějších brankářů) -->
     <div class="card">
-      <div class="card-title">🎯 Clutch Goalie Score</div>
-      <div class="card-sub">Pressure index: Win% (40 %) + čistá konta/zápas (30 %) + úspěšnost v nájezdech (30 %) — top 15. Kdo zatím nečelil nájezdu, počítá se jen z prvních dvou složek. Nula znamená žádnou výhru ani čisté konto.</div>
-      <div class="chart-wrap" id="chart-clutch"></div>
-    </div>
-
-    <!-- WORKLOAD VS PERFORMANCE -->
-    <div class="card">
-      <div class="card-title">💪 Workload vs Performance</div>
-      <div class="card-sub">Zápasy vs úspěšnost | velikost = čistá konta | barva = tým. Min. <span class="prah" data-cil="2">2</span> zápasy.</div>
-      <div class="chart-wrap" id="chart-workload-perf"></div>
+      <div class="card-title">🧱 Kolik práce a jak ji zvládá</div>
+      <div class="card-sub">Vodorovně: kolik střel na brankáře letí za 60 minut — víc znamená, že tým před ním víc pouští. Svisle: úspěšnost. Tečkované křivky = GAA (góly na zápas): stejná úspěšnost dá při víc střelách horší GAA. Čárkované čáry = průměr ligy, velikost tečky = odchytané minuty. Min. <span class="prah" data-cil="2">2</span> zápasy.</div>
+      <div class="chart-wrap-tall" id="chart-workload-perf"></div>
     </div>
 
     <!-- GSAA -->
@@ -401,17 +399,10 @@
       <div class="chart-wrap" id="chart-gsaa"></div>
     </div>
 
-    <!-- NEJVYTÍŽENĚJŠÍ -->
-    <div class="card">
-      <div class="card-title">Nejvytíženější brankáři</div>
-      <div class="card-sub">Průměr střel na bránu za zápas (SA/GP). Větší číslo = vyšší zátěž. Min. <span class="prah" data-cil="5">5</span> zápasů.</div>
-      <div class="chart-wrap-tall" id="chart-nejvytizenejsi"></div>
-    </div>
-
     <!-- SEGMENTACE -->
     <div class="card">
-      <div class="card-title">🏅 Segmentace: Elite vs Backup</div>
-      <div class="card-sub">Elite: <span class="prah" data-cil="10">10</span>+ zápasů a 91 %+ · Solid: stejně zápasů, 89–91 % · Backup: od <span class="prah" data-cil="5">5</span> zápasů. Hranice rostou s počtem odehraných kol — na začátku sezóny je vzorek malý u všech.</div>
+      <div class="card-title">🏅 Segmentace: jedničky a dvojky</div>
+      <div class="card-sub" id="seg-sub">Jednička = chytal aspoň polovinu zápasů svého týmu, dvojka méně. Barva = úspěšnost proti průměru ligy: nad průměrem o víc než 1 procentní bod, kolem průměru, pod průměrem o víc než 1 bod. Min. <span class="prah" data-cil="3">3</span> zápasy.</div>
       <div class="chart-wrap-xl" id="chart-segmentace"></div>
     </div>
 
@@ -442,6 +433,7 @@ const BASE_LAYOUT = {
   paper_bgcolor:'transparent', plot_bgcolor:'transparent',
   font:{family:'DM Sans', color:'#E8EFF4'},
   dragmode:false,
+  separators:', ',                    // (8. 10.) desetinná čárka v osách grafů (jako na Přehledu a Týmech)
   hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}
 };
 
@@ -455,6 +447,20 @@ async function loadJSON(file){
 const f1 = x => x==null||isNaN(x) ? '—' : (Math.round(x*10)/10).toFixed(1);
 const f2 = x => x==null||isNaN(x) ? '—' : (Math.round(x*100)/100).toFixed(2);
 const label = p => `${p.Jmeno} (${p.Tym_clean})`;
+// (8. 10.) čísla v grafech česky; na telefonu na ose jen jméno (tým je v bublině) — "Jméno (Tým)" bralo půl šířky
+const c1 = x => f1(x).replace('.', ',');
+const c2 = x => f2(x).replace('.', ',');
+const zn = x => x>0 ? '+' : x<0 ? '\u2212' : '';
+const uzky = () => window.innerWidth < 640;
+const labelAx = p => uzky() ? p.Jmeno : label(p);
+const okraj = () => uzky() ? 118 : 185;          // levý okraj grafů s názvy hráčů
+const bezDiakritiky = t => String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+// rozsah osy pro vodorovné sloupce: místo na popisek za koncem sloupce
+function rozsahPM(vals, rez){
+  const lo=Math.min(0,...vals), hi=Math.max(0,...vals), span=Math.max(hi-lo,1);
+  const pad=rez!=null?rez:span*0.22;
+  return [lo<0?lo-pad:-span*0.03, hi>0?hi+pad:span*0.03];
+}
 const mean = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : 0;
 const median = a => { const s=[...a].sort((x,y)=>x-y); const n=s.length; if(!n) return 0;
   return n%2 ? s[(n-1)/2] : (s[n/2-1]+s[n/2])/2; };
@@ -484,9 +490,13 @@ let HRACI = [], FACEOFF = [], BRANKARI = [], RADAR_LIST = [], INS_HRACI = [], IN
    (starší build), použije se maximum GP z dat. */
 let ODEHRANO = 1;
 const prah = cil => Math.max(1, Math.min(cil, Math.ceil(0.5 * ODEHRANO)));
-const PRAH_FO = () => Math.max(5, Math.min(50, Math.ceil(50 * ODEHRANO / 26)));  // min. vhazování
+// (8. 10.) Prahy na objem: vhazování 5 na odehrané kolo (centr bere ~14 za zápas; dřív stačilo 18,
+// takže druhý byl hráč s 29 vhazováními), střely 1 na kolo, přesilovka 1 minuta na kolo.
+const PRAH_FO     = () => Math.max(10, Math.min(200, 5 * ODEHRANO));
+const PRAH_STRELY = () => Math.max(5, ODEHRANO);
+const PRAH_PP     = () => Math.max(5, ODEHRANO);
 
-const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body', cpiExpanded:false};
+const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body', cpiExpanded:false, hledat:''};
 const rendered = {pole:true, skryti:false, brankari:false};  // pole se renderuje hned
 
 function filtered(){
@@ -562,7 +572,7 @@ async function init(){
 /* Prahy v popiscích karet drží krok s klouzavými prahy ve filtrech. */
 function vypisPrahy(){
   document.querySelectorAll('.prah').forEach(el=>{
-    el.textContent = el.dataset.fo ? PRAH_FO() : prah(+el.dataset.cil||1);
+    el.textContent = el.dataset.fo ? PRAH_FO() : el.dataset.strely ? PRAH_STRELY() : el.dataset.pp ? PRAH_PP() : prah(+el.dataset.cil||1);
   });
 }
 
@@ -603,6 +613,9 @@ function bindControls(){
   document.getElementById('f-pozice').addEventListener('change', e=>{ state.pozice=e.target.value; renderFiltered(); });
   document.getElementById('f-tym').addEventListener('change', e=>{ state.tym=e.target.value; renderFiltered(); });
   ['radar1','radar2','radar3'].forEach(id=>document.getElementById(id).addEventListener('change', renderRadar));
+  // (8. 10.) hledání hráče podle jména (bez ohledu na háčky a čárky) — jen v tabulce
+  const hl=document.getElementById('cpi-hledat');
+  if(hl) hl.addEventListener('input', ()=>{ state.hledat=bezDiakritiky(hl.value.trim()); renderTable(filtered()); });
   document.querySelectorAll('#cpi-sort button').forEach(b=>b.addEventListener('click',()=>{
     state.hraciSort=b.dataset.sort;
     document.querySelectorAll('#cpi-sort button').forEach(x=>x.classList.toggle('active',x.dataset.sort===state.hraciSort));
@@ -628,6 +641,7 @@ function renderFiltered(){
   renderWorkload(d);
   renderShooting(d);
   renderIceTime(d);
+  renderPPSpec(d);
   renderTDV(d);
   renderGrit(d);
   renderFaceoff();
@@ -647,20 +661,24 @@ function renderTable(d){
   [...set].sort((a,b)=>((b.Body||0)-(a.Body||0))||(b.CPI-a.CPI)).forEach((p,i)=>p._rBody=i+1);
   [...set].sort((a,b)=>(b.CPI-a.CPI)||((b.Body||0)-(a.Body||0))).forEach((p,i)=>p._rCpi=i+1);
   const all  = [...set].sort((a,b)=> cpiMode ? a._rCpi-b._rCpi : a._rBody-b._rBody);
-  const rows = state.cpiExpanded ? all : all.slice(0, CPI_ZAKLAD);
+  // (8. 10.) hledání: ukáže všechny shody v celém výběru, s jejich skutečným pořadím
+  const hledam = !!state.hledat;
+  const nalez = hledam ? all.filter(p=>bezDiakritiky(p.Jmeno).includes(state.hledat)) : all;
+  const rows = (state.cpiExpanded || hledam) ? nalez : nalez.slice(0, CPI_ZAKLAD);
   // Tlačítko dává smysl jen tehdy, když je vůbec co rozbalovat.
   if(exp){
-    if(all.length > CPI_ZAKLAD){
+    if(!hledam && all.length > CPI_ZAKLAD){
       exp.style.display='block';
       exp.textContent = state.cpiExpanded
         ? `▲ Zobrazit jen top ${CPI_ZAKLAD}`
         : `🔍 Zobrazit všech ${all.length} hráčů do pole`;
     } else { exp.style.display='none'; }
   }
-  head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th><th>CPI</th>`;
-  if(!rows.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="16"><div class="empty">Žádní hráči neodpovídají filtru.</div></td></tr>'; return; }
+  // (8. 10.) hlavní čísla (body, CPI) hned za jménem — na telefonu jsou vidět bez posouvání
+  head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th class="l">Hráč</th><th>B</th><th>CPI</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th>`;
+  if(!rows.length){ body.innerHTML=`<tr><td colspan="16"><div class="empty">${hledam?'Žádný hráč s tímhle jménem neodpovídá filtru.':'Žádní hráči neodpovídají filtru.'}</div></td></tr>`; return; }
   const pmCol = v => v==null ? 'var(--text-dim)' : v<0 ? 'var(--loss)' : v>0 ? 'var(--win)' : 'var(--text-dim)';
-  body.innerHTML = rows.map((p,i)=>{
+  body.innerHTML = rows.map(p=>{
     const bz = (p.Body!=null && p.GP) ? p.Body/p.GP : null;
     const cpi = p.CPI==null ? 0 : Math.max(0,Math.min(100,p.CPI));
     const bar = `linear-gradient(90deg, rgba(76,175,130,.45) ${cpi}%, transparent ${cpi}%)`;
@@ -669,61 +687,65 @@ function renderTable(d){
     if(cpiMode){ const dd=p._rBody-p._rCpi;
       delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
     return `<tr>
-      <td>${i+1}</td>${delta}
-      <td>${p.Jmeno}</td>
-      <td style="color:var(--text-dim)">${p.Tym_clean}</td>
+      <td>${cpiMode?p._rCpi:p._rBody}</td>${delta}
+      <td class="nm">${p.Jmeno}</td>
+      <td style="color:var(--gold);font-weight:600">${p.Body ?? '—'}</td>
+      <td class="cpi" style="background-image:${bar}">${f1(p.CPI)}</td>
+      <td class="l" style="color:var(--text-dim)">${p.Tym_clean}</td>
       <td><span class="pos-pill">${p.Pozice||'—'}</span></td>
       <td>${p.GP ?? '—'}</td>
       <td>${p.G ?? '—'}</td>
       <td>${p.A ?? '—'}</td>
-      <td style="color:var(--gold);font-weight:600">${p.Body ?? '—'}</td>
       <td>${f1(bz)}</td>
       <td>${f2(p.P60)}</td>
       <td>${f2(p.G60)}</td>
       <td style="color:${pmCol(p.Plus_minus)};font-weight:600">${p.Plus_minus>0?'+':''}${p.Plus_minus ?? '—'}</td>
       <td>${p.Hity ?? '—'}</td>
       <td>${p.Bloky ?? '—'}</td>
-      <td class="cpi" style="background-image:${bar}">${f1(p.CPI)}</td>
     </tr>`;
   }).join('');
 }
 
-/* ── 2. WORKLOAD VS OUTPUT — diverging bar (P/60 vs liga) ─────── */
+/* ── 2. WORKLOAD VS OUTPUT — (8. 10.) bodový graf minuty na zápas × body na 60 minut ───
+   Dřív sloupce P/60 proti průměru: žádný "workload" a všech 25 sloupců zelených (top 25
+   je nad průměrem z definice). Teď je vidět, kdo boduje rychle i s málo minutami. */
 function renderWorkload(d){
-  const valid = d.filter(p=>p.P60!=null && !isNaN(p.P60));
+  const valid = d.filter(p=>p.P60!=null && !isNaN(p.P60) && p.TOI_GP!=null && p.TOI_GP>0);
   if(!valid.length){ emptyBox('chart-workload','Pro tenhle filtr zatím nejsou data.'); return; }
-  const ligaAvg = mean(valid.map(p=>p.P60));
-  const top = valid.slice().sort((a,b)=>b.P60-a.P60).slice(0,25)
-    .map(p=>({label:label(p), p60:p.P60, diff:Math.round((p.P60-ligaAvg)*100)/100}))
-    .sort((a,b)=>a.diff-b.diff); // nejvyšší rozdíl nahoře
-  Plotly.newPlot('chart-workload', [{
-    type:'bar', orientation:'h',
-    y:top.map(t=>t.label), x:top.map(t=>t.diff),
-    marker:{color:top.map(t=>t.diff>=0 ? '#4CAF82' : '#E05555')},
-    text:top.map(t=>`P/60: ${f2(t.p60)}`), textposition:'outside',
-    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    hoverinfo:'text',
-    hovertext:top.map(t=>`${t.label}<br>P/60: ${f2(t.p60)}<br>Liga průměr: ${f2(ligaAvg)}<br>Rozdíl: ${t.diff>0?'+':''}${f2(t.diff)}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:185,r:55,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:`← Pod průměrem | Nad průměrem → (liga: ${f2(ligaAvg)} P/60)`,font:{size:11,color:'#4A6070'}},
-      color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
-      zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
-    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    showlegend:false
+  const mT = median(valid.map(p=>p.TOI_GP)), mP = median(valid.map(p=>p.P60));
+  const top = new Set([...valid].sort((a,b)=>b.P60-a.P60).slice(0,8).map(p=>p.Jmeno+'|'+p.Tym_clean));
+  const tr = (poz, name, color) => { const g = valid.filter(p=>p.Pozice===poz); return {
+    type:'scatter', mode:'markers+text', name, x:g.map(p=>p.TOI_GP), y:g.map(p=>p.P60),
+    text:g.map(p=>top.has(p.Jmeno+'|'+p.Tym_clean) ? p.Jmeno.split(' ').slice(-1)[0] : ''), textposition:'top center',
+    textfont:{family:'DM Sans',size:9,color:'#B0C0CC'},
+    marker:{size:7, color, opacity:0.75, line:{color:'#1B2B34',width:1}},
+    hoverinfo:'text', hovertext:g.map(p=>`${label(p)}<br>Minuty na zápas: ${c1(p.TOI_GP)}<br>Body na 60 min: ${c2(p.P60)}<br>Body: ${p.Body} za ${p.GP} z`)}; };
+  const xs=valid.map(p=>p.TOI_GP), ys=valid.map(p=>p.P60);
+  const xr=[Math.min(...xs)-0.8, Math.max(...xs)+0.8], yr=[Math.min(0,...ys)-0.2, Math.max(...ys)*1.12+0.2];
+  Plotly.newPlot('chart-workload', [tr('U','Útočníci','#3AADAD'), tr('O','Obránci','#D4A843')].filter(t=>t.x.length), Object.assign({}, BASE_LAYOUT, {
+    margin:{l:50,r:15,t:30,b:45},
+    xaxis:{...AX_LOCK, range:xr, title:{text:'Minuty na ledě za zápas →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, range:yr, title:{text:'Body na 60 minut →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    shapes:[
+      {type:'line',x0:mT,x1:mT,y0:yr[0],y1:yr[1],line:{dash:'dash',color:'rgba(143,163,176,0.4)',width:1}},
+      {type:'line',x0:xr[0],x1:xr[1],y0:mP,y1:mP,line:{dash:'dash',color:'rgba(143,163,176,0.4)',width:1}}
+    ],
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
 
 /* ── 3. PLAYER COMPARISON RADAR — scatterpolar ───────────────── */
 function renderRadar(){
   if(!RADAR_LIST.length) return;
-  const cats = ['P/60','G/60','+/−','Hity+Bloky','PP role','Body/z'];
+  const cats = ['P/60','G/60','+/−','Hity+bloky','PP role','Body/z'];
   const colors = ['#3AADAD','#FF8A3D','#4CAF82'];
   // normalizace přes CELÝ dataset
   const nP60 = makeNorm(HRACI.map(p=>p.P60));
   const nG60 = makeNorm(HRACI.map(p=>p.G60));
   const nPM  = makeNorm(HRACI.map(p=>p.Plus_minus));
-  const nHB  = makeNorm(HRACI.map(p=>(p.Hity||0)+(p.Bloky||0)));
+  // (8. 10.) hity + bloky NA ZÁPAS — ostatní osy jsou taky na zápas / na 60 minut
+  const hbz  = p => p.GP ? ((p.Hity||0)+(p.Bloky||0))/p.GP : null;
+  const nHB  = makeNorm(HRACI.map(hbz));
   const nPP  = makeNorm(HRACI.map(p=>p.PP_TOI_GP));
   const nBz  = makeNorm(HRACI.map(p=> (p.Body!=null&&p.GP) ? p.Body/p.GP : null));
 
@@ -736,7 +758,7 @@ function renderRadar(){
   const traces = sel.filter(Boolean).map((p,i)=>{
     const vals = [
       nP60(p.P60), nG60(p.G60), nPM(p.Plus_minus),
-      nHB((p.Hity||0)+(p.Bloky||0)), nPP(p.PP_TOI_GP),
+      nHB(hbz(p)), nPP(p.PP_TOI_GP),
       nBz((p.Body!=null&&p.GP)?p.Body/p.GP:null)
     ].map(x=>x==null?0:x);
     return {
@@ -752,7 +774,7 @@ function renderRadar(){
   traces.forEach((t,i)=>{ t.fillcolor = hexToRgba(colors[i%3],0.18); });
 
   Plotly.newPlot('chart-radar', traces, Object.assign({}, BASE_LAYOUT, {
-    margin:{l:40,r:40,t:30,b:60},
+    margin:{l:60,r:50,t:30,b:60},
     polar:{
       bgcolor:'rgba(46,66,86,0.25)',
       radialaxis:{visible:true, range:[0,100], color:'#4A6070', gridcolor:'rgba(42,139,139,0.15)', tickfont:{family:'JetBrains Mono',size:9}},
@@ -764,34 +786,33 @@ function renderRadar(){
 }
 
 /* ── 4. SHOOTING MATRIX — bublinový scatter (4 kvadranty) ─────── */
+// (8. 10.) jen hráči aspoň s PRAH_STRELY střelami — dřív byli "snipeři" s 50 % z 6 střel
+const STREL_KAT = {'Elita':'#4CAF50','Sniper':'#2196F3','Hodně střel':'#FF9800','Ostatní':'#9E9E9E'};
 function renderShooting(d){
-  const valid = d.filter(p=>p.Strely!=null && p.Strely_pct!=null && p.Strely>0)
+  const minS = PRAH_STRELY();
+  const valid = d.filter(p=>p.Strely!=null && p.Strely_pct!=null && p.Strely>=minS)
     .sort((a,b)=>(b.G||0)-(a.G||0)).slice(0,40);
   if(!valid.length){ emptyBox('chart-shooting','Pro tenhle filtr zatím nejsou data.'); return; }
   const sMed = median(valid.map(p=>p.Strely));
   const pMed = median(valid.map(p=>p.Strely_pct));
-  const cat = p => (p.Strely>=sMed && p.Strely_pct>=pMed) ? 'Elite'
+  const cat = p => (p.Strely>=sMed && p.Strely_pct>=pMed) ? 'Elita'
     : (p.Strely_pct>=pMed) ? 'Sniper'
-    : (p.Strely>=sMed) ? 'Volume Shooter' : 'Standard';
-  const cols = {'Elite':'#4CAF50','Sniper':'#2196F3','Volume Shooter':'#FF9800','Standard':'#9E9E9E'};
+    : (p.Strely>=sMed) ? 'Hodně střel' : 'Ostatní';
   const maxG = Math.max(...valid.map(p=>p.G||0), 1);
-  const traces = Object.keys(cols).map(k=>{
+  const traces = Object.keys(STREL_KAT).map(k=>{
     const g = valid.filter(p=>cat(p)===k);
     return {
       type:'scatter', mode:'markers', name:k,
       x:g.map(p=>p.Strely), y:g.map(p=>p.Strely_pct),
-      marker:{
-        size:g.map(p=>8 + (p.G||0)/maxG*26),
-        color:cols[k], opacity:0.78, line:{width:1,color:'#1B2B34'}
-      },
+      marker:{ size:g.map(p=>8 + (p.G||0)/maxG*26), color:STREL_KAT[k], opacity:0.78, line:{width:1,color:'#1B2B34'} },
       hoverinfo:'text',
-      hovertext:g.map(p=>`${label(p)}<br>Střely: ${p.Strely}<br>Úspěšnost: ${f1(p.Strely_pct)} %<br>Góly: ${p.G}<br>${k}`)
+      hovertext:g.map(p=>`${label(p)}<br>Střely: ${p.Strely}<br>Úspěšnost: ${c1(p.Strely_pct)} %<br>Góly: ${p.G}<br>${k}`)
     };
   }).filter(t=>t.x.length);
   const maxS = Math.max(...valid.map(p=>p.Strely));
   const maxP = Math.max(...valid.map(p=>p.Strely_pct));
   Plotly.newPlot('chart-shooting', traces, Object.assign({}, BASE_LAYOUT, {
-    margin:{l:50,r:15,t:15,b:45},
+    margin:{l:50,r:15,t:35,b:45},
     xaxis:{...AX_LOCK, title:{text:'Počet střel →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, title:{text:'Úspěšnost střelby (%) →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     shapes:[
@@ -799,12 +820,12 @@ function renderShooting(d){
       {type:'line',x0:0,x1:maxS+5,y0:pMed,y1:pMed,line:{dash:'dash',color:'rgba(143,163,176,0.4)',width:1}}
     ],
     annotations:[
-      {x:0.97,y:0.97,xref:'paper',yref:'paper',text:'ELITE',showarrow:false,font:{size:10,color:'#4CAF50'}},
+      {x:0.97,y:0.97,xref:'paper',yref:'paper',text:'ELITA',showarrow:false,font:{size:10,color:'#4CAF50'}},
       {x:0.03,y:0.97,xref:'paper',yref:'paper',text:'SNIPER',showarrow:false,font:{size:10,color:'#2196F3'}},
-      {x:0.97,y:0.04,xref:'paper',yref:'paper',text:'VOLUME',showarrow:false,font:{size:10,color:'#FF9800'}},
-      {x:0.03,y:0.04,xref:'paper',yref:'paper',text:'STANDARD',showarrow:false,font:{size:10,color:'#8FA3B0'}}
+      {x:0.97,y:0.04,xref:'paper',yref:'paper',text:'HODNĚ STŘEL',showarrow:false,font:{size:10,color:'#FF9800'}},
+      {x:0.03,y:0.04,xref:'paper',yref:'paper',text:'OSTATNÍ',showarrow:false,font:{size:10,color:'#8FA3B0'}}
     ],
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.1,font:{size:10,color:'#8FA3B0'}}
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
 
@@ -813,72 +834,92 @@ function renderIceTime(d){
   const valid = d.filter(p=>p.EV_TOI_GP!=null && p.PP_TOI_GP!=null && p.SH_TOI_GP!=null)
     .sort((a,b)=>(b.TOI_GP||0)-(a.TOI_GP||0)).slice(0,30).reverse(); // nejvyšší nahoře
   if(!valid.length){ emptyBox('chart-icetime','Pro tenhle filtr zatím nejsou data.'); return; }
-  const y = valid.map(label);
+  const y = valid.map(labelAx);
+  const hov = (p,k,v) => `${label(p)}<br>${k}: ${c1(v)} min<br>Celkem: ${c1(p.TOI_GP)} min na zápas`;
   Plotly.newPlot('chart-icetime', [
-    {type:'bar',orientation:'h',name:'EV',y,x:valid.map(p=>p.EV_TOI_GP),marker:{color:'#60A5FA'},
-     hoverinfo:'text',hovertext:valid.map(p=>`${label(p)}<br>EV: ${f1(p.EV_TOI_GP)} min`)},
-    {type:'bar',orientation:'h',name:'PP',y,x:valid.map(p=>p.PP_TOI_GP),marker:{color:'#1D4ED8'},
-     hoverinfo:'text',hovertext:valid.map(p=>`${label(p)}<br>PP: ${f1(p.PP_TOI_GP)} min`)},
-    {type:'bar',orientation:'h',name:'SH',y,x:valid.map(p=>p.SH_TOI_GP),marker:{color:'#93C5FD'},
-     hoverinfo:'text',hovertext:valid.map(p=>`${label(p)}<br>SH: ${f1(p.SH_TOI_GP)} min`)}
+    {type:'bar',orientation:'h',name:'5 na 5 (EV)',y,x:valid.map(p=>p.EV_TOI_GP),marker:{color:'#60A5FA'},
+     hoverinfo:'text',hovertext:valid.map(p=>hov(p,'EV',p.EV_TOI_GP))},
+    {type:'bar',orientation:'h',name:'Přesilovka',y,x:valid.map(p=>p.PP_TOI_GP),marker:{color:'#1D4ED8'},
+     hoverinfo:'text',hovertext:valid.map(p=>hov(p,'Přesilovka',p.PP_TOI_GP))},
+    {type:'bar',orientation:'h',name:'Oslabení',y,x:valid.map(p=>p.SH_TOI_GP),marker:{color:'#93C5FD'},
+     hoverinfo:'text',hovertext:valid.map(p=>hov(p,'Oslabení',p.SH_TOI_GP))}
   ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'stack', margin:{l:185,r:15,t:40,b:40},
+    barmode:'stack', margin:{l:okraj(),r:15,t:40,b:40},
     xaxis:{...AX_LOCK, title:{text:'Minuty na zápas',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.05,font:{size:11,color:'#8FA3B0'}}
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
 
-/* ── 6. TRUE DEFENSIVE VALUE — stacked komponenty ────────────── */
-function renderTDV(d){
-  const valid = d.filter(p=>p.Bloky!=null && p.Hity!=null).map(p=>{
-    const cb = Math.min((p.Bloky||0)*1.5, 50);
-    const ch = Math.min((p.Hity||0)*1.0, 40);
-    const cs = Math.min((p.SH_TOI_pct||0)*0.5, 25);
-    return {p, cb, ch, cs, tot:Math.round((cb+ch+cs)*10)/10};
-  }).sort((a,b)=>b.tot-a.tot).slice(0,20).reverse();
-  if(!valid.length){ emptyBox('chart-tdv','Pro tenhle filtr zatím nejsou data.'); return; }
-  const y = valid.map(o=>label(o.p));
-  Plotly.newPlot('chart-tdv', [
-    {type:'bar',orientation:'h',name:'Bloky (AB ×1.5)',y,x:valid.map(o=>o.cb),marker:{color:'#1565C0'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>Bloky: ${f1(o.cb)}`)},
-    {type:'bar',orientation:'h',name:'Hity (H ×1.0)',y,x:valid.map(o=>o.ch),marker:{color:'#42A5F5'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>Hity: ${f1(o.ch)}`)},
-    {type:'bar',orientation:'h',name:'SH TOI% (×0.5)',y,x:valid.map(o=>o.cs),marker:{color:'#90CAF9'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>SH TOI: ${f1(o.cs)}`)}
-  ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'stack', margin:{l:185,r:15,t:40,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Defenzivní hodnota (součet komponent)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+/* ── 5b. PŘESILOVKOVÍ SPECIALISTÉ (8. 10.) — body v přesilovce na 60 minut přesilovky ── */
+function renderPPSpec(d){
+  const minM = PRAH_PP();
+  const valid = d.filter(p=>p.PPP!=null && p.PP_TOI_GP!=null && p.GP>0)
+    .map(p=>{ const m=p.PP_TOI_GP*p.GP; return {p, m, v: m>0 ? p.PPP/m*60 : null}; })
+    .filter(o=>o.v!=null && o.m>=minM).sort((a,b)=>b.v-a.v || b.p.PPP-a.p.PPP).slice(0,15).reverse();
+  if(!valid.length){ emptyBox('chart-ppspec','Zatím nikdo nemá dost minut v přesilovce.'); return; }
+  const vals = valid.map(o=>o.v);
+  Plotly.newPlot('chart-ppspec', [{
+    type:'bar', orientation:'h', y:valid.map(o=>labelAx(o.p)), x:vals, marker:{color:'#1D4ED8'},
+    text:vals.map(c1), textposition:'outside', cliponaxis:false, textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    hoverinfo:'text', hovertext:valid.map(o=>`${label(o.p)}<br>Body v přesilovce: ${o.p.PPP}<br>Minut v přesilovce: ${c1(o.m)} (${c1(o.p.PP_TOI_GP)} na zápas)<br>Na 60 minut přesilovky: ${c1(o.v)}`)
+  }], Object.assign({}, BASE_LAYOUT, {
+    margin:{l:okraj(),r:20,t:10,b:40},
+    xaxis:{...AX_LOCK, range:[0, Math.max(...vals)*1.18], title:{text:'Body v přesilovce na 60 minut přesilovky',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.05,font:{size:10,color:'#8FA3B0'}}
+    showlegend:false
   }), LOCK_CONFIG);
 }
 
-/* ── 7. GRIT INDEX — stacked komponenty ──────────────────────── */
+/* ── 6. TRUE DEFENSIVE VALUE — (8. 10.) NA ZÁPAS, bez stropů ──────────
+   Dřív součty za sezónu se stropy 50/40/25: Čerešňák (26 bloků po 9 zápasech) by strop
+   trefil za ~3 zápasy a v polovině sezóny by na něm bylo celé top 20. Teď na zápas,
+   stejně jako Def_Value v build.R (Moneyball). */
+function defSlozky(p){
+  const gp = Math.max(p.GP||0, 1);
+  const cb = (p.Bloky||0)*1.5/gp, ch = (p.Hity||0)/gp, cs = (p.SH_TOI_GP||0)*0.5;
+  return {p, cb, ch, cs, tot: cb+ch+cs};
+}
+function defGraf(id, rows, yLab){
+  const y = rows.map(yLab);
+  const hov = o => `${label(o.p)}<br>Bloky: ${o.p.Bloky} (${c2((o.p.Bloky||0)/Math.max(o.p.GP,1))} na zápas)<br>Hity: ${o.p.Hity} (${c2((o.p.Hity||0)/Math.max(o.p.GP,1))} na zápas)<br>Oslabení: ${c1(o.p.SH_TOI_GP)} min na zápas<br>Defenzivní hodnota: ${c2(o.tot)}`;
+  Plotly.newPlot(id, [
+    {type:'bar',orientation:'h',name:'Bloky ×1,5',y,x:rows.map(o=>o.cb),marker:{color:'#1565C0'},hoverinfo:'text',hovertext:rows.map(hov)},
+    {type:'bar',orientation:'h',name:'Hity',y,x:rows.map(o=>o.ch),marker:{color:'#42A5F5'},hoverinfo:'text',hovertext:rows.map(hov)},
+    {type:'bar',orientation:'h',name:'Oslabení (min) ×0,5',y,x:rows.map(o=>o.cs),marker:{color:'#90CAF9'},hoverinfo:'text',hovertext:rows.map(hov)}
+  ], Object.assign({}, BASE_LAYOUT, {
+    barmode:'stack', margin:{l:okraj(),r:15,t:40,b:40},
+    xaxis:{...AX_LOCK, title:{text:'Defenzivní hodnota na zápas',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
+    legend:{orientation:'h',traceorder:'normal',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
+  }), LOCK_CONFIG);
+}
+function renderTDV(d){
+  const valid = d.filter(p=>p.Bloky!=null && p.Hity!=null && p.GP>0).map(defSlozky)
+    .sort((a,b)=>b.tot-a.tot).slice(0,20).reverse();
+  if(!valid.length){ emptyBox('chart-tdv','Pro tenhle filtr zatím nejsou data.'); return; }
+  defGraf('chart-tdv', valid, o=>labelAx(o.p));
+}
+
+/* ── 7. GRIT INDEX — (8. 10.) hity a bloky na zápas, bez trestných minut ── */
 function renderGrit(d){
-  const valid = d.filter(p=>p.Hity!=null || p.Bloky!=null).map(p=>{
-    const ch = p.Hity||0, cb = p.Bloky||0;
-    const cp = (p.PIM||0)*0.5, cs = (p.SHG||0)*10, ct = (p.SH_TOI_GP||0)*2;
-    return {p, ch, cb, cp, cs, ct, tot:Math.round((ch+cb+cp+cs+ct)*10)/10};
+  const valid = d.filter(p=>(p.Hity!=null || p.Bloky!=null) && p.GP>0).map(p=>{
+    const ch=(p.Hity||0)/p.GP, cb=(p.Bloky||0)/p.GP;
+    return {p, ch, cb, tot:ch+cb};
   }).sort((a,b)=>b.tot-a.tot).slice(0,20).reverse();
   if(!valid.length){ emptyBox('chart-grit','Pro tenhle filtr zatím nejsou data.'); return; }
-  const y = valid.map(o=>label(o.p));
+  const y = valid.map(o=>labelAx(o.p));
+  const hov = o => `${label(o.p)}<br>Hity: ${o.p.Hity} (${c2(o.ch)} na zápas)<br>Bloky: ${o.p.Bloky} (${c2(o.cb)} na zápas)<br>Grit: ${c2(o.tot)} na zápas`;
   Plotly.newPlot('chart-grit', [
-    {type:'bar',orientation:'h',name:'Hity',y,x:valid.map(o=>o.ch),marker:{color:'#E65100'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>Hity: ${Math.round(o.ch)}`)},
-    {type:'bar',orientation:'h',name:'Bloky',y,x:valid.map(o=>o.cb),marker:{color:'#93C5FD'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>Bloky: ${Math.round(o.cb)}`)},
-    {type:'bar',orientation:'h',name:'PIM (×0.5)',y,x:valid.map(o=>o.cp),marker:{color:'#FFB74D'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>PIM: ${f1(o.cp)}`)},
-    {type:'bar',orientation:'h',name:'SHG (×10)',y,x:valid.map(o=>o.cs),marker:{color:'#FFE0B2'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>SHG: ${Math.round(o.cs)}`)},
-    {type:'bar',orientation:'h',name:'SH TOI/GP (×2)',y,x:valid.map(o=>o.ct),marker:{color:'#FFF3E0'},
-     hoverinfo:'text',hovertext:valid.map(o=>`${label(o.p)}<br>SH TOI: ${f1(o.ct)}`)}
+    {type:'bar',orientation:'h',name:'Hity',y,x:valid.map(o=>o.ch),marker:{color:'#E65100'},hoverinfo:'text',hovertext:valid.map(hov)},
+    {type:'bar',orientation:'h',name:'Bloky',y,x:valid.map(o=>o.cb),marker:{color:'#93C5FD'},hoverinfo:'text',hovertext:valid.map(hov)},
+    {type:'scatter',mode:'text',y,x:valid.map(o=>o.tot),text:valid.map(o=>' '+c1(o.tot)),textposition:'middle right',
+     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},hoverinfo:'skip',showlegend:false,cliponaxis:false}
   ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'stack', margin:{l:185,r:15,t:40,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Grit Index (součet komponent)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    barmode:'stack', margin:{l:okraj(),r:30,t:40,b:40},
+    xaxis:{...AX_LOCK, range:[0, Math.max(...valid.map(o=>o.tot))*1.15], title:{text:'Hity + bloky na zápas',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.05,font:{size:10,color:'#8FA3B0'}}
+    legend:{orientation:'h',traceorder:'normal',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
 
@@ -889,17 +930,18 @@ function renderFaceoff(){
     .map(p=>({...p, diff:Math.round((p.FO_pct-50)*10)/10}))
     .sort((a,b)=>a.diff-b.diff); // nejlepší nahoře
   if(!valid.length){ emptyBox('chart-faceoff','Žádní hráči (min. '+PRAH_FO()+' vhazování) neodpovídají filtru.'); return; }
+  const vals = valid.map(p=>p.diff);
   Plotly.newPlot('chart-faceoff', [{
     type:'bar', orientation:'h',
-    y:valid.map(label), x:valid.map(p=>p.diff),
+    y:valid.map(labelAx), x:vals,
     marker:{color:valid.map(p=>p.diff>=0?'#4CAF82':'#E05555')},
-    text:valid.map(p=>`${f1(p.FO_pct)} %`), textposition:'outside', cliponaxis:false,
+    text:valid.map(p=>`${c1(p.FO_pct)} %`), textposition:'outside', cliponaxis:false,
     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:valid.map(p=>`${label(p)}<br>FO%: ${f1(p.FO_pct)}<br>Vyhraná: ${p.FOW}<br>Celkem: ${p.FO_total}`)
+    hovertext:valid.map(p=>`${label(p)}<br>Úspěšnost: ${c1(p.FO_pct)} %<br>Vyhraná: ${p.FOW} z ${p.FO_total}`)
   }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:185,r:55,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:'← Pod 50 % | Nad 50 % → (ligový průměr)',font:{size:11,color:'#4A6070'}},
+    margin:{l:okraj(),r:20,t:10,b:40},
+    xaxis:{...AX_LOCK, range:rozsahPM(vals), title:{text:'← pod 50 % | nad 50 % → (procentní body)',font:{size:11,color:'#4A6070'}},
       color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
       zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
@@ -913,128 +955,74 @@ function moneyballSet(){
 }
 function renderSkryti(){
   renderInsights('insight-skryti', INS_SKRYTI, insNames());
-  renderMBStars(); renderMBIndex(); renderHiddenGems(); renderDefAnchors(); renderZoneProfile();
+  renderMBIndex(); renderHiddenGems(); renderDefAnchors();
 }
 
-function renderMBStars(){
-  const set = moneyballSet();
-  const body = document.getElementById('mbstars-body');
-  if(!set.length){ body.innerHTML='<tr><td colspan="8"><div class="empty">Žádní hráči nesplňují kritéria.</div></td></tr>'; return; }
-  const nPM=makeNorm(set.map(p=>p.Plus_minus)), nDef=makeNorm(set.map(p=>p.Def_Value)),
-        nSH=makeNorm(set.map(p=>p.SH_TOI_pct)), nAB=makeNorm(set.map(p=>p.Bloky)),
-        nH=makeNorm(set.map(p=>p.Hity)), nPIM=makeNorm(set.map(p=>p.PIM)),
-        nP60=makeNorm(set.map(p=>p.P60)), nG60=makeNorm(set.map(p=>p.G60)),
-        nPor=makeNorm(set.map(p=>p.Poradi));
-  const rows = set.map(p=>{
-    const s_two = z50(nPM(p.Plus_minus));
-    const s_def = z50(nDef(p.Def_Value))*0.6 + z50(nSH(p.SH_TOI_pct))*0.4;
-    const s_phys= z50(nH(p.Hity))*0.4 + z50(nAB(p.Bloky))*0.4 + z50(nPIM(p.PIM))*0.2;
-    const s_eff = z50(nP60(p.P60))*0.6 + z50(nG60(p.G60))*0.4;
-    const s_hid = z50(nPor(p.Poradi));
-    const mb = (p.Moneyball!=null) ? p.Moneyball
-             : Math.round((s_two*0.30+s_def*0.25+s_phys*0.15+s_eff*0.15+s_hid*0.15)*10)/10;
-    return {p, s_two, s_def, s_phys, mb};
-  });
-  const qDef=quantile(rows.map(r=>r.s_def),0.80), qPhys=quantile(rows.map(r=>r.s_phys),0.75),
-        qTwo=quantile(rows.map(r=>r.s_two),0.70), qP60=quantile(set.map(p=>p.P60),0.75);
-  const cat = r => {
-    const p=r.p;
-    if(p.P60!=null && p.P60>=qP60 && (p.Plus_minus||0)>=0) return ['Budoucí hvězda','cat-star'];
-    if(r.s_def>=qDef) return ['Defenzivní kotva','cat-def'];
-    if(r.s_phys>=qPhys && (p.Plus_minus||0)>=0) return ['Grinder s IQ','cat-grind'];
-    if(r.s_two>=qTwo && (p.Poradi||0)>=50) return ['Skrytý hrdina','cat-hidden'];
+/* (8. 10.) Moneyball Stars a Moneyball Index byly jedna a tatáž tabulka (Stars brala hotové
+   číslo z buildu, vzorec v jejím popisku se nepoužil) a "Trenérova důvěra" to samé pořadí
+   potřetí. Teď jedna tabulka; kategorie (dřív jen ve Stars) podle toho, v čem hráč vyčnívá. */
+function renderMBIndex(){
+  const all = moneyballSet();
+  const body=document.getElementById('mbindex-body');
+  if(!all.length){ body.innerHTML='<tr><td colspan="14"><div class="empty">Žádní hráči nesplňují kritéria.</div></td></tr>'; return; }
+  const hbz = p => p.GP ? ((p.Hity||0)+(p.Bloky||0))/p.GP : 0;
+  // (8. 10.) hranice kategorií zvlášť pro útočníky a obránce — stejně jako Moneyball v build.R
+  // (dřív společné, takže "Defenzivní kotva" byli skoro jen obránci a "Budoucí hvězda" útočníci)
+  const Q = {};
+  ['U','O'].forEach(pz=>{ const g=all.filter(p=>(p.Pozice==='O'?'O':'U')===pz);
+    Q[pz]={P60:quantile(g.map(p=>p.P60),0.75), Def:quantile(g.map(p=>p.Def_Value),0.80),
+           HB:quantile(g.map(hbz),0.75), Rel:quantile(g.map(p=>p.PM_rel),0.70)}; });
+  const kat = p => { const q=Q[p.Pozice==='O'?'O':'U'];
+    if(p.P60!=null && p.P60>=q.P60 && (p.PM_rel||0)>=0) return ['Budoucí hvězda','cat-star'];
+    if(p.Def_Value!=null && p.Def_Value>=q.Def) return ['Defenzivní kotva','cat-def'];
+    if(hbz(p)>=q.HB && (p.PM_rel||0)>=0) return ['Grinder s IQ','cat-grind'];
+    if(p.PM_rel!=null && p.PM_rel>=q.Rel && (p.Poradi||0)>=50) return ['Skrytý hrdina','cat-hidden'];
     return ['Tichý tahoun','cat-tahoun'];
   };
-  const top = rows.sort((a,b)=>b.mb-a.mb).slice(0,30);
-  body.innerHTML = top.map((r,i)=>{
-    const [kn,kc]=cat(r), p=r.p, v=Math.max(0,Math.min(100,r.mb));
-    const bar=`linear-gradient(90deg, rgba(212,168,67,.45) ${v}%, transparent ${v}%)`;
-    return `<tr><td>${i+1}</td><td>${p.Jmeno}</td><td><span class="pos-pill">${p.Pozice||'—'}</span></td>
-      <td style="color:var(--text-dim)">${p.Tym_clean}</td><td>${p.GP}</td><td>${p.Body}</td>
-      <td class="gpi-bar" style="background-image:${bar}">${f1(r.mb)}</td>
-      <td><span class="cat-pill ${kc}">${kn}</span></td></tr>`;
-  }).join('');
-}
-
-function renderMBIndex(){
-  const set = moneyballSet().filter(p=>p.Moneyball!=null).sort((a,b)=>b.Moneyball-a.Moneyball).slice(0,40);
-  const body=document.getElementById('mbindex-body');
-  if(!set.length){ body.innerHTML='<tr><td colspan="13"><div class="empty">Žádní hráči.</div></td></tr>'; return; }
-  const cf=v=>v==null?'var(--text-dim)':v<0?'var(--loss)':'var(--win)';
+  const set = [...all].sort((a,b)=>b.Moneyball-a.Moneyball).slice(0,30);
+  const cf=v=>v==null?'var(--text-dim)':v<0?'var(--loss)':v>0?'var(--win)':'var(--text-dim)';
   body.innerHTML=set.map((p,i)=>{
-    const v=Math.max(0,Math.min(100,p.Moneyball||0));
+    const v=Math.max(0,Math.min(100,p.Moneyball||0)), [kn,kc]=kat(p);
     const bar=`linear-gradient(90deg, rgba(212,168,67,.45) ${v}%, transparent ${v}%)`;
-    return `<tr><td>${i+1}</td><td>${p.Jmeno}</td><td style="color:var(--text-dim)">${p.Tym_clean}</td>
+    const rel = p.PM_rel==null ? '—' : (p.PM_rel>0?'+':'')+f1(p.PM_rel);
+    return `<tr><td>${i+1}</td><td class="nm">${p.Jmeno}</td>
+      <td class="gpi-bar" style="background-image:${bar}">${f1(p.Moneyball)}</td>
+      <td class="l"><span class="cat-pill ${kc}">${kn}</span></td>
+      <td class="l" style="color:var(--text-dim)">${p.Tym_clean}</td>
       <td><span class="pos-pill">${p.Pozice||'—'}</span></td><td>${p.GP}</td><td>${p.Body}</td>
       <td>${f2(p.P60)}</td>
-      <td style="color:${cf(p.Plus_minus)};font-weight:600">${p.Plus_minus>0?'+':''}${p.Plus_minus??'—'}</td>
-      <td>${f1(p.Def_Value)}</td><td>${p.Hity??'—'}</td><td>${p.Bloky??'—'}</td>
-      <td>${f1(p.SH_TOI_pct)}</td><td class="gpi-bar" style="background-image:${bar}">${f1(p.Moneyball)}</td></tr>`;
+      <td style="color:${cf(p.PM_rel)};font-weight:600" title="+/− ${p.Plus_minus>0?'+':''}${p.Plus_minus??'—'}, průměrný spoluhráč by měl ${p.PM_tym??'—'}">${rel}</td>
+      <td>${f2(p.Def_Value)}</td><td>${p.Hity??'—'}</td><td>${p.Bloky??'—'}</td>
+      <td>${f1(p.SH_TOI_GP)}</td></tr>`;
   }).join('');
 }
 
+/* (8. 10.) +/− proti týmu (PM_rel z build.R) místo holého +/−, které kopíruje sílu týmu */
 function renderHiddenGems(){
-  const d = moneyballSet().filter(p=>p.Plus_minus!=null)
-    .map(p=>({p, u:p.Plus_minus}))
+  const d = moneyballSet().filter(p=>p.PM_rel!=null)
+    .map(p=>({p, u:p.PM_rel}))
     .sort((a,b)=>b.u-a.u).slice(0,25).sort((a,b)=>a.u-b.u);
   if(!d.length){ emptyBox('chart-hidden-gems','Pro tenhle filtr zatím nejsou data.'); return; }
+  const vals=d.map(o=>o.u);
   Plotly.newPlot('chart-hidden-gems', [{
-    type:'bar', orientation:'h', y:d.map(o=>label(o.p)), x:d.map(o=>o.u),
+    type:'bar', orientation:'h', y:d.map(o=>labelAx(o.p)), x:vals,
     marker:{color:d.map(o=>o.u>=0?'#4CAF82':'#E05555')},
-    text:d.map(o=>(o.u>=0?'+':'')+o.u), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    text:d.map(o=>zn(o.u)+c1(Math.abs(o.u))), textposition:'outside', cliponaxis:false, textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.p)}<br>+/−: ${o.u>=0?'+':''}${o.u}<br>Def. hodnota: ${f1(o.p.Def_Value)}<br>Body: ${o.p.Body} (#${o.p.Poradi})`)
+    hovertext:d.map(o=>`${label(o.p)}<br>+/−: ${o.p.Plus_minus>0?'+':''}${o.p.Plus_minus}<br>Průměrný spoluhráč za ${o.p.GP} z: ${zn(o.p.PM_tym)}${c1(Math.abs(o.p.PM_tym||0))}<br>Proti týmu: ${zn(o.u)}${c1(Math.abs(o.u))}<br>Body: ${o.p.Body} (#${o.p.Poradi})`)
   }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:185,r:50,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:'← Tým s ním ztrácí góly | Tým s ním boduje → (+/−)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
+    margin:{l:okraj(),r:20,t:10,b:40},
+    xaxis:{...AX_LOCK, range:rozsahPM(vals), title:{text:'+/− proti průměrnému spoluhráči',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     showlegend:false
   }), LOCK_CONFIG);
 }
 
 function renderDefAnchors(){
-  const d = moneyballSet().filter(p=>p.Bloky!=null && p.Hity!=null).map(p=>{
-    const cb=Math.min((p.Bloky||0)*1.5,50), ch=Math.min((p.Hity||0)*1.0,40),
-          cs=Math.min((p.SH_TOI_pct||0)*0.5,25);
-    return {p, cb,ch,cs, tot:Math.round((cb+ch+cs)*10)/10};
-  }).sort((a,b)=>b.tot-a.tot).slice(0,15).reverse();
+  const d = moneyballSet().filter(p=>p.Bloky!=null && p.Hity!=null && p.GP>0).map(defSlozky)
+    .sort((a,b)=>b.tot-a.tot).slice(0,15).reverse();
   if(!d.length){ emptyBox('chart-def-anchors','Zatím bez defenzivních dat.'); return; }
-  const y=d.map(o=>`${o.p.Jmeno} (${o.p.Tym_clean}) — ${o.p.Body}b`);
-  Plotly.newPlot('chart-def-anchors', [
-    {type:'bar',orientation:'h',name:'Bloky (AB ×1.5)',y,x:d.map(o=>o.cb),marker:{color:'#1565C0'},hoverinfo:'text',hovertext:d.map(o=>`${label(o.p)}<br>Bloky: ${f1(o.cb)}`)},
-    {type:'bar',orientation:'h',name:'Hity (H ×1.0)',y,x:d.map(o=>o.ch),marker:{color:'#42A5F5'},hoverinfo:'text',hovertext:d.map(o=>`${label(o.p)}<br>Hity: ${f1(o.ch)}`)},
-    {type:'bar',orientation:'h',name:'SH TOI% (×0.5)',y,x:d.map(o=>o.cs),marker:{color:'#90CAF9'},hoverinfo:'text',hovertext:d.map(o=>`${label(o.p)}<br>SH TOI: ${f1(o.cs)}`)}
-  ], Object.assign({}, BASE_LAYOUT, {
-    barmode:'stack', margin:{l:210,r:15,t:40,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Defenzivní hodnota (součet komponent)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.06,font:{size:10,color:'#8FA3B0'}}
-  }), LOCK_CONFIG);
-}
-
-function renderZoneProfile(){
-  const set = moneyballSet().filter(p=>p.Moneyball!=null);
-  if(!set.length){ emptyBox('chart-zone-profile','Zatím bez dat.'); return; }
-  const avg = mean(set.map(p=>p.Moneyball));
-  const d = set.sort((a,b)=>b.Moneyball-a.Moneyball).slice(0,15)
-    .map(p=>({p, lab:`${p.Jmeno} (${p.Tym_clean}) — ${p.Body}b`, diff:Math.round((p.Moneyball-avg)*10)/10}))
-    .sort((a,b)=>a.diff-b.diff);
-  Plotly.newPlot('chart-zone-profile', [{
-    type:'bar', orientation:'h',
-    y:d.map(o=>o.lab), x:d.map(o=>o.diff),
-    marker:{color:d.map(o=>o.diff>=0?'#4CAF82':'#FF8A3D')},
-    text:d.map(o=>f1(o.p.Moneyball)), textposition:'outside', cliponaxis:false,
-    textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.p)}<br>Moneyball Index: ${f1(o.p.Moneyball)}<br>+/−: ${o.p.Plus_minus>0?'+':''}${o.p.Plus_minus??'—'}<br>Def. hodnota: ${f1(o.p.Def_Value)}<br>P/60: ${f2(o.p.P60)}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:210,r:50,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:`← Pod průměrem | Nad průměrem → (Ø ${f1(avg)})`,font:{size:11,color:'#4A6070'}},
-      color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
-      zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
-    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    showlegend:false
-  }), LOCK_CONFIG);
+  defGraf('chart-def-anchors', d, o=>uzky() ? `${o.p.Jmeno} · ${o.p.Body} b` : `${o.p.Jmeno} (${o.p.Tym_clean}) · ${o.p.Body} b`);
 }
 
 /* ════════════════ BRANKÁŘI ════════════════ */
@@ -1046,33 +1034,42 @@ function renderInsights(boxId, data, names){
   if(!arr.length){ box.style.display='none'; return; }
   const esc = s => String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
   const rxe = s => s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  // (7. 10.) "pozn": true (malý vzorek apod.) = poznámka POD boxem, nezabírá řádek
+  const jePozn = o => o && (o.pozn===true || o.pozn==='TRUE' || (Array.isArray(o.pozn) && o.pozn[0]===true));
+  let hlavni = arr.filter(o=>!jePozn(o)), pozn = arr.filter(jePozn);
+  if(!hlavni.length){ hlavni = pozn; pozn = []; }
   const uniq = [...new Set((names||[]).filter(Boolean))].sort((a,b)=>b.length-a.length);
   const rxAll = uniq.length ? new RegExp('('+uniq.map(n=>rxe(esc(n))).join('|')+')','g') : null;
-  body.innerHTML = arr.map(o=>{
+  body.innerHTML = hlavni.map(o=>{
     let t = esc(o.text||'');
     if(rxAll) t = t.replace(rxAll, m=>`<b class="${o.tone||'teal'}">${m}</b>`);
     return `<div class="insight-item"><span class="insight-ic">${o.icon||'\u2022'}</span><span class="insight-tx">${t}</span></div>`;
-  }).join('');
+  }).join('') + pozn.map(o=>`<div class="insight-pozn">${o.icon||''} ${esc(o.text||'')}</div>`).join('');
   box.style.display='';
 }
 const insNames = () => [...new Set([...(HRACI||[]).map(p=>p.Jmeno), ...(BRANKARI||[]).map(g=>g.Jmeno), ...(HRACI||[]).map(p=>p.Tym_clean)])];
 
 function renderBrankari(){
   renderInsights('insight-brankari', INS_BRANKARI, insNames());
-  renderGoalieTable(); renderGBS(); renderClutch(); renderWorkloadPerf();
-  renderGSAA(); renderNejvytizenejsi(); renderSegmentace(); renderShootout();
+  // (8. 10.) Clutch Goalie Score vyřazený — byl to hlavně podíl výher týmu
+  renderGoalieTable(); renderGBS(); renderWorkloadPerf();
+  renderGSAA(); renderSegmentace(); renderShootout();   // (9. 10.) Nejvytíženější brankáři → osa grafu Kolik práce
 }
 
+// (8. 10.) kategorie s diakritikou (build.R); starší názvy bez háčků pro jistotu taky
+const GKAT = {'Elitní':'cat-hidden','Elite':'cat-hidden','Spolehlivý':'cat-star','Spolehlivy':'cat-star',
+              'Průměr':'cat-tahoun','Prumer':'cat-tahoun','Podprůměr':'cat-grind','Podprumer':'cat-grind'};
+const GKAT_TXT = {'Elite':'Elitní','Spolehlivy':'Spolehlivý','Prumer':'Průměr','Podprumer':'Podprůměr','Malo dat':'Málo dat'};
 function renderGoalieTable(){
   const set = BRANKARI.filter(g=>g.GP>=prah(3));
   const head=document.getElementById('goalie-head'), body=document.getElementById('goalie-body');
-  if(!set.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="13"><div class="empty">Zatím bez brankářských dat.</div></td></tr>'; return; }
+  if(!set.length){ head.innerHTML=''; body.innerHTML='<tr><td colspan="14"><div class="empty">Zatím bez brankářských dat.</div></td></tr>'; return; }
   [...set].sort((a,b)=>b.SavePct-a.SavePct).forEach((g,i)=>g._rSv=i+1);
   [...set].sort((a,b)=>b.GPI-a.GPI).forEach((g,i)=>g._rGpi=i+1);
   const gpiMode = state.goalieSort==='gpi';
   const ordered = [...set].sort((a,b)=> gpiMode ? b.GPI-a.GPI : b.SavePct-a.SavePct);
-  const catCls = k => k==='Elite'?'cat-hidden':k==='Spolehlivy'?'cat-star':k==='Prumer'?'cat-tahoun':k==='Podprumer'?'cat-grind':'cat-tahoun';
-  head.innerHTML = `<th>#</th>${gpiMode?'<th>Δ</th>':''}<th>Brankář</th><th>Tým</th><th>GP</th><th>W</th><th>L</th><th>Sv%</th><th>GAA</th><th>SO</th><th>GSAA</th><th>GBS</th><th>GPI</th><th>Kat</th>`;
+  // (8. 10.) úspěšnost a GPI hned za jménem — na telefonu vidět bez posouvání
+  head.innerHTML = `<th>#</th>${gpiMode?'<th>Δ</th>':''}<th class="l">Brankář</th><th>Sv%</th><th>GPI</th><th class="l">Kat</th><th class="l">Tým</th><th>GP</th><th>W</th><th>L</th><th>GAA</th><th>SO</th><th>GSAA</th><th>GBS</th>`;
   body.innerHTML = ordered.map((g,i)=>{
     const v=Math.max(0,Math.min(100,g.GPI||0));
     const bar=`linear-gradient(90deg, rgba(212,168,67,.42) ${v}%, transparent ${v}%)`;
@@ -1080,11 +1077,15 @@ function renderGoalieTable(){
     if(gpiMode){ const dd=g._rSv-g._rGpi;
       delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
     const gsaaCol=(g.GSAA||0)>=0?'var(--win)':'var(--loss)';
-    return `<tr><td>${i+1}</td>${delta}<td>${g.Jmeno}</td><td style="color:var(--text-dim)">${g.Tym_clean}</td>
-      <td>${g.GP}</td><td>${g.W}</td><td>${g.L}</td><td>${f1(g.SavePct)}</td><td>${f2(g.GAA)}</td><td>${g.SO}</td>
+    const kat = GKAT_TXT[g.Kategorie] || g.Kategorie;
+    return `<tr><td>${i+1}</td>${delta}<td class="nm">${g.Jmeno}</td>
+      <td style="color:var(--text);font-weight:600">${f1(g.SavePct)}</td>
+      <td class="gpi-bar" style="background-image:${bar}"${g.GPI_kvalita!=null?` title="kvalita ${c1(g.GPI_kvalita)} (upravená úspěšnost ${c2(g.Sv_upr)} %) · odchytal ${c1(g.Podil_minut)} % minut týmu"`:''}>${f1(g.GPI)}</td>
+      <td class="l"><span class="cat-pill ${GKAT[g.Kategorie]||'cat-tahoun'}">${kat}</span></td>
+      <td class="l" style="color:var(--text-dim)">${g.Tym_clean}</td>
+      <td>${g.GP}</td><td>${g.W}</td><td>${g.L}</td><td>${f2(g.GAA)}</td><td>${g.SO}</td>
       <td style="color:${gsaaCol};font-weight:600">${(g.GSAA>0?'+':'')+f1(g.GSAA)}</td>
-      <td>${f1(g.GBS)}</td><td class="gpi-bar" style="background-image:${bar}">${f1(g.GPI)}</td>
-      <td><span class="cat-pill ${catCls(g.Kategorie)}">${g.Kategorie}</span></td></tr>`;
+      <td>${f1(g.GBS)}</td></tr>`;
   }).join('');
 }
 
@@ -1095,67 +1096,80 @@ function renderGBS(){
   const maxG=Math.max(...d.map(g=>g.GBS));
   Plotly.newPlot('chart-gbs', [{
     type:'bar', orientation:'h',
-    y:d.map(label), x:d.map(g=>g.GBS),
+    y:d.map(labelAx), x:d.map(g=>g.GBS),
     marker:{color:d.map(g=> g.GBS>=70?'#4CAF82':g.GBS>=45?'#FF8A3D':'#E05555')},
-    text:d.map(g=>f1(g.GBS)), textposition:'outside', cliponaxis:false,
+    text:d.map(g=>c1(g.GBS)), textposition:'outside', cliponaxis:false,
     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:d.map(g=>`${label(g)}<br>GBS: ${f1(g.GBS)}<br>Sv%: ${f1(g.SavePct)}<br>PK% týmu: ${f1(g.PK_pct)}<br>Střel/z: ${f1(g.Workload_factor)}`)
+    hovertext:d.map(g=>`${label(g)}<br>GBS: ${c1(g.GBS)}<br>Úspěšnost: ${c1(g.SavePct)} %<br>Oslabení týmu: ${c1(g.PK_pct)} %<br>${g.Strely_60!=null?'Střel na něj za 60 minut: '+c1(g.Strely_60):'Střel na něj za zápas: '+c1(g.Workload_factor)}`)
   }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:185,r:40,t:25,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Goalie Behind Score (vyšší = silnější tým před brankářem)',font:{size:11,color:'#4A6070'}},
+    margin:{l:okraj(),r:30,t:25,b:40},
+    xaxis:{...AX_LOCK, title:{text:'GBS (vyšší = silnější tým před brankářem)',font:{size:11,color:'#4A6070'}},
       range:[0, maxG+12], color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     shapes:[{type:'line',x0:avg,x1:avg,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'#FF8A3D',width:2}}],
-    annotations:[{x:avg,y:1.03,yref:'paper',text:`Ø ${f1(avg)}`,showarrow:false,font:{size:9,color:'#FF8A3D'}}],
+    annotations:[{x:avg,y:1.03,yref:'paper',text:`Ø ${c1(avg)}`,showarrow:false,font:{size:9,color:'#FF8A3D'}}],
     showlegend:false
   }), LOCK_CONFIG);
 }
 
-function renderClutch(){
-  const d = BRANKARI.filter(g=>g.GP>=prah(2)).map(g=>{
-    // Brankář, který ještě nečelil nájezdu, za to nemůže — místo nuly za třetí
-    // složku se skóre počítá jen z dostupných složek a váhy se přeškálují.
-    const maNaj = g.PS_SavePct!=null && g.PS_SA>=Math.max(1,prah(5));
-    const slozky = maNaj ? [[g.Win_pct,0.4],[g.SO_rate,0.3],[g.PS_SavePct,0.3]]
-                         : [[g.Win_pct,0.4],[g.SO_rate,0.3]];
-    const vaha = slozky.reduce((s,x)=>s+x[1],0);
-    return {g, maNaj, cs:Math.round(slozky.reduce((s,x)=>s+(x[0]||0)*x[1],0)/vaha*10)/10};
-  }).sort((a,b)=>b.cs-a.cs).slice(0,15);
-  if(!d.length){ emptyBox('chart-clutch','Zatím bez dat.'); return; }
-  Plotly.newPlot('chart-clutch', [{
-    type:'bar', x:d.map(o=>o.g.Jmeno), y:d.map(o=>o.cs),
-    text:d.map(o=>o.cs), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    marker:{color:d.map(o=>o.cs), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], showscale:false},
-    hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.g)}<br>Clutch Score: ${o.cs}${o.cs===0?' (zatím bez výhry a čistého konta)':''}<br>Zápasů: ${o.g.GP}<br>Win%: ${f1(o.g.Win_pct)}<br>SO/zápas: ${f2(o.g.SO_rate/100)}<br>Nájezdy: ${o.maNaj?f1(o.g.PS_SavePct)+' %':'zatím nečelil — do skóre se nepočítá'}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:40,r:15,t:20,b:90},
-    xaxis:{...AX_LOCK, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Clutch Score',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    showlegend:false
-  }), LOCK_CONFIG);
-}
-
+/* (9. 10.) Kolik práce a jak ji zvládá — místo bublin Zápasy × úspěšnost (velikost = čistá konta):
+   vodorovně střely na 60 odchytaných minut (zápas brankáře se počítá i při střídání), svisle
+   úspěšnost, tečkované křivky = GAA (GAA = střely na 60 × (1 − úspěšnost), takže každý brankář
+   leží přesně na křivce svého GAA). Čárkované čáry = průměr ligy (všechny zásahy / všechny střely). */
 function renderWorkloadPerf(){
-  const set = BRANKARI.filter(g=>g.GP>=prah(2) && g.SavePct!=null);
+  const el=document.getElementById('chart-workload-perf');
+  const s60 = g => g.Strely_60!=null ? +g.Strely_60 : (g.TOI_min>0 ? g.SA/g.TOI_min*60 : g.SA/g.GP);
+  const set = BRANKARI.filter(g=>g.GP>=prah(2) && g.SavePct!=null && g.SA>0);
   if(!set.length){ emptyBox('chart-workload-perf','Zatím bez dat.'); return; }
-  const tymy=[...new Set(set.map(g=>g.Tym_clean))];
-  const maxSO=Math.max(...set.map(g=>g.SO||0),1);
-  const traces=tymy.map(t=>{
-    const gg=set.filter(g=>g.Tym_clean===t);
-    return {type:'scatter',mode:'markers',name:t,
-      x:gg.map(g=>g.GP), y:gg.map(g=>g.SavePct),
-      marker:{size:gg.map(g=>10+(g.SO||0)/maxSO*24), color:teamColor(t), opacity:0.85, line:{color:'#1B2B34',width:1.5}},
-      hoverinfo:'text', hovertext:gg.map(g=>`${label(g)}<br>Zápasů: ${g.GP}<br>Sv%: ${f1(g.SavePct)}<br>Čistá konta: ${g.SO}<br>Win%: ${f1(g.Win_pct)}`)};
+  const vse = BRANKARI.filter(g=>g.SA>0 && g.Saves!=null);
+  const minuty = vse.reduce((s,g)=>s+(g.TOI_min>0?g.TOI_min:g.GP*60),0);
+  const ligaSv = vse.reduce((s,g)=>s+g.Saves,0)/vse.reduce((s,g)=>s+g.SA,0)*100;
+  const ligaX  = vse.reduce((s,g)=>s+g.SA,0)/minuty*60;
+  const mob=uzky(), xs=set.map(s60), ys=set.map(g=>+g.SavePct);
+  const x0=Math.floor(Math.min(...xs,ligaX))-1, x1=Math.ceil(Math.max(...xs,ligaX))+1;
+  const y0=Math.min(...ys,ligaSv)-0.9, y1=Math.max(...ys,ligaSv)+0.9;
+  const M={l:46,r:mob?46:56,t:12,b:45};
+  // křivky GAA po půl gólu, jen ty, které grafem projdou
+  const krivky=[];
+  const kroky=Math.round((x1-x0)/0.2);
+  for(const gaa of [1.5,2,2.5,3,3.5,4]){ const xx=[]; for(let k=0;k<=kroky;k++){const x=Math.min(x1,x0+k*0.2), y=100*(1-gaa/x); if(y>=y0&&y<=y1) xx.push(x);} if(xx.length>1) krivky.push({gaa,x:xx,y:xx.map(x=>100*(1-gaa/x))}); }
+  const maxMin=Math.max(...set.map(g=>g.TOI_min>0?g.TOI_min:g.GP*60),1);
+  const vel=set.map(g=>8+Math.sqrt((g.TOI_min>0?g.TOI_min:g.GP*60)/maxMin)*12);
+  const prijm=j=>{const p=String(j).trim().split(/\s+/); return p[p.length-1];};
+  const txt=set.map(g=>prijm(g.Jmeno));
+  // popisky bez překryvu: pro každou tečku první volná pozice (nahoře, dole, vpravo, vlevo…)
+  const W=Math.max(200,(el.clientWidth||360)-M.l-M.r), H=Math.max(200,(el.clientHeight||520)-M.t-M.b);
+  const PX=x=>(x-x0)/(x1-x0)*W, PY=y=>(y1-y)/(y1-y0)*H, fs=mob?8:9, cw=fs*0.56, th=fs+3;
+  const roh=[['víc práce · chytá nad průměrem','right','top'],['míň práce · nad průměrem','left','top'],['víc práce · pod průměrem','right','bottom'],['míň práce · pod průměrem','left','bottom']];
+  const prek=[], kryje=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h, plocha=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  roh.forEach(([t,xa,ya])=>{const w=t.length*cw; prek.push({x:xa==='right'?W-w-4:4,y:ya==='top'?2:H-th-2,w,h:th});});
+  set.forEach((g,i)=>{const r=vel[i]/2; prek.push({x:PX(xs[i])-r,y:PY(ys[i])-r,w:2*r,h:2*r});});
+  const POZ=[['top center',(w,r)=>[-w/2,-r-th-1]],['bottom center',(w,r)=>[-w/2,r+1]],['middle right',(w,r)=>[r+2,-th/2]],['middle left',(w,r)=>[-r-2-w,-th/2]],
+             ['top right',(w,r)=>[r*0.6,-r*0.6-th]],['top left',(w,r)=>[-r*0.6-w,-r*0.6-th]],['bottom right',(w,r)=>[r*0.6,r*0.6]],['bottom left',(w,r)=>[-r*0.6-w,r*0.6]]];
+  const pozice=new Array(set.length);
+  [...set.keys()].sort((a,b)=>vel[b]-vel[a]).forEach(i=>{
+    const w=txt[i].length*cw+2, r=vel[i]/2, cx=PX(xs[i]), cy=PY(ys[i]); let best=null;
+    for(const [nm,f] of POZ){ const [dx,dy]=f(w,r), b={x:cx+dx,y:cy+dy,w,h:th};
+      let pen=prek.reduce((s,o,k)=>s+((k===roh.length+i)?0:plocha(b,o)),0);
+      if(b.x<0||b.x+b.w>W+4||b.y<0||b.y+b.h>H) pen+=1e4;
+      if(!best||pen<best.pen) best={nm,b,pen}; if(pen===0) break; }
+    pozice[i]=best.nm; prek.push(best.b);
   });
-  // Zápasy jsou celá čísla — bez dtick vyrábí Plotly popisky 2,2 a 2,4.
-  const maxGP = Math.max(...set.map(g=>g.GP||0), 1);
+  const traces = krivky.map(k=>({type:'scatter',mode:'lines',x:k.x,y:k.y,line:{color:'rgba(143,163,176,0.35)',width:1,dash:'dot'},hoverinfo:'skip',showlegend:false}));
+  traces.push({type:'scatter',mode:'markers+text',x:xs,y:ys,text:txt,textposition:pozice,cliponaxis:false,
+    textfont:{family:'DM Sans',size:fs,color:'#8FA3B0'},
+    marker:{size:vel,color:set.map(g=>teamColor(g.Tym_clean)),opacity:0.9,line:{color:'#1B2B34',width:1.5}},
+    hoverinfo:'text',hovertext:set.map((g,i)=>`${label(g)}<br>Střel na 60 minut: ${c1(xs[i])}<br>Úspěšnost: ${c1(g.SavePct)} %<br>GAA: ${c2(g.GAA)}<br>Odchytáno: ${g.TOI_min>0?Math.round(g.TOI_min)+' min, ':''}${g.GP} ${g.GP===1?'zápas':(g.GP<5?'zápasy':'zápasů')}`),showlegend:false});
+  const ann = krivky.map(k=>({x:k.x[k.x.length-1],y:k.y[k.y.length-1],text:'GAA '+c1(k.gaa),showarrow:false,xanchor:'left',yanchor:'middle',xshift:3,font:{size:9,color:'rgba(143,163,176,0.75)'}}));
+  roh.forEach(([t,xa,ya])=>ann.push({x:xa==='right'?1:0,y:ya==='top'?1:0,xref:'paper',yref:'paper',text:t,showarrow:false,xanchor:xa,yanchor:ya,xshift:xa==='right'?-4:4,yshift:ya==='top'?-2:2,font:{size:fs,color:'rgba(143,163,176,0.55)'}}));
   Plotly.newPlot('chart-workload-perf', traces, Object.assign({}, BASE_LAYOUT, {
-    margin:{l:50,r:15,t:15,b:45},
-    xaxis:{...AX_LOCK, title:{text:'Počet zápasů (workload) →',font:{size:11,color:'#4A6070'}},tick0:0,dtick:Math.max(1,Math.ceil(maxGP/10)),color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Úspěšnost % →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    showlegend:true, legend:{font:{size:9,color:'#8FA3B0'}}
+    margin:M,
+    xaxis:{...AX_LOCK, range:[x0,x1], title:{text:'Střel na bránu za 60 minut (práce) →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:10},zeroline:false},
+    yaxis:{...AX_LOCK, range:[y0,y1], ticksuffix:' %', title:{text:'Úspěšnost →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:10},zeroline:false},
+    shapes:[{type:'line',x0:ligaX,x1:ligaX,yref:'paper',y0:0,y1:1,line:{color:'rgba(232,239,244,0.3)',width:1,dash:'dash'}},
+            {type:'line',xref:'paper',x0:0,x1:1,y0:ligaSv,y1:ligaSv,line:{color:'rgba(232,239,244,0.3)',width:1,dash:'dash'}}],
+    annotations:ann, showlegend:false
   }), LOCK_CONFIG);
 }
 
@@ -1164,62 +1178,52 @@ function renderGSAA(){
   if(!d.length){ emptyBox('chart-gsaa','Zatím bez dat.'); return; }
   Plotly.newPlot('chart-gsaa', [{
     type:'bar', x:d.map(g=>g.Jmeno), y:d.map(g=>g.GSAA),
-    text:d.map(g=>(g.GSAA>0?'+':'')+f1(g.GSAA)), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    text:d.map(g=>zn(g.GSAA)+c1(Math.abs(g.GSAA))), textposition:'outside', cliponaxis:false, textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     marker:{color:d.map(g=>g.GSAA), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], showscale:false},
     hoverinfo:'text',
-    hovertext:d.map(g=>`${label(g)}<br>GSAA: ${(g.GSAA>0?'+':'')+f1(g.GSAA)}<br>GSAA/zápas: ${(g.GSAA_GP>0?'+':'')+f2(g.GSAA_GP)}<br>Sv%: ${f1(g.SavePct)}<br>Zápasů: ${g.GP}`)
+    hovertext:d.map(g=>`${label(g)}<br>GSAA: ${zn(g.GSAA)}${c1(Math.abs(g.GSAA))}<br>Na zápas: ${zn(g.GSAA_GP)}${c2(Math.abs(g.GSAA_GP))}<br>Úspěšnost: ${c1(g.SavePct)} %<br>Zápasů: ${g.GP}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:45,r:15,t:20,b:90},
     xaxis:{...AX_LOCK, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:9}},
-    yaxis:{...AX_LOCK, title:{text:'Goals Saved Above Average',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinecolor:'rgba(232,239,244,0.4)'},
+    yaxis:{...AX_LOCK, title:{text:'Góly zachráněné nad průměr',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinecolor:'rgba(232,239,244,0.4)'},
     showlegend:false
   }), LOCK_CONFIG);
 }
 
-function renderNejvytizenejsi(){
-  const d = BRANKARI.filter(g=>g.GP>=prah(5)).map(g=>({g, sa:Math.round((g.SA/g.GP)*10)/10}))
-    .sort((a,b)=>b.sa-a.sa).slice(0,15).reverse();
-  if(!d.length){ emptyBox('chart-nejvytizenejsi','Zatím bez dat.'); return; }
-  Plotly.newPlot('chart-nejvytizenejsi', [{
-    type:'bar', orientation:'h', y:d.map(o=>label(o.g)), x:d.map(o=>o.sa),
-    text:d.map(o=>o.sa), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    marker:{color:d.map(o=>o.sa), colorscale:[[0,'#90CAF9'],[1,'#B71C1C']], showscale:false},
-    hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.g)}<br>Střel/zápas: ${o.sa}<br>Celkem střel: ${o.g.SA}<br>Zápasů: ${o.g.GP}<br>Sv%: ${f1(o.g.SavePct)}`)
-  }], Object.assign({}, BASE_LAYOUT, {
-    margin:{l:185,r:45,t:10,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Průměr střel na bránu za zápas (SA/GP)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    showlegend:false
-  }), LOCK_CONFIG);
-}
-
+/* (8. 10.) Segmentace: jednička / dvojka podle podílu zápasů týmu (Podil_zapasu z build.R),
+   úspěšnost proti průměru ligy (± 1 procentní bod). Dřív pevné hranice 91 / 89 %, které
+   při letošním průměru 90,6 % dělaly "Elite" z mírně nadprůměrných, a Backup byl do
+   10. kola prázdný (Elite i Backup měly stejný práh 5 zápasů). */
 function renderSegmentace(){
-  const seg = g => (g.GP>=prah(10)&&g.SavePct>=91)?'Elite Starter'
-    : (g.GP>=prah(10)&&g.SavePct>=89)?'Solid Starter'
-    : (g.GP>=prah(5)&&g.GP<prah(10))?'Backup':'Jiny';
-  const order=['Elite Starter','Solid Starter','Backup'];
-  const cols={'Elite Starter':'#22C55E','Solid Starter':'#3B82F6','Backup':'#F59E0B'};
-  // pod 5 zápasů je úspěšnost nespolehlivá → vynecháno
-  const d = BRANKARI.filter(g=>g.GP>=prah(5) && g.SavePct!=null).map(g=>({g, s:seg(g)}))
-    .filter(o=>o.s!=='Jiny').sort((a,b)=>a.g.SavePct-b.g.SavePct);
-  if(!d.length){ emptyBox('chart-segmentace','Zatím bez dat.'); return; }
-  const cats = d.map(o=>label(o.g));
-  const sv = d.map(o=>o.g.SavePct);
-  const xmin = Math.floor(Math.min(...sv)) - 1, xmax = Math.ceil(Math.max(...sv)) + 1;
-  const traces = order.map(s=>{
-    const gg=d.filter(o=>o.s===s);
-    return {type:'bar',orientation:'h',name:s,
-      y:gg.map(o=>label(o.g)), x:gg.map(o=>o.g.SavePct),
-      marker:{color:cols[s]},
-      text:gg.map(o=>`${f1(o.g.SavePct)} % | ${o.g.GP} GP`), textposition:'outside', cliponaxis:false, textfont:{size:9,color:'#8FA3B0'},
-      hoverinfo:'text', hovertext:gg.map(o=>`${label(o.g)}<br>Sv%: ${f1(o.g.SavePct)}<br>GP: ${o.g.GP}<br>Segment: ${s}`)};
+  const vse = BRANKARI.filter(g=>g.SA>0 && g.Saves!=null);
+  const liga = vse.length ? vse.reduce((s,g)=>s+g.Saves,0)/vse.reduce((s,g)=>s+g.SA,0)*100 : null;
+  const d = BRANKARI.filter(g=>g.GP>=prah(3) && g.SavePct!=null);
+  if(!d.length || liga==null){ emptyBox('chart-segmentace','Zatím bez dat.'); return; }
+  const role = g => g.Podil_zapasu!=null ? (g.Podil_zapasu>=50 ? 'jednička' : 'dvojka') : (g.GP>=prah(10) ? 'jednička' : 'dvojka');
+  const tr = g => g.SavePct>=liga+1 ? 'Nad průměrem' : g.SavePct>=liga-1 ? 'Kolem průměru' : 'Pod průměrem';
+  const cols = {'Nad průměrem':'#22C55E','Kolem průměru':'#3B82F6','Pod průměrem':'#F59E0B'};
+  const rows = d.map(g=>({g, r:role(g), t:tr(g)}))
+    .sort((a,b)=> (a.r===b.r ? a.g.SavePct-b.g.SavePct : (a.r==='jednička' ? 1 : -1)));   // jedničky nahoře
+  const sub=document.getElementById('seg-sub');
+  if(sub) sub.textContent=`Jednička = chytal aspoň polovinu zápasů svého týmu, dvojka méně. Barva = úspěšnost proti průměru ligy (${c1(liga)} %): nad průměrem o víc než 1 procentní bod, kolem průměru, pod průměrem o víc než 1 bod. Min. ${prah(3)} zápasy.`;
+  const cats = rows.map(o=>labelAx(o.g));
+  const sv = rows.map(o=>o.g.SavePct);
+  const xmin = Math.min(Math.floor(Math.min(...sv)) - 1, Math.floor(liga) - 1), xmax = Math.ceil(Math.max(...sv)) + 1;
+  const zap = o => o.g.Zapasy_tymu ? `${o.g.GP} z ${o.g.Zapasy_tymu} zápasů týmu` : `${o.g.GP} zápasů`;
+  const traces = Object.keys(cols).map(k=>{
+    const gg=rows.filter(o=>o.t===k);
+    return {type:'bar',orientation:'h',name:k,
+      y:gg.map(o=>labelAx(o.g)), x:gg.map(o=>o.g.SavePct), base:0,
+      marker:{color:cols[k], opacity:gg.map(o=>o.r==='jednička'?1:0.55)},
+      text:gg.map(o=>`${c1(o.g.SavePct)} % · ${o.r}`), textposition:'outside', cliponaxis:false, textfont:{size:9,color:'#8FA3B0'},
+      hoverinfo:'text', hovertext:gg.map(o=>`${label(o.g)}<br>Úspěšnost: ${c1(o.g.SavePct)} % (liga ${c1(liga)} %)<br>Zápasy: ${zap(o)}<br>Role: ${o.r}`)};
   }).filter(t=>t.y.length);
   Plotly.newPlot('chart-segmentace', traces, Object.assign({}, BASE_LAYOUT, {
-    barmode:'overlay', margin:{l:200,r:55,t:30,b:40},
-    xaxis:{...AX_LOCK, title:{text:'Úspěšnost %',font:{size:11,color:'#4A6070'}}, range:[xmin,xmax], color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    barmode:'overlay', margin:{l:okraj(),r:15,t:40,b:40},
+    xaxis:{...AX_LOCK, title:{text:'Úspěšnost %',font:{size:11,color:'#4A6070'}}, range:[xmin, xmax+(uzky()?4:3)], color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK, categoryorder:'array', categoryarray:cats, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.04,font:{size:10,color:'#8FA3B0'}}
+    shapes:[{type:'line',x0:liga,x1:liga,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'rgba(232,239,244,0.5)',width:1}}],
+    legend:{orientation:'h',traceorder:'normal',x:0.5,xanchor:'center',y:1.01,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
 }
 
@@ -1228,14 +1232,14 @@ function renderShootout(){
   if(!d.length){ emptyBox('chart-shootout','Tahle karta se odemkne, až bude odehráno víc zápasů.'); return; }
   Plotly.newPlot('chart-shootout', [{
     type:'bar', x:d.map(g=>g.Jmeno), y:d.map(g=>g.PS_SavePct),
-    text:d.map(g=>f1(g.PS_SavePct)+'%'), textposition:'outside', textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    marker:{color:d.map(g=>g.PS_SavePct), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], showscale:false},
+    text:d.map(g=>c1(g.PS_SavePct)+' %'), textposition:'outside', cliponaxis:false, textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
+    marker:{color:d.map(g=>g.PS_SavePct), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], cmin:0, cmax:100, showscale:false},
     hoverinfo:'text',
-    hovertext:d.map(g=>`${label(g)}<br>Úspěšnost nájezdů: ${f1(g.PS_SavePct)} %<br>Nájezdů: ${g.PS_SA}<br>Inkasováno: ${g.PS_GA??'—'}`)
+    hovertext:d.map(g=>`${label(g)}<br>Úspěšnost v nájezdech: ${c1(g.PS_SavePct)} %<br>Nájezdů: ${g.PS_SA}<br>Inkasováno: ${g.PS_GA??'—'}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:40,r:15,t:20,b:90},
     xaxis:{...AX_LOCK, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:10}},
-    yaxis:{...AX_LOCK, title:{text:'Úspěšnost %',font:{size:11,color:'#4A6070'}}, range:[0,100], color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, title:{text:'Úspěšnost %',font:{size:11,color:'#4A6070'}}, range:[0,108], color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     showlegend:false
   }), LOCK_CONFIG);
 }
