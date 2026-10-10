@@ -1335,7 +1335,7 @@ const REZ_MIN_MINUT=60;       // aspoň 60 odehraných minut celkem, jinak je bo
 function renderRezerva(t){
   const box=document.getElementById('gm-rez-list'), note=document.getElementById('gm-rez-note');
   if(!HRACI||!HRACI.length){box.innerHTML='<div class="empty">Data hráčů zatím nejsou k dispozici.</div>';note.innerHTML='';try{Plotly.purge('gm-rez-chart');}catch(_){}return;}
-  const prah=Math.max(1,nv(META.prahy&&META.prahy.hraci,5)), odehr=nv(META.prahy&&META.prahy.odehrano,99);
+  const prah=Math.max(1,nv(META.prahy&&META.prahy.hraci,5)), odehr=nv(META.odehrano_typ!=null?META.odehrano_typ:(META.prahy&&META.prahy.odehrano),99);   // (10. 10.) medián zápasů
   const ok=HRACI.filter(x=>nv(x.GP,0)>=prah&&nv(x.TOI_GP,0)>0&&nv(x.GP,0)*nv(x.TOI_GP,0)>=REZ_MIN_MINUT&&x.P60!=null&&!isNaN(x.P60));
   const liga={U:ok.filter(x=>grpPoz(x.Pozice)==='U').map(x=>+x.P60), O:ok.filter(x=>grpPoz(x.Pozice)==='O').map(x=>+x.P60)};
   const lepsiNez=x=>{const a=liga[grpPoz(x.Pozice)]; return a.length>1?a.filter(v=>v<+x.P60).length/(a.length-1):0;};   // podíl ostatních hráčů s nižším P/60
@@ -1416,7 +1416,7 @@ function renderHvezdy(t){
     else if(r.p3<=avg-8) txt+=' Góly se rozkládají do šířky — výpadek jednoho hráče tým unese líp.';
     // (9. 10.) malý vzorek i podle kol (MALY_VZOREK_DO jako na celém webu), ne jen pod 15 gólů:
     //   Liberec měl po 8 kolech 21 gólů a ve trojici obránce se 3 góly z 12 střel
-    const odehr=nv(META.prahy&&META.prahy.odehrano,99);
+    const odehr=nv(META.odehrano_typ!=null?META.odehrano_typ:(META.prahy&&META.prahy.odehrano),99);
     if(r.tot<15) txt+=` <span style="color:var(--text-faint)">Zatím jen ${r.tot} ${pl(r.tot,'gól','góly','gólů')} — podíly se budou ještě hodně hýbat.</span>`;
     else if(odehr<MALY_VZOREK_DO()) txt+=` <span style="color:var(--text-faint)">Je odehráno jen pár kol — o místo ve trojici často rozhoduje jediný gól a podíly se budou ještě hýbat.</span>`;
     el.innerHTML=`<div class="verdict v-neutral" style="margin:0 0 10px">${txt}</div>`;

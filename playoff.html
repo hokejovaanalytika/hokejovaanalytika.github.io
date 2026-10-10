@@ -269,7 +269,9 @@ function renderInsights(boxId, data, names){
 }
 
 function renderHero(){
-  const odehr=PL.info&&PL.info.odehrano!=null?+PL.info.odehrano:Math.max(...SIM.map(r=>+r.Zapasy||0));
+  // (10. 10.) starší JSON bez info: medián zápasů týmů (jeden tým s předehrávkou nepřidá kolo)
+  const med=a=>{const b=[...a].sort((x,y)=>x-y),m=Math.floor(b.length/2);return b.length%2?b[m]:Math.floor((b[m-1]+b[m])/2);};
+  const odehr=PL.info&&PL.info.odehrano!=null?+PL.info.odehrano:med(SIM.map(r=>+r.Zapasy||0));
   const box=(n,l,cls)=>`<div class="stat"><div class="num ${cls||''}">${n}</div><div class="lab">${l}</div></div>`;
   document.getElementById('hero-stats').innerHTML=
     (PL.prah_top12!=null?box('~'+PL.prah_top12+' b.','hranice playoff (12.)','teal'):'')+
