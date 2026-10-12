@@ -564,6 +564,10 @@ async function init(){
     renderInsights('insight-hraci', INS_HRACI, insNames());
     renderFiltered();   // Hráči do pole (default aktivní)
     renderRadar();
+    // (12. 10.) hraci.html#brankari / #skryti (odkazy z Profilu týmu) otevře rovnou danou záložku
+    const zHashe=location.hash.replace('#','');
+    if(zHashe && zHashe!=='pole' && document.getElementById('panel-'+zHashe)) showSub(zHashe);
+    window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(h && document.getElementById('panel-'+h)) showSub(h); });
   }catch(e){
     console.error(e);
     document.querySelector('main').innerHTML =

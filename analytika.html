@@ -335,6 +335,17 @@
       <p>Nejde jen o počet minut. Stejný součet může znamenat dvacet drobných faulů, nebo dvě vyloučení do konce utkání — tady je vidět rozdíl.</p>
     </div>
 
+    <!-- (12. 10.) NEJTRESTANĚJŠÍ TÝMY -->
+    <div class="card">
+      <div class="card-title">Nejtrestanější týmy</div>
+      <div class="card-sub" id="tr-tymy-sub">Trestné minuty celého týmu. Na zápas, protože týmy mají odehraný různý počet zápasů — přepni na celkový součet. Čárkovaně průměr ligy, název týmu a rozpad trestů v bublině.</div>
+      <div class="toggle" id="tr-tymy-toggle">
+        <button data-trt="zap" class="active">Na zápas</button>
+        <button data-trt="cel">Celkem</button>
+      </div>
+      <div class="chart-wrap-tall" id="c-tresty-tymy"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">Z čeho se skládají tresty</div>
       <div class="card-sub">Rozpad trestných minut podle závažnosti. Délka pruhu = celkové PIM. Šedá = tresty, které hokej.cz nerozepisuje (trest ve hře, distanc). Top 15.</div>
@@ -650,6 +661,10 @@ async function init(){
     document.querySelectorAll('a.go-tab[data-go]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();showSub(a.dataset.go);}));
     renderLiga();
     renderVyvoj();
+    // (12. 10.) analytika.html#nhl apod. (odkazy z Profilu týmu) otevře rovnou danou záložku
+    const zHashe=location.hash.replace('#','');
+    if(zHashe && zHashe!=='liga' && document.getElementById('panel-'+zHashe)) showSub(zHashe);
+    window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(h && document.getElementById('panel-'+h)) showSub(h); });
   }catch(e){
     console.error(e);
     document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ Nepodařilo se načíst data. Spusť <code>build.R</code> a ověř <code>analytika_liga.json</code> / <code>analytika_hraci.json</code>.<br><small>'+e.message+'</small></div>';
@@ -818,6 +833,7 @@ function mvp(){const d=[...(HRA.mvp||[])].sort((a,b)=>a.Hvezd-b.Hvezd);
 /* ══ TRESTNÁ LAVICE ══════════════════════════════════════════ */
 function renderTresty(){
   renderInsights('insight-tresty', INS_TRESTY, trestyNames());
+  try{ trestyTymy(); }catch(e){ console.error('Nejtrestanější týmy:', e); emptyBox('c-tresty-tymy','Tuhle kartu se teď nepodařilo vykreslit.'); }
   const d = (TRESTY && TRESTY.hraci) ? TRESTY.hraci : [];
   if(!d.length){
     console.warn('tresty.json chybí — kartu build.R nevygeneroval.');document.getElementById('t-tresty').innerHTML='<tr><td colspan="12"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
@@ -826,6 +842,42 @@ function renderTresty(){
   }
   trestyMix(d); trestyScatter(d); trestyTable(d);
 }
+
+/* (12. 10.) Nejtrestanější týmy — tresty.json → tymy (tymy_tresty.csv). Na zápas / celkem. */
+let trtMetr='zap';
+function trestyTymy(){
+  const T=(TRESTY&&Array.isArray(TRESTY.tymy))?TRESTY.tymy.filter(t=>t.GP>0&&t.PIM!=null):[];
+  const tg=document.getElementById('tr-tymy-toggle');
+  if(!T.length){ if(tg) tg.style.display='none';
+    emptyBox('c-tresty-tymy', TRESTY&&TRESTY.hraci?'Graf týmů se ukáže po dalším spuštění build.R.':'Zatím bez dat.'); return; }
+  if(tg) tg.style.display='';
+  const naZ=trtMetr==='zap', val=t=>naZ?t.PIM/t.GP:t.PIM;
+  const d=[...T].sort((a,b)=>val(a)-val(b)||a.PIM-b.PIM);          // nejvíc nahoře (Plotly kreslí odspodu)
+  const L=(TRESTY&&TRESTY.liga)||{};
+  const ligaZ=L.tym_pim_gp!=null?+L.tym_pim_gp:T.reduce((s,t)=>s+t.PIM,0)/T.reduce((s,t)=>s+t.GP,0);
+  const liga=naZ?ligaZ:T.reduce((s,t)=>s+t.PIM,0)/T.length;
+  const jeOk=t=>t.Rozpad_ok===true||t.Rozpad_ok==='TRUE';
+  const rozpad=t=>jeOk(t)?`<br>Trestů: ${t.Tresty} (2 min: ${t.Min2}×${t.Min2x2?`, 2+2: ${t.Min2x2}×`:''}${t.Min5?`, 5 min: ${t.Min5}×`:''}${t.Min10?`, 10 min: ${t.Min10}×`:''}${t.GM?`, do konce: ${t.GM}×`:''})`:'';
+  const mx=Math.max(...d.map(val));
+  // (12. 10.) loga místo názvů (název je v bublině) — stejně jako Playoff Zones na Přehledu
+  const el=document.getElementById('c-tresty-tymy'), M={l:46,r:40,t:24,b:42};
+  const sirka=Math.max(200,(el.clientWidth||360)-M.l-M.r);
+  const loga=d.map(t=>({source:LOGOS_DIR+encodeURIComponent(t.Tym_clean)+'.png',xref:'paper',yref:'y',x:-0.015,y:t.Tym_clean,
+    sizex:28/sirka,sizey:0.78,xanchor:'right',yanchor:'middle',sizing:'contain',layer:'above'}));
+  Plotly.newPlot('c-tresty-tymy',[{type:'bar',orientation:'h',y:d.map(t=>t.Tym_clean),x:d.map(val),
+    marker:{color:d.map(t=>val(t)>=liga?'#E05555':'rgba(224,85,85,0.45)')},
+    text:d.map(t=>naZ?f1(val(t)):String(t.PIM)),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'},hoverinfo:'text',
+    hovertext:d.map(t=>`<b>${t.Tym_clean}</b><br>${f1(t.PIM/t.GP)} trestné minuty na zápas<br>${t.PIM} min celkem za ${t.GP} ${t.GP===1?'zápas':(t.GP<5?'zápasy':'zápasů')}${rozpad(t)}`)}],
+    Object.assign({},BASE_LAYOUT,{margin:M,images:loga,
+      xaxis:{...AX_LOCK,range:[0,mx*1.15],title:{text:naZ?'trestné minuty na zápas':'trestné minuty celkem',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+      yaxis:{...AX_LOCK,showticklabels:false,categoryorder:'array',categoryarray:d.map(t=>t.Tym_clean)},
+      shapes:[{type:'line',layer:'below',x0:liga,x1:liga,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'rgba(212,168,67,.7)',width:1.5}}],
+      annotations:[{x:liga,y:1.0,xref:'x',yref:'paper',yanchor:'bottom',text:`průměr ligy ${naZ?f1(liga):Math.round(liga)}`,showarrow:false,font:{size:9,color:'#D4A843'},xanchor:'left'}],
+      showlegend:false}),LOCK_CONFIG);
+}
+document.querySelectorAll('[data-trt]').forEach(b=>b.addEventListener('click',()=>{trtMetr=b.dataset.trt;
+  document.querySelectorAll('[data-trt]').forEach(x=>x.classList.toggle('active',x.dataset.trt===trtMetr)); trestyTymy();}));
 const trestyNames = () => { const d=(TRESTY&&TRESTY.hraci)||[]; const a=[]; d.forEach(r=>{a.push(r.Jmeno);a.push(r.Tym_clean);}); return a; };
 
 function trestyMix(d){
