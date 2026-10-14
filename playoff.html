@@ -213,7 +213,8 @@
   </div>
 </main>
 
-<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a></footer>
+<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a>
+  <div style="margin-top:6px;font-size:11px;">Návštěvnost měříme anonymně a bez cookies (<a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>).</div></footer>
 
 <script>
 const DATA='data/';
@@ -425,5 +426,9 @@ window.addEventListener('resize',()=>{clearTimeout(resizeT);resizeT=setTimeout((
   if(PL&&PL.sim){renderProb();renderMista();renderVyvoj();}},250);});
 init();
 </script>
+<!-- (14. 10.) Návštěvnost: GoatCounter — bez cookies, jen souhrnná čísla; přehled na https://hokejovaanalytika.goatcounter.com
+     Počítá se jen na ostrém webu: lokální test (servr, 127.0.0.1) se nezapočítá. -->
+<script>if (!/(^|\.)hokejovaanalytika\.cz$/.test(location.hostname)) window.goatcounter = {no_onload: true};</script>
+<script data-goatcounter="https://hokejovaanalytika.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

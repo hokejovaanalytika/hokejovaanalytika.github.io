@@ -137,6 +137,9 @@
     .d-v{font-size:11px;font-weight:600;padding:2px 7px;border-radius:5px;margin-left:4px;white-space:nowrap;background:rgba(143,163,176,.15);color:var(--text-dim);}
     .d-v.ok{background:rgba(76,175,130,.18);color:#7FE0AC;} .d-v.bad{background:rgba(224,85,85,.16);color:#F0A0A0;}
     svg.osa{width:100%;height:auto;display:block;margin:4px 0 0;}
+    /* (12. 10.) čas ve vedení pod osou zápasu */
+    .d-cas{font-size:12px;color:var(--text-dim);margin:-4px 0 9px;line-height:1.55;}
+    .d-cas b{font-weight:600;}
     .d-leg{font-size:11px;color:var(--text-faint);margin-bottom:8px;}
     .g-list{display:flex;flex-direction:column;gap:3px;}
     .g-row{display:grid;grid-template-columns:52px 34px 1fr auto;gap:8px;align-items:center;padding:4px 8px;border-left:3px solid var(--teal-light);background:rgba(36,53,69,.6);border-radius:0 5px 5px 0;font-size:12.5px;}
@@ -220,7 +223,7 @@
     </div>
     <div class="card">
       <div class="card-title gold">Výsledky zápasů</div>
-      <div class="card-sub">Všechny odehrané zápasy sezóny. Klepni na zápas a uvidíš góly, průběh, tip modelu a letošní vzájemné zápasy. <span style="color:var(--gold)">pp</span> = rozhodnuto v prodloužení/nájezdech. Ikonky = štítky zápasu (🔄 obrat · 🎢 přestřelka · 🧱 čisté konto · ⏱️ rozhodnuto na konci · 🎩 hattrick · 😱 překvapení).</div>
+      <div class="card-sub">Všechny odehrané zápasy sezóny. Klepni na zápas a uvidíš góly, průběh, kdo kolik času vedl, tip modelu a letošní vzájemné zápasy. <span style="color:var(--gold)">pp</span> = rozhodnuto v prodloužení/nájezdech. Ikonky = štítky zápasu (🔄 obrat · 🎢 přestřelka · 🧱 čisté konto · ⏱️ rozhodnuto na konci · 🎩 hattrick · 😱 překvapení · 🔒 vedli skoro celý zápas · 💔 prohráli, přestože většinu času vedli · ⏳ vyhráli, i když vedli jen pár minut).</div>
       <div class="filters">
         <select id="f-kolo"><option value="">Všechna kola</option></select>
         <select id="f-tym"><option value="">Všechny týmy</option></select>
@@ -315,6 +318,7 @@
 
 <footer>
   Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a>
+  <div style="margin-top:6px;font-size:11px;">Návštěvnost měříme anonymně a bez cookies (<a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>).</div>
 </footer>
 
 <script>
@@ -503,12 +507,35 @@ function hracZapasu(z,g){
   const sez=top.map(jm); const spoj=sez.length===2?sez.join(' a '):sez.slice(0,-1).join(', ')+' a '+sez[sez.length-1];
   return `<div class="d-hz">⭐ Nejvíc bodů: ${spoj} — ${top.length===2?'oba':'všichni'} ${top[0].G}+${top[0].A}</div>`;
 }
+// (12. 10.) ÚSEKY ZÁPASU mezi góly: kdo vedl (D / H) nebo nerozhodně (N).
+//   Stejné pravidlo jako cas_prubehu v build.R: konec 60, gól v prodloužení = jeho čas,
+//   nájezdy = celé prodloužení (65); nájezd stav nemění.
+function usekyZapasu(g){
+  const sn=g.some(o=>o.sit==='SN');
+  const gs=g.filter(o=>o.sit!=='SN').map(o=>({t:minut(o.m),s:String(o.s||'').split(':').map(Number)}))
+    .filter(o=>!isNaN(o.t)&&o.s.length===2&&!isNaN(o.s[0])&&!isNaN(o.s[1])).sort((a,b)=>a.t-b.t);
+  const konec=sn?65:Math.max(60,...gs.map(o=>o.t));
+  const out=[]; let t0=0, d=0, h=0;
+  gs.concat([{t:konec,s:null}]).forEach(o=>{
+    const t=Math.min(o.t,konec);
+    if(t>t0) out.push({a:t0,b:t,st:d>h?'D':h>d?'H':'N',d,h});
+    t0=Math.max(t0,t); if(o.s){d=o.s[0];h=o.s[1];}
+  });
+  return out;
+}
+const mmss=m=>{const s=Math.round(m*60);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`;};
 // osa zápasu: góly domácích nad čarou, hostů pod ní; prodloužení a nájezdy vpravo
-function osaSvg(g){
+//   (12. 10.) čára je obarvená podle toho, kdo zrovna vedl (šedá = nerozhodně)
+function osaSvg(g,z){
   const ma_ot=g.some(x=>minut(x.m)>=60)||g.some(x=>x.sit==='SN');
   const L=ma_ot?65:60, X0=14, X1=326, xp=m=>X0+(Math.min(m,L)/L)*(X1-X0);
   let s=`<svg class="osa" viewBox="0 0 340 66" role="img" aria-label="Průběh zápasu">`;
   s+=`<line x1="${X0}" y1="33" x2="${X1}" y2="33" stroke="#4A6070" stroke-width="1"/>`;
+  const BARVA={D:'#3AADAD',H:'#5B9BD5',N:'#5C7282'};
+  usekyZapasu(g).forEach(u=>{
+    const kdo=u.st==='N'?'nerozhodně':`ve vedení ${u.st==='D'?(z?z.Domaci:'domácí'):(z?z.Hoste:'hosté')}`;
+    s+=`<line x1="${xp(u.a)}" y1="33" x2="${xp(u.b)}" y2="33" stroke="${BARVA[u.st]}" stroke-width="${u.st==='N'?3:5}"><title>${esc(`${mmss(u.a)}–${mmss(u.b)} · ${u.d}:${u.h} · ${kdo}`)}</title></line>`;
+  });
   [20,40,60].filter(m=>m<L||m===60&&ma_ot).forEach(m=>{s+=`<line x1="${xp(m)}" y1="25" x2="${xp(m)}" y2="41" stroke="#4A6070" stroke-width="1" stroke-dasharray="2,2"/>`;});
   [['1.',10],['2.',30],['3.',50]].forEach(([t,m])=>{s+=`<text x="${xp(m)}" y="64" text-anchor="middle" font-size="9" fill="#4A6070">${t}</text>`;});
   if(ma_ot) s+=`<text x="${xp(62.5)}" y="64" text-anchor="middle" font-size="9" fill="#D4A843">prodl.</text>`;   // (8. 10.) ne "PP" — to je přesilovka
@@ -526,6 +553,17 @@ function sitLabel(x){
   if(x.sit==='TS') return '<span class="g-b ts">TS</span>';
   return '';
 }
+// (12. 10.) "Ml. Boleslav vedla 68 % času · nerozhodně 25 % · Litvínov vedl 7 %" (cas z build.R;
+//   starší zapasy_detail.json ho nemá → řádek se nevypíše)
+function casHtml(z,c){
+  if(!c||c.d==null||c.n==null||c.h==null) return '';
+  const p=(v,m)=>(+v===0&&+m>0)?'méně než 1 %':`${+v} %`;
+  const tym=(t,v,m,verb,col,cas)=>{
+    const jm=`<b style="color:${col}">${esc(t)}</b>`, vb=esc(verb||'vedl');
+    return +m>0?`<span title="${esc(mmss(+m))} min">${jm} ${vb} ${p(v,m)}${cas?' času':''}</span>`:`${jm} ne${vb} ani chvíli`;
+  };
+  return `<div class="d-cas">${tym(z.Domaci,c.d,c.md,c.vd,'#3AADAD',true)} · nerozhodně ${p(c.n,c.mn)} · ${tym(z.Hoste,c.h,c.mh,c.vh,'#5B9BD5',+c.md<=0)}</div>`;
+}
 function detailHtml(z,x){
   const gd=+z.Goly_domaci, gh=+z.Goly_hoste, vitD=gd>gh, vit=vitD?z.Domaci:z.Hoste;
   let h='';
@@ -540,7 +578,7 @@ function detailHtml(z,x){
   const g=x&&Array.isArray(x.g)?x.g:[];
   h+=hracZapasu(z,g);
   if(g.length){
-    h+=osaSvg(g)+`<div class="d-leg"><span style="color:#3AADAD">●</span> ${esc(z.Domaci)} nahoře · <span style="color:#5B9BD5">●</span> ${esc(z.Hoste)} dole</div>`;
+    h+=osaSvg(g,z)+`<div class="d-leg"><span style="color:#3AADAD">●</span> ${esc(z.Domaci)} nahoře · <span style="color:#5B9BD5">●</span> ${esc(z.Hoste)} dole · barva čáry = kdo zrovna vedl</div>`+casHtml(z,x&&x.cas);
     // nájezdy: "rozhodl" jen u posledního proměněného (kdyby jich v datech bylo víc)
     const posledniSN=g.map(o=>o.sit).lastIndexOf('SN');
     h+='<div class="g-list">'+g.map((o,i)=>{
@@ -782,5 +820,9 @@ function renderAccuracy(){
 
 init();
 </script>
+<!-- (14. 10.) Návštěvnost: GoatCounter — bez cookies, jen souhrnná čísla; přehled na https://hokejovaanalytika.goatcounter.com
+     Počítá se jen na ostrém webu: lokální test (servr, 127.0.0.1) se nezapočítá. -->
+<script>if (!/(^|\.)hokejovaanalytika\.cz$/.test(location.hostname)) window.goatcounter = {no_onload: true};</script>
+<script data-goatcounter="https://hokejovaanalytika.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>

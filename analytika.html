@@ -100,6 +100,16 @@
     .chart-wrap{width:100%;height:440px;}
     .chart-wrap-tall{width:100%;height:500px;}
     .toggle{display:flex;gap:4px;background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:10px;width:fit-content;}
+    /* (12. 10.) Hráči pod lupou — série, výběr týmu, souhrn souhry */
+    .hl-serie{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:12px;color:var(--text-dim);align-items:center;}
+    .hl-serie .ch{background:rgba(224,85,85,.14);border:1px solid rgba(224,85,85,.35);border-radius:999px;padding:2px 9px;color:var(--text);white-space:nowrap;}
+    .hl-serie .ch b{color:#F08080;font-family:var(--font-mono);}
+    .note-hl{font-size:11px;color:var(--text-faint);margin-top:6px;}
+    .hl-ctl{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .hl-ctl label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;}
+    .hl-ctl select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-family:var(--font-main);font-size:13px;font-weight:600;}
+    .hl-souhra-txt{font-size:13px;color:var(--text-dim);line-height:1.55;margin-top:6px;}
+    .hl-souhra-txt b{color:var(--text);}
     .toggle button{background:transparent;border:none;color:var(--text-dim);font-family:var(--font-main);font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;}
     .toggle button.active{background:var(--teal);color:#fff;}
     .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
@@ -177,7 +187,11 @@
 
     <div class="card">
       <div class="card-title gold">Čas ve vedení</div>
-      <div class="card-sub">Kolik % hracího času tým průměrně vede / je za stavu nerozhodno / prohrává (z časů gólů).</div>
+      <div class="card-sub">Kolik % hracího času tým průměrně vede, hraje za stavu nerozhodně a prohrává (z časů gólů). Přepni na posledních 5 zápasů a uvidíš, kdo se zvedá a kdo padá — v bublině je srovnání s celou sezónou.</div>
+      <div class="toggle" id="vedeni-toggle">
+        <button data-ved="sez" class="active">Celá sezóna</button>
+        <button data-ved="p5">Posledních 5 zápasů</button>
+      </div>
       <div class="chart-wrap-tall" id="c-vedeni"></div>
     </div>
 
@@ -289,7 +303,23 @@
   </div>
     <div class="intro">
       <h1>Hráči pod lupou</h1>
-      <p>Individuální analytika z detailu gólů — souhra dvojic, situační střelci a hvězdy zápasu.</p>
+      <p>Individuální analytika z detailu gólů — kdo je v ráži, kdo body opravdu tvoří, souhra dvojic i celých týmů, situační střelci a hvězdy zápasu.</p>
+    </div>
+
+    <!-- (12. 10.) KDO JE V RÁŽI -->
+    <div class="card">
+      <div class="card-title gold">🔥 Kdo je v ráži</div>
+      <div class="card-sub">Body v posledních pěti zápasech týmu (góly a přihrávky). Série = kolik zápasů týmu v řadě hráč bodoval — zápas, který vynechal, sérii přeruší. Nájezdy se nepočítají.</div>
+      <div class="hl-serie" id="hl-serie"></div>
+      <div class="chart-wrap-tall" id="c-hl-forma"></div>
+      <div class="note-hl" id="hl-forma-pozn"></div>
+    </div>
+
+    <!-- (12. 10.) PRIMÁRNÍ BODY -->
+    <div class="card">
+      <div class="card-title">🎯 Kdo body opravdu tvoří</div>
+      <div class="card-sub">Primární body = góly + první přihrávky. Druhá přihrávka často znamená jen to, že hráč byl na ledě u začátku akce, proto je světlejší. Seřazeno podle primárních bodů, celá délka pruhu = kanadské body (z detailu gólů, bez nájezdů).</div>
+      <div class="chart-wrap-tall" id="c-hl-prim"></div>
     </div>
 
     <div class="card">
@@ -299,6 +329,15 @@
         <thead><tr><th>#</th><th>Dvojice</th><th>Tým</th><th>Gólů spolu</th><th title="Kolik z nich dal první a kolik druhý hráč">Dali</th><th title="Gól dal někdo třetí, oba nahrávali">Oba nahrávali</th></tr></thead>
         <tbody id="t-dvojice"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table></div>
+    </div>
+
+    <!-- (12. 10.) SOUHRA V TÝMU -->
+    <div class="card">
+      <div class="card-title gold">🕸️ Souhra v týmu</div>
+      <div class="card-sub">Kdo komu nahrává na góly. Řádek = kdo přihrával (první i druhá přihrávka), sloupec = kdo gól dal. Osm hráčů týmu s nejvíc body, nájezdy se nepočítají.</div>
+      <div class="hl-ctl"><label for="hl-souhra-tym">Tým</label><select id="hl-souhra-tym"></select></div>
+      <div class="chart-wrap-tall" id="c-hl-souhra" style="max-width:760px;margin:0 auto"></div>
+      <div class="hl-souhra-txt" id="hl-souhra-txt"></div>
     </div>
 
     <div class="card">
@@ -572,7 +611,8 @@
   </section>
 </main>
 
-<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a></footer>
+<footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a>
+  <div style="margin-top:6px;font-size:11px;">Návštěvnost měříme anonymně a bez cookies (<a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>).</div></footer>
 
 <script>
 const DATA='data/';
@@ -616,6 +656,7 @@ function logoImages(items,xr,yr,frac){const fx=(xr[1]-xr[0])*frac,fy=(yr[1]-yr[0
 let LIGA=null, HRA=null, NHL=null, VYV=null, sitState='PP', INS_LIGA=[], INS_NHL=[], INS_HLUPA=[], INS_TRESTY=[], TRESTY=null, KONC=null, INS_KONC=[], CLUTCH=null, INS_CLUTCH=[], CEST=null, INS_CEST=[];
 const ligaNames = () => (LIGA && LIGA.tesne ? LIGA.tesne.map(r=>r.Tym) : []);
 const hlupaNames = () => { const a=[]; const R=HRA||{};
+  ((R.forma&&R.forma.top)||[]).concat((R.forma&&R.forma.serie)||[], R.primarni||[]).forEach(x=>{ if(x.Jmeno)a.push(x.Jmeno); if(x.Tym)a.push(x.Tym); });
   ['mvp','dvojice'].forEach(k=>{ (R[k]||[]).forEach(x=>{ if(x.Jmeno)a.push(x.Jmeno); if(x.H1)a.push(x.H1); if(x.H2)a.push(x.H2); if(x.Strelec)a.push(x.Strelec); if(x.Asistent)a.push(x.Asistent); if(x.Tym)a.push(x.Tym); if(x.Tym_clean)a.push(x.Tym_clean); }); });
   const S=R.situace||{}; ['PP','SH','ES'].forEach(k=>(S[k]||[]).forEach(x=>{a.push(x.Jmeno);a.push(x.Tym);}));
   return a; };
@@ -722,19 +763,36 @@ function hbar(id,d,xkey,namekey,opts){opts=opts||{};
       xaxis:Object.assign({...AX_LOCK,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},xax),
       yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},showlegend:false}),LOCK_CONFIG);
 }
+// (12. 10.) přepínač celá sezóna / posledních 5 zápasů (cas_vedeni5 z build.R; starší JSON ho nemá → bez přepínače)
+let vedRezim='sez';
 function casVedeni(){
-  const d=[...(LIGA.cas_vedeni||[])].sort((a,b)=>a.Vedeni-b.Vedeni);
+  const ma5=Array.isArray(LIGA.cas_vedeni5)&&LIGA.cas_vedeni5.length>0;
+  const tg=document.getElementById('vedeni-toggle'); if(tg) tg.style.display=ma5?'':'none';
+  if(!ma5) vedRezim='sez';
+  const p5=vedRezim==='p5';
+  const sez={}; (LIGA.cas_vedeni||[]).forEach(r=>{sez[r.Tym]=r;});
+  const d=[...((p5?LIGA.cas_vedeni5:LIGA.cas_vedeni)||[])].sort((a,b)=>a.Vedeni-b.Vedeni);
   if(!d.length){emptyBox('c-vedeni','Zatím bez dat.');return;}
   const cats=d.map(r=>r.Tym);
+  // v pohledu "posledních 5": kolik zápasů a rozdíl proti celé sezóně v procentních bodech
+  const okno=r=>{ if(!p5) return ''; const n=+r.Zapasy||0; if(!n) return '';
+    return `<br><span style="color:#8FA3B0">${n<5?`poslední ${n} ${n===1?'zápas':'zápasy'}`:`posledních ${n} zápasů`}</span>`; };
+  const vs=(r,k)=>{ if(!p5) return ''; const s=sez[r.Tym]; if(!s||s[k]==null) return '';
+    const df=Math.round((r[k]-s[k])*10)/10;
+    return `<br>celá sezóna: ${f1(s[k])} % (${df>0?'+':df<0?'−':'±'}${f1(Math.abs(df))} p. b.)`; };
+  const hov=(lab,k)=>d.map(r=>`${r.Tym}${okno(r)}<br>${lab}: ${f1(r[k])} %${vs(r,k)}`);
   Plotly.newPlot('c-vedeni',[
-    {type:'bar',orientation:'h',name:'Vede',y:cats,x:d.map(r=>r.Vedeni),marker:{color:'#4CAF82'},hoverinfo:'text',hovertext:d.map(r=>`${r.Tym}<br>Vede: ${f1(r.Vedeni)} %`)},
-    {type:'bar',orientation:'h',name:'Nerozhodno',y:cats,x:d.map(r=>r.Nerozhodno),marker:{color:'#8FA3B0'},hoverinfo:'text',hovertext:d.map(r=>`Nerozhodno: ${f1(r.Nerozhodno)} %`)},
-    {type:'bar',orientation:'h',name:'Prohrává',y:cats,x:d.map(r=>r.Prohra),marker:{color:'#E05555'},hoverinfo:'text',hovertext:d.map(r=>`Prohrává: ${f1(r.Prohra)} %`)}
-  ],Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:110,r:20,t:30,b:40},
+    {type:'bar',orientation:'h',name:'Vede',y:cats,x:d.map(r=>r.Vedeni),marker:{color:'#4CAF82'},hoverinfo:'text',hovertext:hov('Vede','Vedeni')},
+    {type:'bar',orientation:'h',name:'Nerozhodně',y:cats,x:d.map(r=>r.Nerozhodno),marker:{color:'#8FA3B0'},hoverinfo:'text',hovertext:hov('Nerozhodně','Nerozhodno')},
+    {type:'bar',orientation:'h',name:'Prohrává',y:cats,x:d.map(r=>r.Prohra),marker:{color:'#E05555'},hoverinfo:'text',hovertext:hov('Prohrává','Prohra')}
+  ],Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:110,r:20,t:40,b:40},
     xaxis:{...AX_LOCK,range:[0,100],title:{text:'% hracího času',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
     yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.08,font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+    // (12. 10.) legenda nad grafem v pořadí Vede · Nerozhodně · Prohrává (dřív obráceně a na mobilu přes první sloupec)
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.0,yanchor:'bottom',traceorder:'normal',font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
 }
+document.querySelectorAll('[data-ved]').forEach(b=>b.addEventListener('click',()=>{vedRezim=b.dataset.ved;
+  document.querySelectorAll('[data-ved]').forEach(x=>x.classList.toggle('active',x.dataset.ved===vedRezim)); casVedeni();}));
 function drama(){const d=[...(LIGA.drama||[])].sort((a,b)=>a.Zmeny_vedeni-b.Zmeny_vedeni);
   hbar('c-drama',d,'Zmeny_vedeni','Tym',{colors:'#D4A843',txt:r=>f2(r.Zmeny_vedeni),hover:r=>`${r.Tym}<br>Změn vedení/zápas: ${f2(r.Zmeny_vedeni)}`,xaxis:{title:{text:'změny vedení / zápas',font:{size:11,color:'#4A6070'}}}});}
 function pdo(){const d=[...(LIGA.pdo_watch||[])].sort((a,b)=>a.Odchylka-b.Odchylka);
@@ -807,6 +865,80 @@ function renderHraci(){
   renderInsights('insight-hlupa', INS_HLUPA, hlupaNames());
   if(!HRA){document.getElementById('t-dvojice').innerHTML='<tr><td colspan="6"><div class="empty">Zatím bez dat.</div></td></tr>';['c-mvp'].forEach(id=>emptyBox(id,'Zatím bez dat.'));return;}
   dvojice(); bindSit(); situace(); mvp();
+  [['c-hl-forma',hlForma],['c-hl-prim',hlPrim],['c-hl-souhra',hlSouhraInit]].forEach(([id,fn])=>{
+    try{ fn(); }catch(e){ console.error(id, e); emptyBox(id,'Tuhle kartu se teď nepodařilo vykreslit.'); } });
+}
+
+/* (12. 10.) Hráči pod lupou: forma, primární body, souhra v týmu (analytika_hraci.json) */
+const pl=(n,a,b,c)=>{const k=Math.abs(Math.round(+n||0));return k===1?a:(k>=2&&k<=4?b:c);};
+const prijm=j=>{const p=String(j||'').trim().split(/\s+/);return p[p.length-1];};
+const nove=()=>HRA&&(HRA.forma||HRA.primarni||HRA.souhra);
+function hlForma(){
+  const F=HRA.forma, top=F&&Array.isArray(F.top)?F.top:[];
+  const ser=F&&Array.isArray(F.serie)?F.serie:[];
+  const sEl=document.getElementById('hl-serie'), pz=document.getElementById('hl-forma-pozn');
+  if(!top.length){ sEl.innerHTML=''; pz.textContent=''; emptyBox('c-hl-forma', nove()?'Zatím bez dat.':'Karta se ukáže po dalším spuštění build.R.'); return; }
+  sEl.innerHTML=ser.length?'<span>Bodové série:</span>'+ser.map(r=>`<span class="ch" title="${r.Jmeno} (${r.Tym}) bodoval v ${r.Serie} zápasech týmu v řadě">${prijm(r.Jmeno)} <b>${r.Serie}</b></span>`).join(''):'';
+  const d=top.slice(0,12).reverse(), y=d.map(r=>r.Jmeno);
+  const hov=r=>`<b>${r.Jmeno}</b> (${r.Tym})<br>Posledních ${r.Zapasu_5||5} zápasů týmu: ${r.Body_5} ${pl(r.Body_5,'bod','body','bodů')} (${r.G_5}+${r.A_5})<br>Bodová série: ${r.Serie} ${pl(r.Serie,'zápas','zápasy','zápasů')}<br>Za sezónu: ${r.Body} ${pl(r.Body,'bod','body','bodů')}`;
+  Plotly.newPlot('c-hl-forma',[
+    {type:'bar',orientation:'h',name:'góly',y,x:d.map(r=>r.G_5),marker:{color:'#E05555'},hoverinfo:'text',hovertext:d.map(hov)},
+    {type:'bar',orientation:'h',name:'přihrávky',y,x:d.map(r=>r.A_5),marker:{color:'rgba(224,85,85,0.45)'},hoverinfo:'text',hovertext:d.map(hov),
+     text:d.map(r=>r.Body_5+(r.Serie>=3?` · 🔥${r.Serie}`:'')),textposition:'outside',cliponaxis:false,textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'}}],
+    Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:10,r:52,t:44,b:40},
+      xaxis:{...AX_LOCK,title:{text:'body v posledních 5 zápasech týmu',font:{size:11,color:'#4A6070'}},dtick:1,color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+      yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,automargin:true,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+      legend:{orientation:'h',traceorder:'normal',x:0.5,xanchor:'center',y:1.0,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+  const bez=+(Array.isArray(F.bez_detailu)?F.bez_detailu[0]:F.bez_detailu)||0;
+  pz.textContent=bez>0?`${bez} ${pl(bez,'zápas nemá','zápasy nemají','zápasů nemá')} detail gólů — v posledních pěti zápasech i v sériích se přeskakují.`:'';
+}
+function hlPrim(){
+  const P=Array.isArray(HRA.primarni)?HRA.primarni:[];
+  if(!P.length){ emptyBox('c-hl-prim', nove()?'Zatím bez dat.':'Karta se ukáže po dalším spuštění build.R.'); return; }
+  const d=P.slice(0,15).reverse(), y=d.map(r=>r.Jmeno);
+  const hov=r=>`<b>${r.Jmeno}</b> (${r.Tym})<br>Primární body: ${r.Prim} z ${r.Body} (${Math.round(r.Prim/Math.max(r.Body,1)*100)} %)<br>Góly ${r.G} · první přihrávky ${r.A1} · druhé ${r.A2}`;
+  const tr=(name,k,c,txt)=>({type:'bar',orientation:'h',name,y,x:d.map(r=>r[k]),marker:{color:c},hoverinfo:'text',hovertext:d.map(hov),
+    ...(txt?{text:d.map(r=>`${r.Prim} / ${r.Body}`),textposition:'outside',cliponaxis:false,textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'}}:{})});
+  Plotly.newPlot('c-hl-prim',[tr('góly','G','#D4A843'),tr('1. přihrávky','A1','#3AADAD'),tr('2. přihrávky','A2','rgba(143,163,176,0.35)',true)],
+    Object.assign({},BASE_LAYOUT,{barmode:'stack',margin:{l:10,r:58,t:44,b:40},
+      xaxis:{...AX_LOCK,title:{text:'body (primární / kanadské)',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+      yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,automargin:true,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+      legend:{orientation:'h',traceorder:'normal',x:0.5,xanchor:'center',y:1.0,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
+let hlTym=null;
+function hlSouhraInit(){
+  const S=HRA.souhra&&typeof HRA.souhra==='object'?HRA.souhra:null, sel=document.getElementById('hl-souhra-tym');
+  if(!S||!Object.keys(S).length){ sel.parentElement.style.display='none'; document.getElementById('hl-souhra-txt').textContent='';
+    emptyBox('c-hl-souhra', nove()?'Zatím bez dat.':'Karta se ukáže po dalším spuštění build.R.'); return; }
+  const tymy=Object.keys(S).sort((a,b)=>a.localeCompare(b,'cs'));
+  // výchozí tým = tým nejlepší dvojice ligy (tam je souhra nejvidět)
+  const dv=(HRA.dvojice||[])[0]; hlTym=hlTym||(dv&&S[dv.Tym]?dv.Tym:tymy[0]);
+  sel.innerHTML=tymy.map(t=>`<option value="${t}"${t===hlTym?' selected':''}>${t}</option>`).join('');
+  sel.onchange=e=>{hlTym=e.target.value; hlSouhra();};
+  hlSouhra();
+}
+function hlSouhra(){
+  const S=HRA.souhra[hlTym]||{}, H=(S.hraci||[]).slice(0,8), V=S.vazby||[], txt=document.getElementById('hl-souhra-txt');
+  if(H.length<2){ emptyBox('c-hl-souhra','Tým má zatím málo gólů s přihrávkou.'); txt.textContent=''; return; }
+  const jm=H.map(h=>h.Jmeno), kr=jm.map(prijm), lab=kr.map((k,i)=>kr.filter(x=>x===k).length>1?jm[i]:k);
+  const najdi=(od,k)=>V.find(v=>v.Od===od&&v.K===k);
+  const z=jm.map(od=>jm.map(k=>od===k?null:((najdi(od,k)||{}).N||0)));
+  const hov=jm.map(od=>jm.map(k=>{ if(od===k) return ''; const v=najdi(od,k);
+    return v?`<b>${od}</b> → <b>${k}</b><br>${v.N} ${pl(v.N,'gól','góly','gólů')} (${v.A1}× první přihrávka, ${v.A2}× druhá)`:`${od} → ${k}<br>zatím žádný gól`; }));
+  const mx=Math.max(1,...z.flat().filter(v=>v!=null));
+  const mob=window.innerWidth<640;
+  Plotly.newPlot('c-hl-souhra',[{type:'heatmap',x:lab,y:lab,z,zmin:0,zmax:mx,xgap:2,ygap:2,showscale:false,hoverinfo:'text',hovertext:hov,
+    text:z.map(r=>r.map(v=>v?String(v):'')),texttemplate:'%{text}',textfont:{family:'JetBrains Mono',size:mob?10:12,color:'#E8EFF4'},
+    colorscale:[[0,'rgba(42,139,139,0.06)'],[0.01,'rgba(42,139,139,0.25)'],[0.5,'rgba(58,173,173,0.7)'],[1,'#D4A843']]}],
+    Object.assign({},BASE_LAYOUT,{margin:{l:10,r:10,t:10,b:10},
+      xaxis:{...AX_LOCK,side:'top',tickangle:mob?-50:-30,automargin:true,showgrid:false,zeroline:false,tickfont:{family:'DM Sans',size:mob?9:11,color:'#8FA3B0'},title:{text:'gól dal →',font:{size:11,color:'#4A6070'}}},
+      yaxis:{...AX_LOCK,autorange:'reversed',automargin:true,showgrid:false,zeroline:false,tickfont:{family:'DM Sans',size:mob?9:11,color:'#8FA3B0'},title:{text:'přihrával ↓',font:{size:11,color:'#4A6070'}}}}),LOCK_CONFIG);
+  // souhrn: nejsilnější spojení + kdo nahrává nejvíc různým střelcům
+  const top3=V.slice(0,3).filter(v=>v.N>=2);
+  const ruzni={}; V.forEach(v=>{ (ruzni[v.Od]=ruzni[v.Od]||new Set()).add(v.K); });
+  const rz=Object.entries(ruzni).map(([k,s])=>[k,s.size]).sort((a,b)=>b[1]-a[1])[0];
+  txt.innerHTML=(top3.length?`Nejsilnější spojení v celém týmu: ${top3.map(v=>`<b>${prijm(v.Od)} → ${prijm(v.K)}</b> ${v.N}×`).join(', ')}. `:'')+
+    (rz&&rz[1]>=3?`Nejvíc různým střelcům nahrával <b>${rz[0]}</b> (${rz[1]}).`:'');
 }
 function dvojice(){const d=HRA.dvojice||[];const b=document.getElementById('t-dvojice');
   // (8. 10.) dvojice bez ohledu na to, kdo komu nahrával; starší build měl Strelec → Asistent
@@ -1483,5 +1615,9 @@ function renderVyvoj(){
 
 init();
 </script>
+<!-- (14. 10.) Návštěvnost: GoatCounter — bez cookies, jen souhrnná čísla; přehled na https://hokejovaanalytika.goatcounter.com
+     Počítá se jen na ostrém webu: lokální test (servr, 127.0.0.1) se nezapočítá. -->
+<script>if (!/(^|\.)hokejovaanalytika\.cz$/.test(location.hostname)) window.goatcounter = {no_onload: true};</script>
+<script data-goatcounter="https://hokejovaanalytika.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 </body>
 </html>
