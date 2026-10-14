@@ -155,6 +155,11 @@
     .pick-meta{grid-column:1;color:var(--text-dim);font-size:11px;}
     .pick-ov{grid-column:2;grid-row:1 / span 2;align-self:center;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-dim);}
     .pick-nic{padding:9px 10px;color:var(--text-dim);font-size:12px;}
+    /* (14. 10.) hráč pod hranicí zápasů — jen informace, nedá se vybrat */
+    .pick-it.neh{cursor:default;opacity:.62;}
+    .pick-it.neh:hover{background:transparent;}
+    .pick-it.neh .pick-ov{font-family:var(--font-main);font-size:11px;font-weight:400;font-style:italic;}
+    .pick-neh-h{padding:6px 10px 3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-faint);border-top:1px solid var(--border);}
     .pick-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:8px;}
     .pick-row .pick{flex:1 1 260px;width:auto;}
     .pick-vs{color:var(--text-faint);font-size:12px;}
@@ -1436,7 +1441,8 @@ function renderNhlLegenda(){
   el.innerHTML=`<details class="nhl-details"><summary>Z čeho se jednotlivé stránky skládají a jak váží</summary>
     <ul>${NHL_SUBS2.map(s=>`<li><b>${s[1]}</b> — ${NHL_SUB_POPIS[s[0]]}</li>`).join('')}</ul>
     ${V.U?`<p><b>Váhy u útočníků:</b> ${vahy('U')}.</p>`:''}${V.O?`<p><b>Váhy u obránců:</b> ${vahy('O')}.</p>`:''}
-    <p>Chybějící údaj = 50 (průměr). Úspěšnost střelby je smrštěná k průměru ligy (jako by hráč měl 20 střel navíc s ligovou úspěšností), takže jeden gól ze dvou střel nedělá 50 %.</p></details>`;
+    <p>Chybějící údaj = 50 (průměr). Úspěšnost střelby je smrštěná k průměru ligy (jako by hráč měl 20 střel navíc s ligovou úspěšností), takže jeden gól ze dvou střel nedělá 50 %.</p>
+    <p><b>Kdo rating dostane:</b> hráči, kteří odehráli aspoň polovinu dosavadních zápasů${nhlPrah()?` (teď ${nhlPrah()} ${sk(nhlPrah(),'zápas','zápasy','zápasů')}, s postupem sezóny hranice poroste až na 10)`:' (s postupem sezóny hranice roste až na 10 zápasů)'}. U pár zápasů by jeden gól nebo jeden horší večer udělal z hráče špičku nebo dno ligy.${Array.isArray(NHL.nehodnoceni)&&NHL.nehodnoceni.length?` Hodnocených je ${NHL.players.length} hráčů, ${NHL.nehodnoceni.length} ${sk(NHL.nehodnoceni.length,'je','jsou','je')} zatím pod hranicí — ve vyhledávání je najdeš šedě s počtem zápasů.`:''}</p></details>`;
 }
 // (14. 10.) VÝBĚR HRÁČE S HLEDÁNÍM místo dlouhého rolovacího seznamu.
 //   Napíšeš pár písmen jména, příjmení nebo týmu ("ščo", "sco", "jan šč", "kom") — bez ohledu
@@ -1446,7 +1452,9 @@ const bezDiak=s=>String(s==null?'':s).normalize('NFD').replace(/[\u0300-\u036f]/
 const pickEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const postTxt=p=>p==='O'?'obránce':p==='U'?'útočník':'';
 const pozDat=p=>p==='O'?'obráncům':'útočníkům';   // "proti obráncům"
-function hracPicker(boxId, polozky, vychozi, onPick){
+//   (14. 10.) extra = hráči bez ratingu (pod hranicí zápasů): při hledání se ukážou šedě pod ostatními,
+//   vybrat nejdou — jen vysvětlí, proč hráč v ratingu chybí. prah = hranice zápasů (nhl_rating.json → vzorek).
+function hracPicker(boxId, polozky, vychozi, onPick, extra, prah){
   const box=document.getElementById(boxId); if(!box) return;
   box.innerHTML=`<input type="text" class="pick-in" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="Napiš jméno, příjmení nebo tým…" aria-label="Hledat hráče" role="combobox" aria-expanded="false"><span class="pick-ov-in" title="rating"></span><div class="pick-list" role="listbox" hidden></div>`;
   const inp=box.querySelector('input'), list=box.querySelector('.pick-list'), ovIn=box.querySelector('.pick-ov-in');
@@ -1454,29 +1462,35 @@ function hracPicker(boxId, polozky, vychozi, onPick){
   let vybrany=vychozi, nalez=[], akt=0;
   // v políčku jméno (tým), rating zvlášť vpravo — na mobilu se dlouhé jméno zkrátí, rating zůstane vidět
   const ukaz=()=>{ const x=polozky.find(p=>p.i===vybrany); inp.value=x?`${x.jm} (${x.tym})`:''; ovIn.textContent=x?rt(x.ov):''; box.classList.remove('hleda'); };
-  const filtr=q=>{
-    const t=bezDiak(q).trim().split(/\s+/).filter(Boolean); if(!t.length) return polozky;
+  extra=Array.isArray(extra)?extra:[]; let nalezNeh=[];
+  const filtr=(q,zdroj=polozky)=>{
+    const t=bezDiak(q).trim().split(/\s+/).filter(Boolean); if(!t.length) return zdroj;
     const slova=x=>x._s||(x._s=bezDiak(`${x.jm} ${x.tym}`).split(/[\s.\-]+/).filter(Boolean));
-    let r=polozky.filter(x=>t.every(tk=>slova(x).some(w=>w.startsWith(tk))));
-    if(!r.length){ const q2=t.join(' '); r=polozky.filter(x=>bezDiak(`${x.jm} ${x.tym}`).includes(q2)); }   // záchrana: kus uprostřed slova
+    let r=zdroj.filter(x=>t.every(tk=>slova(x).some(w=>w.startsWith(tk))));
+    if(!r.length){ const q2=t.join(' '); r=zdroj.filter(x=>bezDiak(`${x.jm} ${x.tym}`).includes(q2)); }   // záchrana: kus uprostřed slova
     return r;
   };
+  const odKolika=prah?` od ${prah} ${sk(prah,'zápasu','zápasů','zápasů')}`:'';
   const kresli=()=>{
-    if(!nalez.length){ list.innerHTML='<div class="pick-nic">Nikdo takový — zkus jiná písmena.</div>'; }
-    else list.innerHTML=nalez.slice(0,MAX).map((x,k)=>`<div class="pick-it${k===akt?' akt':''}" role="option" data-i="${x.i}"${x.i===vybrany?' aria-selected="true"':''}>
+    let h='';
+    if(nalez.length) h=nalez.slice(0,MAX).map((x,k)=>`<div class="pick-it${k===akt?' akt':''}" role="option" data-i="${x.i}"${x.i===vybrany?' aria-selected="true"':''}>
         <span class="pick-jm">${pickEsc(x.jm)}</span><span class="pick-meta">${pickEsc(x.tym)}${x.poz?' · '+postTxt(x.poz):''}</span><span class="pick-ov">${rt(x.ov)}</span></div>`).join('')
       +(nalez.length>MAX?`<div class="pick-nic">… a ${nalez.length-MAX} dalších — napiš víc písmen.</div>`:'');
+    if(nalezNeh.length) h+=`<div class="pick-neh-h">Zatím bez ratingu — hodnotíme${odKolika}</div>`+nalezNeh.slice(0,20).map(x=>`<div class="pick-it neh" aria-disabled="true">
+        <span class="pick-jm">${pickEsc(x.jm)}</span><span class="pick-meta">${pickEsc(x.tym)}${x.poz?' · '+postTxt(x.poz):''}</span><span class="pick-ov">${x.gp} ${sk(x.gp,'zápas','zápasy','zápasů')}</span></div>`).join('');
+    if(!h) h=`<div class="pick-nic">Nikdo takový — zkus jiná písmena.${prah?` Rating mají jen hráči${odKolika}.`:''}</div>`;
+    list.innerHTML=h;
     list.hidden=false; inp.setAttribute('aria-expanded','true');
     const a=list.querySelector('.pick-it.akt'); if(a) a.scrollIntoView({block:'nearest'});
   };
   const zavri=()=>{ list.hidden=true; inp.setAttribute('aria-expanded','false'); };
   const vyber=i=>{ vybrany=i; ukaz(); zavri(); inp.blur(); onPick(i); };
   inp.addEventListener('focus',()=>{
-    nalez=filtr(''); akt=Math.max(0,nalez.findIndex(x=>x.i===vybrany)); inp.value=''; box.classList.add('hleda'); kresli();
+    nalez=filtr(''); nalezNeh=[]; akt=Math.max(0,nalez.findIndex(x=>x.i===vybrany)); inp.value=''; box.classList.add('hleda'); kresli();
     // na mobilu posunout políčko nahoru, ať seznam nezakryje klávesnice
     if(window.innerWidth<640) setTimeout(()=>{ const r=box.getBoundingClientRect(); if(r.top>window.innerHeight*0.3) window.scrollBy({top:r.top-110,behavior:'smooth'}); },60);
   });
-  inp.addEventListener('input',()=>{ nalez=filtr(inp.value); akt=0; kresli(); });
+  inp.addEventListener('input',()=>{ nalez=filtr(inp.value); nalezNeh=inp.value.trim()?filtr(inp.value,extra):[]; akt=0; kresli(); });
   inp.addEventListener('keydown',e=>{
     if(e.key==='ArrowDown'){ e.preventDefault(); if(list.hidden){nalez=filtr(inp.value);} akt=Math.min(akt+1,Math.min(nalez.length,MAX)-1); kresli(); }
     else if(e.key==='ArrowUp'){ e.preventDefault(); akt=Math.max(akt-1,0); kresli(); }
@@ -1486,7 +1500,7 @@ function hracPicker(boxId, polozky, vychozi, onPick){
   inp.addEventListener('blur',()=>setTimeout(()=>{ if(document.activeElement!==inp){ zavri(); ukaz(); } },150));
   // pointerdown (ne click): vybere dřív, než políčko ztratí fokus; na dotyku se nesmí vybírat při posouvání seznamu
   let dotyk=null;
-  list.addEventListener('pointerdown',e=>{ const it=e.target.closest('.pick-it'); if(!it) return; e.preventDefault();
+  list.addEventListener('pointerdown',e=>{ const it=e.target.closest('.pick-it'); if(!it) return; e.preventDefault(); if(it.classList.contains('neh')) return;
     if(e.pointerType==='mouse') vyber(+it.dataset.i); else dotyk={i:+it.dataset.i,y:e.clientY}; });
   list.addEventListener('pointerup',e=>{ if(!dotyk) return; const it=e.target.closest('.pick-it');
     if(it&&+it.dataset.i===dotyk.i&&Math.abs(e.clientY-dotyk.y)<10) vyber(dotyk.i); dotyk=null; });
@@ -1495,12 +1509,17 @@ function hracPicker(boxId, polozky, vychozi, onPick){
 }
 const CMP_BARVY=['#3987e5','#CF7A63'];   // (14. 10.) druhý hráč terakota místo zlaté (klidnější, ověřeno i pro barvoslepé)
 let nhlVyber=null, nhlCmp=[null,null];
+// hranice zápasů pro rating z nhl_rating.json (vzorek.prah_gp); starší JSON ji nemusí mít → null
+const nhlPrah=()=>{ const v=NHL&&NHL.vzorek?(Array.isArray(NHL.vzorek.prah_gp)?NHL.vzorek.prah_gp[0]:NHL.vzorek.prah_gp):null; return isFinite(+v)&&+v>0?+v:null; };
 function buildNhlSelectors(){
   const ps=NHL.players.map((p,i)=>({i,jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,ov:p.Overall})).sort((a,b)=>b.ov-a.ov);
   nhlVyber=ps[0].i; nhlCmp=[ps[0].i, ps[1]?ps[1].i:ps[0].i];
-  hracPicker('nhl-player', ps, nhlVyber, i=>{ nhlVyber=i; renderNhlCard(); renderNhlSimilar(); });
-  hracPicker('nhl-cmp1', ps, nhlCmp[0], i=>{ nhlCmp[0]=i; renderNhlCompare(); });
-  hracPicker('nhl-cmp2', ps, nhlCmp[1], i=>{ nhlCmp[1]=i; renderNhlCompare(); });
+  // (14. 10.) hráči pod hranicí zápasů (starší JSON je nemá → jen věta "Rating mají jen hráči od N zápasů")
+  const neh=(Array.isArray(NHL.nehodnoceni)?NHL.nehodnoceni:[]).map(p=>({jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,gp:+p.GP}));
+  const prah=nhlPrah();
+  hracPicker('nhl-player', ps, nhlVyber, i=>{ nhlVyber=i; renderNhlCard(); renderNhlSimilar(); }, neh, prah);
+  hracPicker('nhl-cmp1', ps, nhlCmp[0], i=>{ nhlCmp[0]=i; renderNhlCompare(); }, neh, prah);
+  hracPicker('nhl-cmp2', ps, nhlCmp[1], i=>{ nhlCmp[1]=i; renderNhlCompare(); }, neh, prah);
   ['nhl-cmp1-dot','nhl-cmp2-dot'].forEach((id,k)=>{ const d=document.getElementById(id); if(d) d.style.background=CMP_BARVY[k]; });
 }
 function selPlayer(){ return NHL.players[nhlVyber]||NHL.players[0]; }
