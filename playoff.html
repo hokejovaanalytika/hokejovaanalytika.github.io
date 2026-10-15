@@ -358,11 +358,93 @@ function renderMista(){
 
 // (8. 10.) Vývoj šancí po kolech (playoff.json → vyvoj, z playoff_log.csv)
 let vyvMetrika='Playoff', vyvSel=[], vyvBarva={};
-// (8. 10.) čáry: 6 dobře rozlišitelných barev (i pro barvoslepé, ověřeno na tmavém pozadí stránky).
-//   Barvu dostane tým při výběru a drží si ji, dokud ho neodznačíš; nejvýš 6 týmů naráz.
-const VYV_BARVY=['#3987e5','#d95926','#199e70','#c98500','#d55181','#9085e9'];
-function vyvPridel(){ Object.keys(vyvBarva).forEach(t=>{ if(!vyvSel.includes(t)) delete vyvBarva[t]; });
-  vyvSel.forEach(t=>{ if(!vyvBarva[t]){ const vol=VYV_BARVY.find(c=>!Object.values(vyvBarva).includes(c)); if(vol) vyvBarva[t]=vol; } }); }
+/* ── (15. 10.) BARVY TÝMŮ podle skutečných klubových barev ──────────────────
+   Zdroj: klubové barvy z Wikipedie a barvy log; zesvětlené, aby čáry byly vidět na tmavém pozadí.
+   1. barva = hlavní klubová, další = vedlejší klubové barvy, pak dva světlejší odstíny hlavní.
+   pridelBarvy(tymy): když je v grafu víc týmů s podobnou barvou (Sparta, Pardubice, Třinec…),
+   vybere každému tu z jeho barev, aby se týmy od sebe co nejvíc lišily. Do 6 týmů hledá
+   nejlepší kombinaci (dřív vybraný tým má přednost a hlavní barvu si drží), víc týmů postupně.
+   Ověřeno výpočtem (OKLab, ×100): u libovolných 2–3 týmů naráz rozdíl vždy aspoň 12, u 4–6 týmů
+   aspoň 10 (skoro vždy přes 12). Náhradní barva je vždy klubová, nebo světlejší odstín té hlavní. */
+const TYM_BARVY_ZAKLAD = {
+  'Sparta':        ['#C43A78', '#F2C94C', '#5B8DEF'],   // rudá (vínová), žlutá, modrá
+  'Pardubice':     ['#F2463C', '#F6B8B0'],              // červená, červenobílá
+  'Třinec':        ['#E0213F', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Olomouc':       ['#FF7A5C', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Hr. Králové':   ['#C0393F', '#E6B53C', '#C9D2DA'],   // tmavě červená, žlutá, bílá
+  'Č. Budějovice': ['#3F6FD8', '#F2463C', '#C9D2DA'],   // modrá, červená, bílá
+  'Kometa':        ['#2A6AE8', '#C9D2DA'],              // modrá, bílá
+  'Vítkovice':     ['#5AA9FF', '#C9D2DA'],              // modrá, bílá
+  'Plzeň':         ['#5B6FB8', '#C9D2DA'],              // námořnická modrá, bílá
+  'Liberec':       ['#35BFD8', '#5B7BD5'],              // tyrkysová (aqua), námořnická
+  'Kladno':        ['#8A84E8', '#C9D2DA'],              // tmavě modrá, bílá
+  'Litvínov':      ['#F5C518'],                         // žlutá (černá na tmavém pozadí není vidět)
+  'Karlovy Vary':  ['#9AA6B2', '#D4A843'],              // šedá / stříbrná, zlatá (bílá by splývala s bílými čarami)
+  'Ml. Boleslav':  ['#3DB05A', '#C9D2DA'],              // zelená, bílá
+};
+// jiné zápisy názvů (kdyby se v datech objevil celý název)
+const TYM_ALIAS = {
+  'Hradec Králové': 'Hr. Králové', 'Mountfield HK': 'Hr. Králové', 'České Budějovice': 'Č. Budějovice',
+  'Mladá Boleslav': 'Ml. Boleslav', 'K. Vary': 'Karlovy Vary', 'Kometa Brno': 'Kometa', 'Brno': 'Kometa',
+  'Sparta Praha': 'Sparta', 'Dynamo Pardubice': 'Pardubice', 'Oceláři Třinec': 'Třinec', 'Bílí Tygři Liberec': 'Liberec',
+};
+// tým, který tu chybí (nováček po baráži), dostane neutrální barvy, které se od klubových dobře liší
+const TYM_BARVY_JINE = ['#9575CD', '#26A69A', '#FF8A3D', '#EC407A', '#8D6E63'];
+const tymZesvetli = (h, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - t) + 255 * t)
+  .toString(16).padStart(2, '0')).join('').toUpperCase();
+const TYM_BARVY = Object.fromEntries(Object.entries(TYM_BARVY_ZAKLAD)
+  .map(([k, v]) => [k, [...v, tymZesvetli(v[0], 0.45), tymZesvetli(v[0], 0.7)]]));
+const tymKlic = t => TYM_BARVY[t] ? t : (TYM_ALIAS[t] || t);
+const tymKandidati = t => TYM_BARVY[tymKlic(t)] || TYM_BARVY_JINE;
+function barvaTymu(t){ return tymKandidati(t)[0]; }
+// vzdálenost barev v OKLab (×100) — jak moc se dvě barvy liší pro oko
+const _tymLab = {};
+function tymLab(h){
+  if (_tymLab[h]) return _tymLab[h];
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return (_tymLab[h] = [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+                        1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                        0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]);
+}
+function tymDE(a, b){ const A = tymLab(a), B = tymLab(b); return 100 * Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); }
+// tymy = v pořadí výběru; vyhnout = barvy, které už v grafu jsou (např. bílá playoffová čára)
+function pridelBarvy(tymy, vyhnout){
+  const T = [...new Set(tymy)], K = T.map(tymKandidati), V = vyhnout || [], out = {}, n = T.length;
+  const minK = (c, vybrane) => Math.min(99, ...vybrane.map(u => tymDE(c, u)), ...V.map(u => tymDE(c, u)));
+  if (n && n <= 6) {
+    // matice vzdáleností předem; průběžné minimum + ořezávání větví, které už nemůžou vyhrát
+    const D = K.map((ka, a) => K.map((kb, b) => ka.map(ca => kb.map(cb => a === b ? 99 : tymDE(ca, cb)))));
+    const DV = K.map(ka => ka.map(c => Math.min(99, ...V.map(u => tymDE(c, u)))));
+    const idx = new Array(n).fill(0); let best = null;
+    const rec = (i, m, cena) => {
+      if (best && Math.min(m, 12) < best.sc[0]) return;
+      if (i === n) {
+        const sc = [Math.min(m, 12), -cena, m];   // rozdíl do 12 stačí, pak co nejvíc hlavních barev (dřív vybraný tým má přednost)
+        if (!best || sc[0] > best.sc[0] || (sc[0] === best.sc[0] && (sc[1] > best.sc[1] || (sc[1] === best.sc[1] && sc[2] > best.sc[2])))) best = {sc, idx: [...idx]};
+        return;
+      }
+      for (let c = 0; c < K[i].length; c++) {
+        let mm = Math.min(m, DV[i][c]);
+        for (let a = 0; a < i; a++) mm = Math.min(mm, D[a][i][idx[a]][c]);
+        idx[i] = c; rec(i + 1, mm, cena + c * (n - i));
+      }
+    };
+    rec(0, 99, 0); T.forEach((t, j) => out[t] = K[j][best.idx[j]]);
+  } else {
+    const vyb = [];
+    T.forEach((t, j) => { let bc = K[j][0], bd = -1;
+      for (const c of K[j]) { const d = minK(c, vyb); if (d >= 12) { bc = c; bd = d; break; } if (d > bd) { bc = c; bd = d; } }
+      out[t] = bc; vyb.push(bc); });
+  }
+  return out;
+}
+// (15. 10.) čáry v klubových barvách (dřív 6 obecných barev); nejvýš 6 týmů naráz
+const VYV_MAX=6;
+function vyvPridel(){ vyvBarva=pridelBarvy(vyvSel); }
 const METRIKY=[['Playoff','Playoff'],['Top4','Top 4'],['Baraz','Baráž']];
 function renderVyvoj(){
   const V=Array.isArray(PL.vyvoj)?PL.vyvoj:[];
@@ -380,7 +462,7 @@ function renderVyvoj(){
   document.getElementById('vyv-chips').innerHTML=SIM.map(r=>`<button class="chip${vyvSel.includes(r.Tym)?' active':''}" data-t="${esc(r.Tym)}" type="button">${vyvSel.includes(r.Tym)?`<span class="tecka" style="background:${vyvBarva[r.Tym]}"></span>`:''}${esc(r.Tym)}</button>`).join('');
   document.querySelectorAll('#vyv-chips .chip').forEach(b=>b.onclick=()=>{const t=b.dataset.t;
     if(vyvSel.includes(t)) vyvSel=vyvSel.filter(x=>x!==t);
-    else if(vyvSel.length>=VYV_BARVY.length) vyvSel=[...vyvSel.slice(1),t];      // 7. tým vystřídá nejstarší výběr
+    else if(vyvSel.length>=VYV_MAX) vyvSel=[...vyvSel.slice(1),t];      // 7. tým vystřídá nejstarší výběr
     else vyvSel=[...vyvSel,t];
     renderVyvoj();});
   const xi=stavy.map((s,i)=>i), lab=stavy.map(s=>s.Typ==='dnes'?'dnes':`${s.Kolo}.`);

@@ -298,7 +298,7 @@
   <!-- 8. FACEOFF SPECIALISTS -->
   <div class="card">
     <div class="card-title">Faceoff Specialists</div>
-    <div class="card-sub">Top 20 hráčů na buly — odchylka od 50 % (min. <span class="prah" data-fo="1">45</span> vhazování, tedy aspoň 5 na odehrané kolo)</div>
+    <div class="card-sub">Top 20 hráčů na buly — úspěšnost a o kolik převyšuje vyrovnaných 50 % (min. <span class="prah" data-fo="1">45</span> vhazování, tedy aspoň 5 na odehrané kolo)</div>
     <div class="chart-wrap-tall" id="chart-faceoff"></div>
   </div>
 
@@ -478,10 +478,92 @@ function emptyBox(id,msg){ document.getElementById(id).innerHTML = `<div class="
 // kvantil (typ-7, jako R)
 function quantile(arr,q){const a=arr.filter(x=>x!=null&&!isNaN(x)).sort((x,y)=>x-y);const n=a.length;if(!n)return 0;const pos=(n-1)*q,b=Math.floor(pos),r=pos-b;return a[b+1]!==undefined?a[b]+r*(a[b+1]-a[b]):a[b];}
 const z50 = x => (x==null||isNaN(x)) ? 50 : x;   // null → neutrální 50 pro kompozity
-// stabilní barva týmu (kategorická paleta)
-const TEAM_PALETTE = ['#2A8B8B','#D4A843','#5B9BD5','#E05555','#4CAF82','#FF8A3D','#9575CD','#42A5F5','#26A69A','#EC407A','#8D6E63','#66BB6A','#FFA726','#7E57C2'];
+/* ── (15. 10.) BARVY TÝMŮ podle skutečných klubových barev ──────────────────
+   Zdroj: klubové barvy z Wikipedie a barvy log; zesvětlené, aby čáry byly vidět na tmavém pozadí.
+   1. barva = hlavní klubová, další = vedlejší klubové barvy, pak dva světlejší odstíny hlavní.
+   pridelBarvy(tymy): když je v grafu víc týmů s podobnou barvou (Sparta, Pardubice, Třinec…),
+   vybere každému tu z jeho barev, aby se týmy od sebe co nejvíc lišily. Do 6 týmů hledá
+   nejlepší kombinaci (dřív vybraný tým má přednost a hlavní barvu si drží), víc týmů postupně.
+   Ověřeno výpočtem (OKLab, ×100): u libovolných 2–3 týmů naráz rozdíl vždy aspoň 12, u 4–6 týmů
+   aspoň 10 (skoro vždy přes 12). Náhradní barva je vždy klubová, nebo světlejší odstín té hlavní. */
+const TYM_BARVY_ZAKLAD = {
+  'Sparta':        ['#C43A78', '#F2C94C', '#5B8DEF'],   // rudá (vínová), žlutá, modrá
+  'Pardubice':     ['#F2463C', '#F6B8B0'],              // červená, červenobílá
+  'Třinec':        ['#E0213F', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Olomouc':       ['#FF7A5C', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Hr. Králové':   ['#C0393F', '#E6B53C', '#C9D2DA'],   // tmavě červená, žlutá, bílá
+  'Č. Budějovice': ['#3F6FD8', '#F2463C', '#C9D2DA'],   // modrá, červená, bílá
+  'Kometa':        ['#2A6AE8', '#C9D2DA'],              // modrá, bílá
+  'Vítkovice':     ['#5AA9FF', '#C9D2DA'],              // modrá, bílá
+  'Plzeň':         ['#5B6FB8', '#C9D2DA'],              // námořnická modrá, bílá
+  'Liberec':       ['#35BFD8', '#5B7BD5'],              // tyrkysová (aqua), námořnická
+  'Kladno':        ['#8A84E8', '#C9D2DA'],              // tmavě modrá, bílá
+  'Litvínov':      ['#F5C518'],                         // žlutá (černá na tmavém pozadí není vidět)
+  'Karlovy Vary':  ['#9AA6B2', '#D4A843'],              // šedá / stříbrná, zlatá (bílá by splývala s bílými čarami)
+  'Ml. Boleslav':  ['#3DB05A', '#C9D2DA'],              // zelená, bílá
+};
+// jiné zápisy názvů (kdyby se v datech objevil celý název)
+const TYM_ALIAS = {
+  'Hradec Králové': 'Hr. Králové', 'Mountfield HK': 'Hr. Králové', 'České Budějovice': 'Č. Budějovice',
+  'Mladá Boleslav': 'Ml. Boleslav', 'K. Vary': 'Karlovy Vary', 'Kometa Brno': 'Kometa', 'Brno': 'Kometa',
+  'Sparta Praha': 'Sparta', 'Dynamo Pardubice': 'Pardubice', 'Oceláři Třinec': 'Třinec', 'Bílí Tygři Liberec': 'Liberec',
+};
+// tým, který tu chybí (nováček po baráži), dostane neutrální barvy, které se od klubových dobře liší
+const TYM_BARVY_JINE = ['#9575CD', '#26A69A', '#FF8A3D', '#EC407A', '#8D6E63'];
+const tymZesvetli = (h, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - t) + 255 * t)
+  .toString(16).padStart(2, '0')).join('').toUpperCase();
+const TYM_BARVY = Object.fromEntries(Object.entries(TYM_BARVY_ZAKLAD)
+  .map(([k, v]) => [k, [...v, tymZesvetli(v[0], 0.45), tymZesvetli(v[0], 0.7)]]));
+const tymKlic = t => TYM_BARVY[t] ? t : (TYM_ALIAS[t] || t);
+const tymKandidati = t => TYM_BARVY[tymKlic(t)] || TYM_BARVY_JINE;
+function barvaTymu(t){ return tymKandidati(t)[0]; }
+// vzdálenost barev v OKLab (×100) — jak moc se dvě barvy liší pro oko
+const _tymLab = {};
+function tymLab(h){
+  if (_tymLab[h]) return _tymLab[h];
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return (_tymLab[h] = [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+                        1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                        0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]);
+}
+function tymDE(a, b){ const A = tymLab(a), B = tymLab(b); return 100 * Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); }
+// tymy = v pořadí výběru; vyhnout = barvy, které už v grafu jsou (např. bílá playoffová čára)
+function pridelBarvy(tymy, vyhnout){
+  const T = [...new Set(tymy)], K = T.map(tymKandidati), V = vyhnout || [], out = {}, n = T.length;
+  const minK = (c, vybrane) => Math.min(99, ...vybrane.map(u => tymDE(c, u)), ...V.map(u => tymDE(c, u)));
+  if (n && n <= 6) {
+    // matice vzdáleností předem; průběžné minimum + ořezávání větví, které už nemůžou vyhrát
+    const D = K.map((ka, a) => K.map((kb, b) => ka.map(ca => kb.map(cb => a === b ? 99 : tymDE(ca, cb)))));
+    const DV = K.map(ka => ka.map(c => Math.min(99, ...V.map(u => tymDE(c, u)))));
+    const idx = new Array(n).fill(0); let best = null;
+    const rec = (i, m, cena) => {
+      if (best && Math.min(m, 12) < best.sc[0]) return;
+      if (i === n) {
+        const sc = [Math.min(m, 12), -cena, m];   // rozdíl do 12 stačí, pak co nejvíc hlavních barev (dřív vybraný tým má přednost)
+        if (!best || sc[0] > best.sc[0] || (sc[0] === best.sc[0] && (sc[1] > best.sc[1] || (sc[1] === best.sc[1] && sc[2] > best.sc[2])))) best = {sc, idx: [...idx]};
+        return;
+      }
+      for (let c = 0; c < K[i].length; c++) {
+        let mm = Math.min(m, DV[i][c]);
+        for (let a = 0; a < i; a++) mm = Math.min(mm, D[a][i][idx[a]][c]);
+        idx[i] = c; rec(i + 1, mm, cena + c * (n - i));
+      }
+    };
+    rec(0, 99, 0); T.forEach((t, j) => out[t] = K[j][best.idx[j]]);
+  } else {
+    const vyb = [];
+    T.forEach((t, j) => { let bc = K[j][0], bd = -1;
+      for (const c of K[j]) { const d = minK(c, vyb); if (d >= 12) { bc = c; bd = d; break; } if (d > bd) { bc = c; bd = d; } }
+      out[t] = bc; vyb.push(bc); });
+  }
+  return out;
+}
 let TEAM_COLOR = {};
-function teamColor(t){ return TEAM_COLOR[t] || 'var(--teal)'; }
+function teamColor(t){ return TEAM_COLOR[t] || barvaTymu(t); }
 
 let HRACI = [], FACEOFF = [], BRANKARI = [], RADAR_LIST = [], INS_HRACI = [], INS_BRANKARI = [], INS_SKRYTI = [];
 
@@ -541,9 +623,8 @@ async function init(){
     // Poradi (rank dle bodů) pro "bonus za skrytost"
     [...HRACI].sort((a,b)=>(b.Body||0)-(a.Body||0)).forEach((p,i)=>{ p.Poradi = i+1; });
 
-    // stabilní barvy týmů
-    [...new Set(HRACI.map(p=>p.Tym_clean))].sort((a,b)=>a.localeCompare(b,'cs'))
-      .forEach((t,i)=>{ TEAM_COLOR[t] = TEAM_PALETTE[i % TEAM_PALETTE.length]; });
+    // (15. 10.) barvy týmů = klubové barvy; u podobných (Sparta, Pardubice, Třinec…) se použije vedlejší klubová barva
+    TEAM_COLOR = pridelBarvy([...new Set(HRACI.map(p=>p.Tym_clean))].sort((a,b)=>a.localeCompare(b,'cs')));
 
     // Tým filtr
     const tymy = [...new Set(HRACI.map(p=>p.Tym_clean))].sort((a,b)=>a.localeCompare(b,'cs'));
@@ -939,8 +1020,11 @@ function renderFaceoff(){
     .sort((a,b)=>a.diff-b.diff); // nejlepší nahoře
   if(!valid.length){ emptyBox('chart-faceoff','Žádní hráči (min. '+PRAH_FO()+' vhazování) neodpovídají filtru.'); return; }
   const vals = valid.map(p=>p.diff);
+  // (15. 10.) osa ve skutečných procentech: sloupec začíná na 50 % (base) a končí na úspěšnosti hráče.
+  //   Dřív osa ukazovala odchylku (0, 5, 10, 15, 20 procentních bodů) a nebylo jasné, co čísla znamenají.
+  const r0 = rozsahPM(vals);
   Plotly.newPlot('chart-faceoff', [{
-    type:'bar', orientation:'h',
+    type:'bar', orientation:'h', base:50,
     y:valid.map(labelAx), x:vals,
     marker:{color:valid.map(p=>p.diff>=0?'#4CAF82':'#E05555')},
     text:valid.map(p=>`${c1(p.FO_pct)} %`), textposition:'outside', cliponaxis:false,
@@ -949,9 +1033,9 @@ function renderFaceoff(){
     hovertext:valid.map(p=>`${label(p)}<br>Úspěšnost: ${c1(p.FO_pct)} %<br>Vyhraná: ${p.FOW} z ${p.FO_total}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:okraj(),r:20,t:10,b:40},
-    xaxis:{...AX_LOCK, range:rozsahPM(vals), title:{text:'← pod 50 % | nad 50 % → (procentní body)',font:{size:11,color:'#4A6070'}},
-      color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
-      zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
+    xaxis:{...AX_LOCK, range:[50+r0[0],50+r0[1]], ticksuffix:' %', title:{text:'úspěšnost na buly (čára = 50 %)',font:{size:11,color:'#4A6070'}},
+      color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:false},
+    shapes:[{type:'line',xref:'x',x0:50,x1:50,yref:'paper',y0:0,y1:1,line:{color:'rgba(232,239,244,0.6)',width:2}}],
     yaxis:{...AX_LOCK, tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
     showlegend:false
   }), LOCK_CONFIG);
