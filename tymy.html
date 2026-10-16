@@ -89,6 +89,35 @@
 
     /* TABULKA */
     .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    /* (16. 10.) Kdo vyhrává třetiny */
+    table.tymy.tr-tab td,table.tymy.tr-tab th{padding:5px 4px;}
+    table.tymy.tr-tab th.trs{cursor:pointer;text-align:center;} table.tymy.tr-tab th.trs.on{color:var(--gold);}
+    table.tymy.tr-tab td.trc{text-align:center;border-radius:6px;border:2px solid var(--slate-mid);}
+    table.tymy.tr-tab .trc b{display:block;font-family:var(--font-mono);font-size:12.5px;color:var(--text);font-weight:700;line-height:1.25;}
+    table.tymy.tr-tab .trc small{display:block;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);line-height:1.2;}
+    table.tymy.tr-tab tr.trr{cursor:pointer;}
+    table.tymy.tr-tab td.trn{text-align:left;white-space:nowrap;color:var(--text);font-family:var(--font-main);font-size:12.5px;font-weight:500;}
+    table.tymy.tr-tab td.trn img{width:16px;height:16px;object-fit:contain;vertical-align:-3px;margin-right:6px;}
+    table.tymy.tr-tab td.trn small{color:var(--text-faint);font-family:var(--font-mono);font-size:10px;margin-left:4px;}
+    table.tymy.tr-tab tr.trr.on td.trn{color:var(--gold);font-weight:700;}
+    @media(max-width:420px){table.tymy.tr-tab .trcel,table.tymy.tr-tab td.trn img,table.tymy.tr-tab td.trn small,table.tymy.tr-tab .trh{display:none;}}
+    .trv-det{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(42,139,139,.3);}
+    #trv-det .trz{max-width:640px;}
+    .trv-h{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;font-size:13px;color:var(--text);font-weight:600;margin-bottom:6px;}
+    .trv-h select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-family:var(--font-main);font-size:13px;font-weight:600;}
+    .trv-sum{font-size:12.5px;color:var(--text-dim);line-height:1.6;margin-bottom:8px;} .trv-sum b{color:var(--text);font-family:var(--font-mono);}
+    .trv-leg{font-size:11px;color:var(--text-faint);margin-bottom:6px;} .trv-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin:0 4px 0 8px;vertical-align:-1px;}
+    .trz{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:4px 8px;align-items:center;padding:6px 2px;border-bottom:1px solid rgba(42,139,139,.10);font-size:12.5px;}
+    .trz:last-child{border-bottom:0;}
+    .trz .zs{color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .trz .zs small{color:var(--text-faint);font-family:var(--font-mono);font-size:10.5px;margin-right:6px;}
+    .trz .zv{font-family:var(--font-mono);font-weight:700;text-align:right;min-width:44px;}
+    .trz .zv.V{color:#7FE0AC;} .trz .zv.P{color:#F0A0A0;}
+    .trz .zv small{font-size:9.5px;color:var(--gold);margin-left:2px;font-weight:600;}
+    .trz .zt{display:flex;gap:3px;}
+    .trz .zt span{display:inline-block;min-width:32px;text-align:center;font-family:var(--font-mono);font-size:11px;font-weight:700;padding:2px 3px;border-radius:4px;color:#0F1E26;}
+    .zt .V,.trv-leg .V{background:#4CAF82;} .zt .R,.trv-leg .R{background:#8FA3B0;} .zt .P,.trv-leg .P{background:#E05555;} .zt .P{color:#fff;}
+    .zt .X{background:transparent;color:var(--gold);border:1px solid rgba(212,168,67,.55);font-size:10px;min-width:30px;}
     table.tymy{width:100%;border-collapse:collapse;font-size:13px;min-width:560px;}
     .tymy thead tr{background:var(--slate-light);}
     .tymy th{padding:8px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border);}
@@ -489,8 +518,19 @@
 
     <div class="card">
       <div class="card-title">Dominance třetin</div>
-      <div class="card-sub">Kolik gólů tým dává v 1. / 2. / 3. třetině (základní doba).</div>
+      <div class="card-sub" id="gt-tr-sub">Kolik gólů tým dává v 1. / 2. / 3. třetině (základní doba).</div>
+      <div class="subnav" id="gt-tr-toggle" style="margin-bottom:12px">
+        <button data-gttr="G" class="active">Vstřelené</button>
+        <button data-gttr="O">Obdržené</button>
+      </div>
       <div class="chart-wrap-tall" id="chart-gt-tretiny"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title gold">Kdo vyhrává třetiny</div>
+      <div class="card-sub">Třetinu vyhrál, kdo v ní dal víc gólů (stejně = remíza, i 0:0); prodloužení a nájezdy se nepočítají. V buňce <b style="color:var(--text)">výhry–remízy–prohry</b> a skóre třetiny. Klepni na třetinu v záhlaví pro seřazení, na tým pro jeho zápasy.</div>
+      <div class="tbl-wrap"><table class="tymy uzka tr-tab"><thead id="trv-head"></thead><tbody id="trv-body"></tbody></table></div>
+      <div class="trv-det" id="trv-det"></div>
     </div>
 
     <div class="card">
@@ -1537,10 +1577,10 @@ function renderKt(){
 function renderTiming(){
   renderInsights('insight-timing', INS_TIM, teamNames());
   if(!GT || !GT.buckets){
-    ['chart-gt-buckets','chart-gt-tretiny','chart-gt-rychle','chart-gt-killer','chart-gt-prvni'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));
+    ['chart-gt-buckets','chart-gt-tretiny','chart-gt-rychle','chart-gt-killer','chart-gt-prvni','trv-det'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));
     return;
   }
-  buildGtSelect(); renderGtBuckets(); renderGtTretiny(); renderGtRychle(); renderGtKiller(); renderGtPrvni();
+  buildGtSelect(); renderGtBuckets(); renderGtTretiny(); renderGtVyhry(); renderGtRychle(); renderGtKiller(); renderGtPrvni();
 }
 
 function buildGtSelect(){
@@ -1569,20 +1609,81 @@ function renderGtBuckets(){
   }), LOCK_CONFIG);
 }
 
+// (16. 10.) přepínač Vstřelené / Obdržené (O1–O3 z buildu; starší goal_timing.json je nemá → bez přepínače)
+let gtTrMode='G';
 function renderGtTretiny(){
-  const d=[...(GT.tretiny||[])].sort((a,b)=>b.Celkem-a.Celkem);
+  const ma0=(GT.tretiny||[]).some(t=>t.O1!=null);
+  const tg=document.getElementById('gt-tr-toggle'); if(tg) tg.style.display=ma0?'':'none';
+  if(!ma0) gtTrMode='G';
+  const O=gtTrMode==='O', kk=O?['O1','O2','O3']:['T1','T2','T3'], celk=O?'OCelkem':'Celkem';
+  const sub=document.getElementById('gt-tr-sub');
+  if(sub) sub.textContent=O?'Kolik gólů tým dostává v 1. / 2. / 3. třetině (základní doba). Nahoře nejvíc obdržených.'
+                           :'Kolik gólů tým dává v 1. / 2. / 3. třetině (základní doba).';
+  const d=[...(GT.tretiny||[])].sort((a,b)=>(+b[celk]||0)-(+a[celk]||0));
   if(!d.length){ emptyBox('chart-gt-tretiny','Zatím bez dat.'); return; }
   const cats=d.map(t=>t.Tym);
-  const series=[{k:'T1',lab:'1. třetina',c:'#60A5FA'},{k:'T2',lab:'2. třetina',c:'#3B82F6'},{k:'T3',lab:'3. třetina',c:'#1D4ED8'}];
+  const barvy=O?['#F4A3A3','#E86A6A','#C23B3B']:['#60A5FA','#3B82F6','#1D4ED8'];   // obdržené v červených odstínech
+  const series=[1,2,3].map(p=>({k:kk[p-1],lab:p+'. třetina',c:barvy[p-1]}));
   Plotly.newPlot('chart-gt-tretiny', series.map(s=>({
     type:'bar', name:s.lab, x:cats, y:d.map(t=>t[s.k]), marker:{color:s.c},
-    hoverinfo:'text', hovertext:d.map(t=>`${t.Tym}<br>${s.lab}: ${t[s.k]} gólů`)
+    hoverinfo:'text', hovertext:d.map(t=>{ const n=+t[s.k]||0; return `${t.Tym}<br>${s.lab}: ${n} ${O?'obdržen':'vstřelen'}${n===1?'ý gól':(n>=2&&n<=4?'é góly':'ých gólů')}`; })
   })), Object.assign({}, BASE_LAYOUT, {
     barmode:'group', margin:{l:40,r:15,t:35,b:90},
     xaxis:{...AX_LOCK, categoryorder:'array', categoryarray:cats, tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:9}},
-    yaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(t=>Math.max(+t.T1||0,+t.T2||0,+t.T3||0)))), title:{text:'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.1,font:{size:10,color:'#8FA3B0'}}
+    yaxis:{...AX_LOCK, ...osaPocty(Math.max(...d.map(t=>Math.max(...kk.map(k=>+t[k]||0))))), title:{text:O?'Obdržené góly':'Počet gólů',font:{size:11,color:'#4A6070'}}, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}},
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.0,yanchor:'bottom',traceorder:'normal',font:{size:10,color:'#8FA3B0'}}
   }), LOCK_CONFIG);
+}
+document.querySelectorAll('[data-gttr]').forEach(b=>b.addEventListener('click',()=>{ gtTrMode=b.dataset.gttr;
+  document.querySelectorAll('[data-gttr]').forEach(x=>x.classList.toggle('active',x.dataset.gttr===gtTrMode)); renderGtTretiny(); }));
+
+/* (16. 10.) KDO VYHRÁVÁ TŘETINY — goal_timing.json → tretiny_bilance (tabulka) + tretiny_zapasy (detail týmu).
+   Třetinu vyhrál, kdo v ní dal víc gólů; stejně = remíza (i 0:0). Prodloužení a nájezdy se nepočítají. */
+let trvSort=0, trvTym=null;   // řazení: 0 = celkem (výhry − prohry všech třetin na zápas), 1–3 = podle třetiny
+const trvBil=(r,p)=>(p?(r['V'+p]-r['P'+p]):[1,2,3].reduce((s,q)=>s+r['V'+q]-r['P'+q],0))/Math.max(1,r.Z);
+const trvSk=(r,p)=>p?(r['G'+p]-r['O'+p]):[1,2,3].reduce((s,q)=>s+r['G'+q]-r['O'+q],0);
+function trvBg(r,p){ const v=trvBil(r,p); if(!v) return 'transparent';
+  const a=Math.min(0.42,Math.abs(v)*0.5+0.06); return v>0?`rgba(76,175,130,${a})`:`rgba(224,85,85,${a})`; }
+function renderGtVyhry(){
+  const head=document.getElementById('trv-head'), body=document.getElementById('trv-body'), det=document.getElementById('trv-det');
+  if(!head||!body) return;
+  const B=Array.isArray(GT.tretiny_bilance)?GT.tretiny_bilance:[];
+  if(!B.length){ head.innerHTML=''; body.innerHTML='<tr><td><div class="empty">Tabulka se ukáže po dalším spuštění build.R.</div></td></tr>'; if(det) det.innerHTML=''; return; }
+  const d=[...B].sort((a,b)=>trvBil(b,trvSort)-trvBil(a,trvSort)||trvSk(b,trvSort)-trvSk(a,trvSort)||a.Tym.localeCompare(b.Tym,'cs'));
+  if(!trvTym||!B.some(r=>r.Tym===trvTym)) trvTym=d[0].Tym;
+  const th=(p,lab,cls='')=>`<th class="trs${cls}${trvSort===p?' on':''}" data-p="${p}" title="seřadit">${lab}${trvSort===p?' ▾':''}</th>`;
+  head.innerHTML=`<tr><th style="text-align:left">Tým</th>${[1,2,3].map(p=>th(p,p+'.<span class="trh"> třetina</span>')).join('')}${th(0,'Celkem',' trcel')}</tr>`;
+  const bunka=(r,p,cls='')=>{ const V=p?r['V'+p]:r.V1+r.V2+r.V3, R=p?r['R'+p]:r.R1+r.R2+r.R3, P=p?r['P'+p]:r.P1+r.P2+r.P3,
+      G=p?r['G'+p]:r.G1+r.G2+r.G3, O=p?r['O'+p]:r.O1+r.O2+r.O3;
+    return `<td class="trc${cls}" style="background:${trvBg(r,p)}" title="${p?p+'. třetina':'všechny třetiny'}: ${V} vyhraných, ${R} remíz, ${P} prohraných · skóre ${G}:${O}"><b>${V}–${R}–${P}</b><small>${G}:${O}</small></td>`; };
+  body.innerHTML=d.map(r=>`<tr class="trr${r.Tym===trvTym?' on':''}" data-t="${r.Tym}"><td class="trn" title="${r.Z} ${r.Z<5?'zápasy':'zápasů'} s gólovým detailem"><img src="${logoSrc(r.Tym)}" alt="" onerror="this.remove()">${r.Tym}<small>${r.Z} z.</small></td>${[1,2,3].map(p=>bunka(r,p)).join('')}${bunka(r,0,' trcel')}</tr>`).join('');
+  head.querySelectorAll('th.trs').forEach(h=>h.addEventListener('click',()=>{ trvSort=+h.dataset.p; renderGtVyhry(); }));
+  body.querySelectorAll('tr.trr').forEach(tr=>tr.addEventListener('click',()=>{ trvTym=tr.dataset.t; renderGtVyhry();
+    const r=det.getBoundingClientRect(); if(r.top>window.innerHeight*0.6) window.scrollBy({top:r.top-120,behavior:'smooth'}); }));
+  renderTrvDetail(B);
+}
+function renderTrvDetail(B){
+  const det=document.getElementById('trv-det'); if(!det) return;
+  const r=B.find(x=>x.Tym===trvTym); if(!r){ det.innerHTML=''; return; }
+  const Z=(Array.isArray(GT.tretiny_zapasy)?GT.tretiny_zapasy:[]).filter(z=>z.d===trvTym||z.h===trvTym).slice().reverse();   // nejnovější nahoře
+  const dnes=s=>{ const m=/^(\d{1,2})\.(\d{1,2})\./.exec(String(s||'')); return m?`${+m[1]}. ${+m[2]}.`:String(s||''); };
+  const tymy=[...B].map(x=>x.Tym).sort((a,b)=>a.localeCompare(b,'cs'));
+  // nejsilnější třetina týmu (stejně jako dlaždice v Profilu týmu: výhry − prohry, pak skóre, pak góly)
+  const skp=p=>(r['V'+p]-r['P'+p])*1e4+(r['G'+p]-r['O'+p])*100+r['G'+p], mx=Math.max(...[1,2,3].map(skp));
+  const sum=[1,2,3].map(p=>{ const t=`${p}. třetina <b>${r['V'+p]}–${r['R'+p]}–${r['P'+p]}</b> (${r['G'+p]}:${r['O'+p]})`;
+    return skp(p)===mx?`<span style="color:var(--text)">${t} ★</span>`:t; }).join(' · ');
+  const radek=z=>{ const doma=z.d===trvTym, souper=doma?z.h:z.d, my=doma?z.gd:z.gh, on=doma?z.gh:z.gd;
+    const vys=my>on?'V':'P';
+    const t=(z.t||[]).map((x,i)=>{ const a=doma?x[0]:x[1], b=doma?x[1]:x[0], k=a>b?'V':(a===b?'R':'P');
+      return `<span class="${k}" title="${i+1}. třetina ${a}:${b}">${a}:${b}</span>`; }).join('');
+    const ot=z.pp?(Array.isArray(z.o)&&z.o.length===2&&(z.o[0]+z.o[1])>0?`<span class="X" title="prodloužení">${doma?z.o[0]:z.o[1]}:${doma?z.o[1]:z.o[0]}</span>`:`<span class="X" title="${z.sn?'rozhodly nájezdy':'prodloužení bez gólu'}">${z.sn?'sn':'pp'}</span>`):'';
+    return `<div class="trz"><span class="zs"><small>${dnes(z.datum)}</small>${doma?'':'@ '}${souper}</span>`+
+      `<span class="zv ${vys}">${my}:${on}${z.pp?`<small>${z.sn?'sn':'pp'}</small>`:''}</span><span class="zt">${t}${ot}</span></div>`; };
+  det.innerHTML=`<div class="trv-h">Zápas po zápase: <select id="trv-team">${tymy.map(t=>`<option value="${t}"${t===trvTym?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="trv-sum">${sum}</div>
+    <div class="trv-leg">Třetiny z pohledu týmu (jeho góly první):<i class="V"></i>vyhraná<i class="R"></i>remíza<i class="P"></i>prohraná · @ = venku · pp/sn = prodloužení / nájezdy</div>
+    ${Z.length?Z.map(radek).join(''):'<div class="empty">Zatím bez zápasů s gólovým detailem.</div>'}`;
+  const sel=document.getElementById('trv-team'); if(sel) sel.onchange=()=>{ trvTym=sel.value; renderGtVyhry(); };
 }
 
 /* (8. 10.) Rychlé góly seskupené podle třetin — krátké popisky osy (dřív "1. třetina – Začátek (0-3 min)" useknuté) */

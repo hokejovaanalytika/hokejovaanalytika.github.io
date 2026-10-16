@@ -140,6 +140,9 @@
     /* (12. 10.) čas ve vedení pod osou zápasu */
     .d-cas{font-size:12px;color:var(--text-dim);margin:-4px 0 9px;line-height:1.55;}
     .d-cas b{font-weight:600;}
+    /* (16. 10.) skóre po třetinách v rozkliku */
+    .d-tr{color:var(--text-dim);margin-bottom:6px;font-size:12.5px;line-height:1.5;}
+    .d-tr b{color:var(--text);font-family:var(--font-mono);font-weight:700;}
     .d-leg{font-size:11px;color:var(--text-faint);margin-bottom:8px;}
     .g-list{display:flex;flex-direction:column;gap:3px;}
     .g-row{display:grid;grid-template-columns:52px 34px 1fr auto;gap:8px;align-items:center;padding:4px 8px;border-left:3px solid var(--teal-light);background:rgba(36,53,69,.6);border-radius:0 5px 5px 0;font-size:12.5px;}
@@ -564,6 +567,18 @@ function casHtml(z,c){
   };
   return `<div class="d-cas">${tym(z.Domaci,c.d,c.md,c.vd,'#3AADAD',true)} · nerozhodně ${p(c.n,c.mn)} · ${tym(z.Hoste,c.h,c.mh,c.vh,'#5B9BD5',+c.md<=0)}</div>`;
 }
+// (16. 10.) "Třetiny: 1:0 · 2:2 · 0:1 · prodl. 0:1" z gólové osy (domácí : hosté, bez nájezdů).
+//   Stejné pravidlo jako Týmy → Kdo vyhrává třetiny (build.R): do 20. minuty 1. třetina atd.
+function tretinyHtml(z,g){
+  const T=[[0,0],[0,0],[0,0]], OT=[0,0]; let n=0;
+  g.forEach(o=>{ if(o.sit==='SN') return; const m=minut(o.m), i=o.k==='D'?0:(o.k==='H'?1:-1);
+    if(isNaN(m)||i<0) return; if(m>=60) OT[i]++; else T[Math.min(2,Math.floor(m/20))][i]++; n++; });
+  const ot=isOT(z.Prodlouzeni), sn=g.some(o=>o.sit==='SN');
+  if(!n&&!ot) return '';
+  const casti=T.map(t=>`<b>${t[0]}:${t[1]}</b>`);
+  if(ot) casti.push(OT[0]+OT[1]>0?`prodl. <b>${OT[0]}:${OT[1]}</b>`:`prodl. <b>0:0</b>${sn?' · nájezdy':''}`);
+  return `<div class="d-tr">Třetiny: ${casti.join(' · ')}</div>`;
+}
 function detailHtml(z,x){
   const gd=+z.Goly_domaci, gh=+z.Goly_hoste, vitD=gd>gh, vit=vitD?z.Domaci:z.Hoste;
   let h='';
@@ -577,6 +592,7 @@ function detailHtml(z,x){
   // osa a góly
   const g=x&&Array.isArray(x.g)?x.g:[];
   h+=hracZapasu(z,g);
+  if(g.length) h+=tretinyHtml(z,g);
   if(g.length){
     h+=osaSvg(g,z)+`<div class="d-leg"><span style="color:#3AADAD">●</span> ${esc(z.Domaci)} nahoře · <span style="color:#5B9BD5">●</span> ${esc(z.Hoste)} dole · barva čáry = kdo zrovna vedl</div>`+casHtml(z,x&&x.cas);
     // nájezdy: "rozhodl" jen u posledního proměněného (kdyby jich v datech bylo víc)
