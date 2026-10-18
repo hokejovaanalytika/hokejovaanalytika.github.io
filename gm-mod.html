@@ -179,6 +179,13 @@
     .rez-b{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:2px 6px;background:rgba(212,168,67,.18);color:var(--gold);}
     .rez-b.pp{background:rgba(91,155,213,.18);color:var(--otwin);}
     .rez-det{color:var(--text-dim);margin-top:4px;line-height:1.45;}
+    /* (17. 10.) Změny v kádru + štítky hráčů, kteří nehrají / odešli */
+    .kadr-tag{font-style:normal;font-family:var(--font-main);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:1px 6px;margin-left:6px;background:rgba(143,163,176,.16);color:var(--text-dim);white-space:nowrap;vertical-align:1px;}
+    .kz-row{display:flex;gap:10px;align-items:flex-start;background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;font-size:13px;}
+    .kz-row>b{flex:0 0 74px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-radius:5px;padding:3px 0;text-align:center;margin-top:1px;}
+    .kz-row>b.in{background:rgba(76,175,130,.16);color:var(--win);} .kz-row>b.out{background:rgba(224,85,85,.14);color:var(--loss);} .kz-row>b.ne{background:rgba(143,163,176,.16);color:var(--text-dim);}
+    .kz-row ul{list-style:none;margin:0;padding:0;flex:1;min-width:0;} .kz-row li{color:var(--text);line-height:1.45;} .kz-row li+li{margin-top:5px;}
+    .kz-row li small{display:block;color:var(--text-faint);font-size:11px;}
     .br-top{display:flex;justify-content:space-between;gap:8px;color:var(--text);font-weight:600;}
     .br-top span{font-family:var(--font-mono);font-size:12px;color:var(--gold);white-space:nowrap;}
     .br-bar{height:6px;background:var(--slate-light);border-radius:3px;margin:6px 0;overflow:hidden;}
@@ -371,6 +378,14 @@
 
 </section>
   <section class="subpanel" id="panel-kadr">
+    <!-- (17. 10.) kdo přišel, odešel a kdo teď nehraje (build.R → gm_kadr.json); bez změn se karta skryje -->
+    <div class="card" id="gm-zmeny-card" style="display:none">
+      <div class="card-title gold">🔄 Změny v kádru</div>
+      <div class="card-sub">Kdo během sezóny přišel, odešel nebo teď nehraje. Statistiky za sezónu zůstávají, jak jsou — tady jde o to, s kým tým počítá dnes. Trade Help a Rezerva hráče, kteří nehrají nebo odešli, vynechávají.</div>
+      <div id="gm-zmeny"></div>
+      <div class="note-small" id="gm-zmeny-note"></div>
+    </div>
+
     <div class="card">
       <div class="card-title gold">🔎 Než půjdeš na trh — rezerva v kabině</div>
       <div class="card-sub">Hráči tvého týmu, kteří na 60 minut sbírají body jako lepší část ligy, ale dostávají málo minut nebo skoro nechodí na přesilovku. Než GM sáhne po posile, má smysl podívat se nejdřív sem.</div>
@@ -480,14 +495,15 @@ const venkuCil=t=>gmCil==='top4'?t.Venku_top4===true:t.Venku_playoff===true;
 const sanceTxt=t=>jisteCil(t)?'jisté ✓':(venkuCil(t)?'už nejde':f0(pctCil(t))+' %');
 let GM=null, DREAM=null, TRADE=null, gmTeam=null, gmCil='top4', tradeExpanded=false, srovTym=null;
 let META={}, HRACI=null, BRANK=null, KADR_P=null;   // Kádr: hráči a brankáři se načtou na pozadí
+let KZ=null;   // (17. 10.) gm_kadr.json — přišli / odešli / nehrají (starší build ho nemá)
 const rendered={cil:true,vyhled:false,opt:false,kadr:false,srov:false};
 
 async function init(){
   try{
     const [gm,dream,trade,meta]=await Promise.all([loadJSON('gm_mod.json').catch(()=>null),loadJSON('gm_dream.json').catch(()=>null),loadJSON('gm_trade.json').catch(()=>null),loadJSON('meta.json').catch(()=>({}))]);
     GM=gm; DREAM=dream; TRADE=trade; META=meta||{}; document.getElementById('meta-datum').textContent=meta.aktualizovano||'—';
-    KADR_P=Promise.all([loadJSON('hraci_complete.json').catch(()=>null),loadJSON('brankari.json').catch(()=>null)])
-      .then(([hr,br])=>{HRACI=Array.isArray(hr)?hr:null; BRANK=Array.isArray(br)?br:null;
+    KADR_P=Promise.all([loadJSON('hraci_complete.json').catch(()=>null),loadJSON('brankari.json').catch(()=>null),loadJSON('gm_kadr.json').catch(()=>null)])
+      .then(([hr,br,kz])=>{HRACI=Array.isArray(hr)?hr:null; BRANK=Array.isArray(br)?br:null; KZ=kz&&kz.tymy?kz:null;
         if(!HRACI)console.warn('hraci_complete.json chybí — karty Rezerva a Na kom stojí góly se nezobrazí.');
         if(!BRANK)console.warn('brankari.json chybí — karta Brankářská dvojice se nezobrazí.');});
     { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = meta.sezona || ''; }
@@ -1265,6 +1281,37 @@ const ROLE_COLOR={'Elitní střelec':'#E05555','Tvůrce hry':'#FF8A3D','Obousmě
   'Grinder / PK':'#A1887F','Útočný obránce':'#3AADAD','Defenzivní kotva':'#9B7BD4','Brankář':'#D4A843'};
 const PRINOS_COLOR={'Přesilovka':'#E05555','Oslabení':'#9B7BD4','Útok 5 na 5':'#FF8A3D','Bránění střelám':'#4CAF82',
   'Střelba':'#FF8A3D','Dvoucestnost':'#5B9BD5','Defenziva':'#4CAF82'};   // + popisky staršího buildu
+/* (17. 10.) KDO HRAJE — stav hráče z build.R (hraci_complete / brankari / gm_dream: Kadr, Kadr_tym, Kam, Nehral).
+   hraje / nehraje (N zápasů týmu bez něj) / odesel (mimo ligu, ručně) / prestup (ručně do jiného týmu).
+   Starší JSON pole nemá → všichni hrají a nic se nemění. */
+const kadrOf=x=>(x&&x.Kadr)||'hraje';
+const vKadru=x=>!['odesel','prestup'].includes(kadrOf(x));          // v kádru týmu, za který má statistiky
+function kadrTag(x){
+  const k=kadrOf(x);
+  if(k==='nehraje') return `<em class="kadr-tag" title="Nenastoupil v posledních ${x.Nehral} zápasech týmu">nehraje</em>`;
+  if(k==='odesel') return '<em class="kadr-tag" title="Odešel z ligy">odešel</em>';
+  if(k==='prestup') return `<em class="kadr-tag" title="Přestoupil — statistiky jsou za původní tým">→ ${x.Kam||'jinam'}</em>`;
+  return '';
+}
+const POZ_N={U:'útočník',O:'obránce',B:'brankář'};
+const dnx=d=>{const m=/^(\d{1,2})\.(\d{1,2})\./.exec(d||''); return m?`${+m[1]}. ${+m[2]}.`:'';};   // "17.10.2026" → "17. 10."
+function renderZmeny(t){
+  const card=document.getElementById('gm-zmeny-card'), box=document.getElementById('gm-zmeny'), note=document.getElementById('gm-zmeny-note');
+  const e=KZ&&KZ.tymy&&!Array.isArray(KZ.tymy)?KZ.tymy[t.Tym]:null;
+  const pr=(e&&e.prisli)||[], od=(e&&e.odesli)||[], ne=(e&&e.nehraje)||[];
+  if(!pr.length&&!od.length&&!ne.length){card.style.display='none';box.innerHTML='';note.innerHTML='';return;}
+  card.style.display='';
+  const zdroj=x=>x.Zdroj==='rucne'?`zapsáno ručně ${dnx(x.Datum)}`:`v datech od ${dnx(x.Datum)}`;
+  const poz=x=>POZ_N[x.Pozice]||'hráč';
+  const rad=(cls,lab,items)=>items.length?`<div class="kz-row"><b class="${cls}">${lab}</b><ul>${items.join('')}</ul></div>`:'';
+  box.innerHTML=
+    rad('in','Přišli',pr.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · ${x.Odkud?'předtím '+x.Odkud:(x.Zdroj==='data-soucet'?'přišel během sezóny — hokej.cz mu sčítá zápasy za oba týmy':'přišel během sezóny')} · ${zdroj(x)}</small></li>`))+
+    rad('out','Odešli',od.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · ${x.Kam?'→ '+x.Kam:'mimo ligu'} · ${zdroj(x)}</small></li>`))+
+    rad('ne','Nehrají',ne.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · nenastoupil v posledních ${x.Nehral} zápasech týmu · ${x.GP} ${pl(x.GP,'zápas','zápasy','zápasů')} za sezónu</small></li>`));
+  const n=nv(KZ.nehraje_po,4);
+  note.innerHTML=(ne.length?`„Nehrají“ = hráč nenastoupil v posledních ${n} nebo více zápasech týmu — zranění, farma, nebo odchod; důvod data neříkají. Web to sleduje od ${dnx(KZ.sledovano_od)}${KZ.sledovano_od?' '+KZ.sledovano_od.slice(-4):''}. `:'')+
+    (od.some(x=>x.Zdroj==='rucne'&&x.Kam)||pr.some(x=>x.Zdroj==='rucne')?'Přestup zapsaný ručně platí hned; hokej.cz hráče přesune až po jeho prvním zápase za nový tým.':'');
+}
 function scoreBar(v,max){const w=Math.max(4,Math.min(100,v/max*100));return `<div class="scorebar"><i style="width:${w}%"></i><span>${f1(v)}</span></div>`;}
 function renderDream(){
   const b=document.getElementById('gm-dream');
@@ -1273,7 +1320,7 @@ function renderDream(){
     const mx=Math.max(...DREAM.map(r=>nv(r.Score,0)),1);
     b.innerHTML=DREAM.map(r=>`<tr>
       <td class="role" style="color:${ROLE_COLOR[r.Role]||'#E8EFF4'}">${r.Role}</td>
-      <td class="pl">${r.Jmeno}</td><td>${r.Tym}</td><td>${r.Pozice}</td><td>${r.GP??'—'}</td><td>${r.Body??'—'}</td>
+      <td class="pl">${r.Jmeno}${kadrTag(r)}</td><td>${r.Tym}</td><td>${r.Pozice}</td><td>${r.GP??'—'}</td><td>${r.Body??'—'}</td>
       <td>${scoreBar(nv(r.Score,0),mx)}</td><td style="font-family:var(--font-mono);font-size:11px">${r.Duvod}</td></tr>`).join('');
   }
   // největší potřeba = největší ztráta v gólech proti úrovni Top 4 (stejná měna jako Bottleneck)
@@ -1312,7 +1359,13 @@ function renderTrade(){
     const dva=cast.length>1;
     nahrEl.innerHTML=`Nejnižší Fit Score na svém postu v týmu ${t.Tym}: ${cast.join(' a ')}. Posila na stejném postu by v sestavě nejspíš nahradila právě ${dva?'je':'jeho'} — vyplatí se, když má Fit Score vyšší.`;
   }
-  const rowHtml=r=>`<tr><td class="pl">${r.Jmeno}</td><td>${r.Tym}</td><td>${r.Pozice}</td><td>${r.GP}</td><td>${r.Body}</td><td>${r.Rank}.</td>
+  // (17. 10.) koho Trade Help u týmu vynechal: nehraje, odešel z ligy, přestoupil (build.R → mimo_kadr)
+  const MK=(entry.mimo_kadr||[]).filter(m=>m&&m.Jmeno);
+  if(MK.length){
+    const pop=m=>m.Kadr==='nehraje'?`nehraje ${m.Nehral} ${pl(m.Nehral,'zápas','zápasy','zápasů')}`:(m.Kadr==='odesel'?'odešel z ligy':(m.Kam?'→ '+m.Kam:'přestoupil'));
+    nahrEl.innerHTML+=`<div style="margin-top:4px;font-size:12px">Bez hráčů, se kterými ${t.Tym} dnes ${vf(t.Tym,'nepočítá','nepočítají')}: ${MK.map(m=>`${m.Jmeno} (${pop(m)})`).join(', ')}.</div>`;
+  }
+  const rowHtml=r=>`<tr><td class="pl">${r.Jmeno}</td><td>${r.Tym}${r.Puvodne?`<small title="Přestoupil — statistiky jsou za ${r.Puvodne}"> (dřív ${r.Puvodne})</small>`:''}</td><td>${r.Pozice}</td><td>${r.GP}</td><td>${r.Body}</td><td>${r.Rank}.</td>
     <td style="font-weight:600;color:${PRINOS_COLOR[r.Hlavni]||'#E8EFF4'}">${r.Hlavni}</td><td>${scoreBar(r.Fit,mx)}</td>
     <td style="font-family:var(--font-mono);font-size:11px">${r.Proc}</td></tr>`;
   const shown=tradeExpanded?all.slice(0,50):all.slice(0,15);
@@ -1343,7 +1396,9 @@ function renderRezerva(t){
   const ok=HRACI.filter(x=>nv(x.GP,0)>=prah&&nv(x.TOI_GP,0)>0&&nv(x.GP,0)*nv(x.TOI_GP,0)>=REZ_MIN_MINUT&&x.P60!=null&&!isNaN(x.P60));
   const liga={U:ok.filter(x=>grpPoz(x.Pozice)==='U').map(x=>+x.P60), O:ok.filter(x=>grpPoz(x.Pozice)==='O').map(x=>+x.P60)};
   const lepsiNez=x=>{const a=liga[grpPoz(x.Pozice)]; return a.length>1?a.filter(v=>v<+x.P60).length/(a.length-1):0;};   // podíl ostatních hráčů s nižším P/60
-  const moji=ok.filter(x=>x.Tym_clean===t.Tym);
+  // (17. 10.) jen hráči, se kterými tým dnes počítá: bez odešlých a přestoupivších, kdo nehraje, je v grafu šedě
+  const vsichni=ok.filter(x=>x.Tym_clean===t.Tym&&vKadru(x)), nehraji=vsichni.filter(x=>kadrOf(x)==='nehraje');
+  const moji=vsichni.filter(x=>kadrOf(x)!=='nehraje');
   const medMin={U:median(moji.filter(x=>grpPoz(x.Pozice)==='U').map(x=>+x.TOI_GP)), O:median(moji.filter(x=>grpPoz(x.Pozice)==='O').map(x=>+x.TOI_GP))};
   const ppHraci={U:moji.filter(x=>grpPoz(x.Pozice)==='U'&&nv(x.PP_TOI_GP,0)>=1.5).length, O:moji.filter(x=>grpPoz(x.Pozice)==='O'&&nv(x.PP_TOI_GP,0)>=1.5).length};
   const kand=moji.map(x=>{const g=grpPoz(x.Pozice), p=lepsiNez(x), mt=medMin[g];
@@ -1370,12 +1425,16 @@ function renderRezerva(t){
     return `<div class="rez-row"><div class="rez-top"><b>${x.Jmeno}</b><small>${x.g==='O'?'obránce':'útočník'} · ${x.GP} z. · ${x.Body} b.</small>${b}</div><div class="rez-det">${det}</div></div>`;
   }).join('');
   note.innerHTML=`Hráči s aspoň ${prah} ${pl(prah,'zápasem','zápasy','zápasy')} a ${REZ_MIN_MINUT} odehranými minutami. Body na 60 minut se srovnávají jen s hráči stejné pozice (útočníci / obránci).`+
+    (nehraji.length?` Bez ${nehraji.length===1?'hráče, který':'hráčů, kteří'} teď ${nehraji.length===1?'nehraje':'nehrají'} (${nehraji.map(x=>x.Jmeno).join(', ')}) — v grafu šedě.`:'')+
     (odehr<MALY_VZOREK_DO()?' Po pár kolech je to hodně ovlivněné náhodou — pár bodů navíc udělá z kohokoli „nevyužitý talent“.':'');
   // graf: minuty na zápas × body na 60 minut, hráči týmu
   const tr=(g,nazev,barva,sym)=>{const d=moji.filter(x=>grpPoz(x.Pozice)===g);return {type:'scatter',mode:'markers',name:nazev,x:d.map(x=>+x.TOI_GP),y:d.map(x=>+x.P60),
     marker:{size:10,color:barva,symbol:sym,line:{color:'#1B2B34',width:1}},hoverinfo:'text',
     hovertext:d.map(x=>`${x.Jmeno}<br>${mmss(x.TOI_GP)} na zápas · ${f2(x.P60)} b/60<br>${x.GP} z. · ${x.Body} b. · PP ${mmss(nv(x.PP_TOI_GP,0))}`)};};
   const traces=[tr('U','útočníci','#3AADAD','circle'),tr('O','obránci','#8FA3B0','diamond')];
+  if(nehraji.length) traces.push({type:'scatter',mode:'markers',name:'nehrají',x:nehraji.map(x=>+x.TOI_GP),y:nehraji.map(x=>+x.P60),
+    marker:{size:9,color:'rgba(143,163,176,0.25)',symbol:nehraji.map(x=>grpPoz(x.Pozice)==='O'?'diamond':'circle'),line:{color:'#4A6070',width:1}},hoverinfo:'text',
+    hovertext:nehraji.map(x=>`${x.Jmeno} — nehraje (${x.Nehral} ${pl(x.Nehral,'zápas','zápasy','zápasů')} týmu bez něj)<br>${mmss(x.TOI_GP)} na zápas · ${f2(x.P60)} b/60`)});
   if(kand.length) traces.push({type:'scatter',mode:'markers+text',name:'rezerva',x:kand.map(x=>+x.TOI_GP),y:kand.map(x=>+x.P60),
     text:kand.map(x=>x.Jmeno),textposition:'top center',textfont:{size:9,color:'#D4A843'},cliponaxis:false,
     marker:{size:15,color:'rgba(0,0,0,0)',line:{color:'#D4A843',width:2.5}},hoverinfo:'skip',showlegend:false});
@@ -1415,7 +1474,7 @@ function renderHvezdy(t){
     const nej=k1===1?`nejlepší střelec ${r.top[0].Jmeno} dal ${r.g1} z celkových ${r.tot} gólů hráčů týmu (<b>${f0(r.p1)} %</b>)`:
       (k1===2?`nejlepší střelci ${prvni[0].Jmeno} a ${prvni[1].Jmeno} dali po ${r.g1} z celkových ${r.tot} gólů hráčů týmu (<b>${f0(r.p1)} %</b> každý)`:
        `nejvíc gólů — po ${r.g1} z celkových ${r.tot}, tedy <b>${f0(r.p1)} %</b> — ${k1<=4?'mají '+k1+' hráči':'má '+k1+' hráčů'}`);
-    let txt=`<b>${t.Tym}:</b> ${nej}, trojice ${r.top.map(h=>`${h.Jmeno} (${h.G})`).join(', ')}${shoda} dohromady <b>${f0(r.p3)} %</b> — ${zav} (průměr ${f0(avg)} %).`;
+    let txt=`<b>${t.Tym}:</b> ${nej}, trojice ${r.top.map(h=>`${h.Jmeno}${kadrTag(h)} (${h.G})`).join(', ')}${shoda} dohromady <b>${f0(r.p3)} %</b> — ${zav} (průměr ${f0(avg)} %).`;
     if(r.p3>=avg+8) txt+=' Kdyby jeden z nich vypadl, chybělo by týmu hodně gólů.';
     else if(r.p3<=avg-8) txt+=' Góly se rozkládají do šířky — výpadek jednoho hráče tým unese líp.';
     // (9. 10.) malý vzorek i podle kol (MALY_VZOREK_DO jako na celém webu), ne jen pod 15 gólů:
@@ -1454,7 +1513,7 @@ function renderBrankari(t){
   const d=b.map(x=>({...x,podil:suma>0?vaha(x)/suma:0})).sort((a,c)=>c.podil-a.podil);
   const jed=minuty?'minut':'zápasů';
   list.innerHTML=d.map(x=>{const gs=nv(x.GSAA,NaN);
-    return `<div class="br-row"><div class="br-top">${x.Jmeno}<span>${f0(x.podil*100)} % ${jed}</span></div>
+    return `<div class="br-row"><div class="br-top"><div>${x.Jmeno}${kadrTag(x)}</div><span>${f0(x.podil*100)} % ${jed}</span></div>
       <div class="br-bar"><i style="width:${Math.max(2,x.podil*100)}%"></i></div>
       <div class="br-det">${x.GP} z.${minuty?' · '+Math.round(x.TOI_min)+' min':''} · Sv% ${f1(x.SavePct)} · GAA ${f2(x.GAA)} · GSAA <span class="${gs>=0?'plus':'minus'}">${isNaN(gs)?'—':(gs>0?'+':'')+f1(gs)}</span></div></div>`;}).join('');
   const a=d[0], c=d[1], e3=d[2];
@@ -1474,7 +1533,7 @@ function renderBrankari(t){
 
 function renderKadr(){
   renderDream(); renderTrade();
-  if(KADR_P) KADR_P.then(()=>{const t=team(); if(!t)return; renderRezerva(t); renderHvezdy(t); renderBrankari(t);});
+  if(KADR_P) KADR_P.then(()=>{const t=team(); if(!t)return; renderZmeny(t); renderRezerva(t); renderHvezdy(t); renderBrankari(t);});
 }
 
 init();
