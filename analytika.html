@@ -99,6 +99,9 @@
     .tbl tbody tr:hover{background:rgba(42,139,139,0.06);}
     .chart-wrap{width:100%;height:440px;}
     .chart-wrap-tall{width:100%;height:500px;}
+    /* (19. 10.) legenda Trestné lavice v HTML nad grafem — Plotly legenda se na mobilu zalomila přes pruhy */
+    .tr-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:var(--text-dim);margin:0 0 4px;}
+    .tr-leg span{white-space:nowrap;} .tr-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
     .toggle{display:flex;gap:4px;background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:3px;margin-bottom:10px;width:fit-content;}
     /* (12. 10.) Hráči pod lupou — série, výběr týmu, souhrn souhry */
     .hl-serie{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;font-size:12px;color:var(--text-dim);align-items:center;}
@@ -418,12 +421,14 @@
     <div class="card">
       <div class="card-title">Z čeho se skládají tresty</div>
       <div class="card-sub">Rozpad trestných minut podle závažnosti. Délka pruhu = celkové PIM. Šedá = tresty, které hokej.cz nerozepisuje (trest ve hře, distanc). Top 15.</div>
+      <div class="tr-leg" id="leg-tresty-mix"></div>
       <div class="chart-wrap-tall" id="c-tresty-mix"></div>
     </div>
 
     <div class="card">
       <div class="card-title">Kdo fauluje nejčastěji</div>
       <div class="card-sub">Trestné minuty přepočtené na 60 minut na ledě — spravedlivější než absolutní počet. Světlá = drobné fauly, tmavá = tvrdé tresty. Jen hráči s aspoň <span id="tr-min-toi">90</span> minutami na ledě, top 15. Čárkovaně průměr všech hráčů ligy.</div>
+      <div class="tr-leg" id="leg-tresty-scatter"></div>
       <div class="chart-wrap-tall" id="c-tresty-scatter"></div>
     </div>
 
@@ -431,7 +436,7 @@
       <div class="card-title">Kompletní přehled</div>
       <div class="card-sub">PIM/60 = trestné minuty na 60 minut na ledě (spravedlivější než absolutní počet). Řazeno dle celkových PIM.</div>
       <div class="tbl-wrap"><table class="tbl">
-        <thead><tr><th>#</th><th>Hráč</th><th>Tým</th><th>Poz</th><th>GP</th><th>PIM</th><th>PIM/60</th><th>2min</th><th>5min</th><th>10min</th><th>Do konce</th><th>+/−</th></tr></thead>
+        <thead><tr><th>#</th><th>Hráč</th><th>PIM</th><th>PIM/60</th><th>Tým</th><th>Poz</th><th>GP</th><th>2min</th><th>5min</th><th>10min</th><th>Do konce</th><th>+/−</th></tr></thead>
         <tbody id="t-tresty"><tr><td colspan="12"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table></div>
     </div>
@@ -1044,9 +1049,19 @@ document.querySelectorAll('[data-trt]').forEach(b=>b.addEventListener('click',()
   document.querySelectorAll('[data-trt]').forEach(x=>x.classList.toggle('active',x.dataset.trt===trtMetr)); trestyTymy();}));
 const trestyNames = () => { const d=(TRESTY&&TRESTY.hraci)||[]; const a=[]; d.forEach(r=>{a.push(r.Jmeno);a.push(r.Tym_clean);}); return a; };
 
+/* (19. 10.) MOBIL: v grafech jen "R. Holland" (tým v bublině), legenda v HTML nad grafem
+   (Plotly ji na úzké obrazovce zalomila do tří řádků přes první pruhy a přes popisek průměru). */
+const trMob=()=>window.innerWidth<640;
+const trKrat=j=>{const p=String(j||'').trim().split(/\s+/); return p.length<2?p[0]||'':p[0][0]+'. '+p[p.length-1];};
+function trPopisky(rows){
+  if(!trMob()) return rows.map(r=>`${r.Jmeno} (${r.Tym_clean})`);
+  const k=rows.map(r=>trKrat(r.Jmeno));
+  return rows.map((r,i)=>k.filter(x=>x===k[i]).length>1?`${k[i]} (${r.Tym_clean})`:k[i]);   // shoda jmen → s týmem
+}
+function trLegenda(id,seg){const el=document.getElementById(id); if(el) el.innerHTML=seg.map(g=>`<span><i style="background:${g.c}"></i>${g.lab}</span>`).join('');}
 function trestyMix(d){
   const top=[...d].sort((a,b)=>b.PIM-a.PIM).slice(0,15).reverse();
-  const y=top.map(r=>`${r.Jmeno} (${r.Tym_clean})`);
+  const y=trPopisky(top);
   const seg=[
     {k:'M_male',  lab:'Malé (2 min)',        c:'#F7C6C6'},
     {k:'M_velke', lab:'Velké (5 min)',       c:'#E88B8B'},
@@ -1059,11 +1074,11 @@ function trestyMix(d){
     hoverinfo:'text',
     hovertext:top.map(r=>`${r.Jmeno} (${r.Tym_clean})<br>${g.lab}: ${r[g.k]||0} min<br>Celkem PIM: ${r.PIM}`)
   }));
+  trLegenda('leg-tresty-mix', seg);
   Plotly.newPlot('c-tresty-mix', traces, Object.assign({},BASE_LAYOUT,{
-    barmode:'stack', margin:{l:170,r:40,t:35,b:40},
+    barmode:'stack', margin:{l:8,r:trMob()?16:40,t:8,b:40}, showlegend:false,
     xaxis:{...AX_LOCK,title:{text:'trestné minuty',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.09,font:{size:10,color:'#8FA3B0'}}
+    yaxis:{...AX_LOCK,automargin:true,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:trMob()?10:9,color:'#8FA3B0'}}
   }),LOCK_CONFIG);
 }
 
@@ -1071,7 +1086,7 @@ function trestyScatter(d){
   const q=d.filter(r=>r.PIM_60_ok===true && r.PIM_60!=null)
            .sort((a,b)=>b.PIM_60-a.PIM_60).slice(0,15).reverse();
   if(!q.length){ emptyBox('c-tresty-scatter','Zatím málo odehraných minut.'); return; }
-  const y=q.map(r=>`${r.Jmeno} (${r.Tym_clean})`);
+  const y=trPopisky(q);
   const seg=[
     {k:'Male_60',    lab:'Drobné fauly (2 min)',       c:'#F0A9A9'},
     {k:'Tvrde_60',   lab:'Tvrdé tresty (5 min a víc)', c:'#B02F2F'},
@@ -1087,23 +1102,23 @@ function trestyScatter(d){
   const L=(TRESTY&&TRESTY.liga)||{};
   const liga=L.prumer_pim60!=null?L.prumer_pim60:mean(d.filter(r=>r.PIM_60_ok===true&&r.PIM_60!=null).map(r=>r.PIM_60));
   const mt=document.getElementById('tr-min-toi'); if(mt && L.min_toi_pim60!=null) mt.textContent=L.min_toi_pim60;
+  trLegenda('leg-tresty-scatter', seg);
   Plotly.newPlot('c-tresty-scatter', traces, Object.assign({},BASE_LAYOUT,{
-    barmode:'stack', margin:{l:170,r:45,t:35,b:42},
+    barmode:'stack', margin:{l:8,r:trMob()?16:45,t:24,b:42}, showlegend:false,
     xaxis:{...AX_LOCK,title:{text:'trestné minuty na 60 minut hry',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
-    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
+    yaxis:{...AX_LOCK,automargin:true,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:trMob()?10:9,color:'#8FA3B0'}},
     shapes:[{type:'line',x0:liga,x1:liga,yref:'paper',y0:0,y1:1,line:{dash:'dash',color:'rgba(212,168,67,.7)',width:1.5}}],
-    annotations:[{x:liga,y:1.02,xref:'x',yref:'paper',text:`ligový průměr ${f2(liga)}`,showarrow:false,font:{size:9,color:'#D4A843'},xanchor:'left'}],
-    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.11,font:{size:10,color:'#8FA3B0'}}
+    annotations:[{x:liga,y:1.0,xref:'x',yref:'paper',yanchor:'bottom',text:`ligový průměr ${f2(liga)}`,showarrow:false,font:{size:9,color:'#D4A843'},xanchor:'left'}]
   }),LOCK_CONFIG);
 }
 
 function trestyTable(d){
   const pm=v=>v==null?'var(--text-dim)':v<0?'var(--loss)':v>0?'var(--win)':'var(--text-dim)';
   document.getElementById('t-tresty').innerHTML=d.map((r,i)=>`<tr>
-    <td>${i+1}</td><td>${r.Jmeno}</td><td style="color:var(--text-dim)">${r.Tym_clean}</td>
-    <td>${r.Pozice||'—'}</td><td>${r.GP??'—'}</td>
-    <td style="font-weight:600;color:var(--loss)">${r.PIM}</td>
-    <td>${f2(r.PIM_60)}</td><td>${r.Min2??'—'}</td><td>${r.Min5??'—'}</td>
+    <td>${i+1}</td><td>${r.Jmeno}</td>
+    <td style="font-weight:600;color:var(--loss)">${r.PIM}</td><td>${f2(r.PIM_60)}</td>
+    <td style="color:var(--text-dim)">${r.Tym_clean}</td><td>${r.Pozice||'—'}</td><td>${r.GP??'—'}</td>
+    <td>${r.Min2??'—'}</td><td>${r.Min5??'—'}</td>
     <td>${r.Min10??'—'}</td><td>${r.GM??'—'}</td>
     <td style="color:${pm(r.Plus_minus)};font-weight:600">${r.Plus_minus>0?'+':''}${r.Plus_minus??'—'}</td>
   </tr>`).join('');

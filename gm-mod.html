@@ -141,6 +141,16 @@
     .kal-s small{color:var(--text-faint);font-weight:400;margin-left:6px;font-size:11px;}
     .kal-v{display:block;font-size:11px;color:var(--text-dim);font-weight:400;}
     .kal-v.b2b{color:var(--orange);font-weight:600;}
+    /* (19. 10.) vysvětlivka „Co je Elo?“ — stejná na Zápasech, Playoff a v GM módu */
+    .elo-info{margin:8px 0 4px;font-size:12.5px;}
+    .elo-info summary{cursor:pointer;color:var(--teal-light);font-size:12px;font-weight:600;padding:3px 0;list-style:none;display:inline-block;}
+    .elo-info summary::-webkit-details-marker{display:none;}
+    .elo-info summary::before{content:'▸ ';}
+    .elo-info[open] summary::before{content:'▾ ';}
+    .elo-info-tx{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:6px;color:var(--text-dim);line-height:1.5;font-size:12.5px;}
+    .elo-info-tx .elo-r{margin-bottom:7px;}
+    .elo-info-tx b{color:var(--text);font-weight:600;}
+    .elo-info-tx .elo-pozn{font-size:11.5px;margin-bottom:0;}
     .kal-o{font-family:var(--font-mono);font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;}
     .kal-o.tezky{background:rgba(224,85,85,.15);color:var(--loss);}
     .kal-o.lehci{background:rgba(76,175,130,.15);color:var(--win);}
@@ -335,7 +345,8 @@
 
     <div class="card">
       <div class="card-title">Kalendář — co tě čeká</div>
-      <div class="card-sub">Nejbližších 5 zápasů a zbytek sezóny: doma/venku, volno mezi zápasy, kilometry a síla soupeřů. Síla = body na zápas tlumené k průměru ligy (po pár kolech hodně rozhoduje náhoda). Program se porovnává s vyrovnaným programem — kdyby tým hrál se všemi soupeři stejně často (sám se sebou nehraje, proto se lídr nesrovnává s průměrem celé ligy). Barva u zápasu = očekávané body podle simulace.</div>
+      <div class="card-sub">Nejbližších 5 zápasů a zbytek sezóny: doma/venku, volno mezi zápasy, kilometry a síla soupeřů. <span id="kal-sila-pozn">Síla = body na zápas tlumené k průměru ligy (po pár kolech hodně rozhoduje náhoda).</span> Program se porovnává s vyrovnaným programem — kdyby tým hrál se všemi soupeři stejně často (sám se sebou nehraje, proto se lídr nesrovnává s průměrem celé ligy). <span id="kal-barva-pozn">Barva u zápasu = očekávané body podle simulace.</span></div>
+      <div id="kal-elo-info"></div>
       <div id="gm-kal-next"></div>
       <div class="info2" style="margin-top:12px"><div class="ibox" id="gm-kal-zbytek"></div><div class="ibox" id="gm-kal-text"></div></div>
       <div class="chart-wrap" id="gm-kal-chart" style="margin-top:8px"></div>
@@ -605,9 +616,14 @@ function renderCascade(t,cb){
   else if(venkuCil(t)) txt=`Na ${cil} už ${t.Tym} matematicky ${vf(t.Tym,'nedosáhne','nedosáhnou')} — ani s plným počtem bodů ze zbývajících zápasů.`;
   else{
     const sT=ocek/zb, need=chybi/zb;
-    txt=`Na ${cil} bude ${kde} asi stačit <b>~${cb} b.</b> ${t.Tym} ${vf(t.Tym,'má','mají')} ${t.Body} b., takže ze zbývajících ${zb} zápasů ${vf(t.Tym,'potřebuje','potřebují')} ${chybi} b. — <b>${f2(need)} b. na zápas</b> (dosud ${f2(cur)}). `+
+    // (19. 10.) + hranice z minulých sezón (build.R prah_historie: [min, max] ze sezón se stejným formátem)
+    const PH=GM.prah_historie&&GM.prah_historie[gmCil==='top4'?'top4':'top12'];
+    const hist=Array.isArray(PH)&&PH.length===2?` (v ${GM.prah_historie.n>1?`sezónách ${GM.prah_historie.od}–${GM.prah_historie.do}`:`sezóně ${GM.prah_historie.od}`} to bylo ${PH[0]===PH[1]?PH[0]:PH[0]+'–'+PH[1]} b.)`:'';
+    txt=`Na ${cil} bude ${kde} asi stačit <b>~${cb} b.</b>${hist} ${t.Tym} ${vf(t.Tym,'má','mají')} ${t.Body} b., takže ze zbývajících ${zb} zápasů ${vf(t.Tym,'potřebuje','potřebují')} ${chybi} b. — <b>${f2(need)} b. na zápas</b> (dosud ${f2(cur)}). `+
       `Simulace čeká ~${ocek} b. (${f2(sT)} na zápas), celkem ~${proj} b.`+(isNaN(p)?'':` — šance na ${cil} <b>${f0(p)} %</b>`)+'.';
-    if(Math.abs(cur-sT)>=0.15) txt+=` Dosavadním tempem by to bylo ~${Math.round(t.Body+cur*zb)} b.; simulace počítá s ${cur>sT?'nižším':'vyšším'}, protože po pár kolech hodně rozhoduje náhoda a výsledky tlumí k průměru ligy.`;
+    if(Math.abs(cur-sT)>=0.15) txt+=` Dosavadním tempem by to bylo ~${Math.round(t.Body+cur*zb)} b.; simulace počítá s ${cur>sT?'nižším':'vyšším'}, `+
+      (GM.sim_sila==='elo'?`protože sílu bere z Elo (start z minulé sezóny + letošní výsledky) a počítá se soupeři i domácím ledem ve zbývajících zápasech — po pár kolech výsledky hodně ovlivňuje náhoda.`
+                          :`protože po pár kolech hodně rozhoduje náhoda a výsledky tlumí k průměru ligy.`);
     if(schodek>0) txt+=`<br>Jeden bod v tabulce odpovídá v téhle lize zhruba ${f1(GNB())} gólu brankového rozdílu. Na ${chybi} b. by bylo potřeba hrát zbytek sezóny na brankový rozdíl zhruba <b>${sg(gdProTempo(need))} na zápas</b> `+
       `(dnešní Top 4 má ${sg(rozdilZ(GM.benchmark))}, ${t.Tym} zatím ${sg(rozdilZ(t))}, simulace čeká ${sg(gdProTempo(sT))}) — do konce sezóny <b>o ~${golu(golCelk)} víc</b>, než čeká simulace.`;
   }
@@ -679,7 +695,7 @@ function renderMilniky(t){
     (Math.abs(dif)<1?'přesně podle plánu.':(dif>0?`<b>náskok ${dif} ${pl(dif,'bod','body','bodů')}</b>.`:`<b>manko ${-dif} ${pl(-dif,'bod','body','bodů')}</b>.`));
   if(jisteCil(t)) s=`${t.Tym} ${vf(t.Tym,'má','mají')} ${cil} matematicky jisté — cesta už jen ukazuje, kolik bodů odpovídá hranici.`;
   else if(venkuCil(t)) s=`${cil} už matematicky nejde — cesta ukazuje jen, kolik by bylo potřeba.`;
-  tx.innerHTML=`<div class="verdict v-neutral" style="margin-top:10px">${s} <span style="color:var(--text-faint)">Cesta počítá se silou soupeřů: proti silnějším se čeká méně bodů, proto není rovná. Simulace tlumí dosavadní výsledky k průměru ligy.</span></div>`;
+  tx.innerHTML=`<div class="verdict v-neutral" style="margin-top:10px">${s} <span style="color:var(--text-faint)">Cesta počítá se silou soupeřů${GM.sim_sila==='elo'?' a domácím ledem':''}: proti silnějším${GM.sim_sila==='elo'?' a venku':''} se čeká méně bodů, proto není rovná. ${GM.sim_sila==='elo'?'Simulace bere sílu týmů z Elo (start z minulé sezóny + letošní výsledky).':'Simulace tlumí dosavadní výsledky k průměru ligy.'}</span></div>`;
 }
 
 /* (8. 10.) PŘÍMÍ KONKURENTI: týmy s nejbližší projekcí bodů, pro které je cíl ještě
@@ -895,6 +911,17 @@ function renderSrov(){
   if(!HRACI&&KADR_P) KADR_P.then(()=>{if(rendered.srov&&HRACI)renderSrov();});
 }
 
+/* (19. 10.) Vysvětlivka „Co je Elo?“ — stejný text na Zápasech (Predikce, Souboj), Playoff a v GM módu.
+   Čísla odpovídají build.R sekci 11b (K 12, domácí led 45, přenos 70 %, prodloužení 0,75). */
+function eloInfoHTML(){
+  return `<details class="elo-info"><summary>Co je Elo?</summary><div class="elo-info-tx">`+
+    `<div class="elo-r"><b>Jedno číslo síly týmu, spočítané jen z výsledků.</b> Průměr ligy je 1500 — nejsilnější týmy bývají kolem 1600, nejslabší kolem 1430.</div>`+
+    `<div class="elo-r"><b>Po každém zápase si vítěz vezme body od poraženého.</b> Kolik, záleží na tom, jak moc se výhra čekala: favorit za čekanou výhru dostane pár bodů, outsider za překvapení víc (nejvýš 12 za zápas). Výhra v prodloužení nebo na nájezdy se počítá jako tři čtvrtiny výhry — prodloužení je skoro loterie.</div>`+
+    `<div class="elo-r"><b>Z rozdílu Elo vychází šance.</b> 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě. Domácí led přidá 45 bodů, takže proti stejně silnému soupeři mají domácí asi 56 %.</div>`+
+    `<div class="elo-r"><b>Nová sezóna nezačíná od nuly.</b> Tým si přenese 70 % loňského odstupu od průměru (kdo skončil na 1600, začne na 1570), takže Elo ví, kdo je silný, hned od prvního kola. Letošní výsledky ho pak posouvají.</div>`+
+    `<div class="elo-r elo-pozn">Systém vymyslel fyzik Arpad Elo pro šachy — proto Elo, ne ELO: je to jméno, ne zkratka. Elo nezná sestavy, zranění ani brankáře, jen výsledky.</div>`+
+    `</div></details>`;
+}
 /* ── Kalendář: nejbližších 5 zápasů + zbytek sezóny ─────────── */
 function renderKalendar(t){
   const K=GM.kalendar, L=K&&K.liga?K.liga:{}, k=K&&K.tymy?K.tymy[t.Tym]:null;
@@ -905,19 +932,29 @@ function renderKalendar(t){
     try{Plotly.purge('gm-kal-chart');}catch(_){}
     return;
   }
+  // (19. 10.) síla z Elo (build.R kalendar.liga.model): očekávané body včetně domácího ledu,
+  //   barva podle soupeře (Ocek_rel = proti průměrnému soupeři na stejném ledě). Starší JSON jako dřív.
+  const ELO_K=L.model==='elo';
+  if(ELO_K){
+    document.getElementById('kal-sila-pozn').textContent='Síla = body na zápas, které by tým podle Elo čekal proti ostatním týmům (start z minulé sezóny + letošní výsledky).';
+    document.getElementById('kal-barva-pozn').textContent='Číslo u zápasu = očekávané body včetně domácího ledu, barva = jak silný je soupeř (proti průměrnému soupeři na stejném ledě).';
+    const ei=document.getElementById('kal-elo-info'); if(!ei.innerHTML) ei.innerHTML=eloInfoHTML();   // jen jednou — otevřená vysvětlivka zůstane otevřená při změně týmu
+  }
   const P=k.Pristich||[];
   if(!P.length) next.innerHTML='<div class="empty">Základní část je dohraná.</div>';
   else{
     const rows=P.map(r=>{
-      const cls=r.Ocek_b<=1.35?'tezky':(r.Ocek_b>=1.65?'lehci':'stred');
+      const cls=r.Ocek_rel!=null?(r.Ocek_rel<=-0.15?'tezky':(r.Ocek_rel>=0.15?'lehci':'stred')):(r.Ocek_b<=1.35?'tezky':(r.Ocek_b>=1.65?'lehci':'stred'));
       const vol=r.Volno==null?'':(r.Volno===0?'<span class="kal-v b2b">den po dni</span>':`<span class="kal-v">${r.Volno} ${pl(r.Volno,'den','dny','dní')} volna</span>`);
       return `<div class="kal-row"><span class="kal-d">${r.Datum}</span><span class="kal-hv ${r.Doma?'doma':'venku'}">${r.Doma?'doma':'venku'}</span>`+
         `<span class="kal-s">${r.Souper}<small>${r.Poradi!=null?r.Poradi+'.':''}</small>${vol}</span>`+
-        `<span class="kal-o ${cls}" title="očekávané body podle simulace">~${f1(r.Ocek_b)} b.</span></div>`;
+        `<span class="kal-o ${cls}" title="${ELO_K?'očekávané body podle Elo (vč. domácího ledu)':'očekávané body podle simulace'}">~${f1(r.Ocek_b)} b.</span></div>`;
     }).join('');
     const n=P.length, doma=P.filter(r=>r.Doma).length, b2b=P.filter(r=>r.Volno===0).length, ocek=P.reduce((s,r)=>s+nv(r.Ocek_b,0),0);
     const uvod=n===1?'Zbývá poslední zápas':(n===5?'Nejbližší pětice':`Nejbližší ${n} zápasy`);
-    next.innerHTML=`<div class="kal-list">${rows}</div><div class="kal-sum">${uvod}: ${doma}× doma, ${n-doma}× venku${b2b?`, ${b2b}× den po dni`:''}. Očekávaně <b>~${f1(ocek)} b.</b> z ${3*n} možných — průměrný tým by bral ~${f1(1.5*n)} b.</div>`;
+    // průměrný tým: s Elo se stejným počtem domácích a venkovních zápasů (doma se bere víc)
+    const prum=ELO_K&&L.ocek_doma!=null?doma*nv(L.ocek_doma,1.5)+(n-doma)*nv(L.ocek_venku,1.5):1.5*n;
+    next.innerHTML=`<div class="kal-list">${rows}</div><div class="kal-sum">${uvod}: ${doma}× doma, ${n-doma}× venku${b2b?`, ${b2b}× den po dni`:''}. Očekávaně <b>~${f1(ocek)} b.</b> z ${3*n} možných — průměrný tým by ${ELO_K?'se stejným počtem domácích zápasů ':''}bral ~${f1(prum)} b.</div>`;
   }
   const nT=GM.teams.length;
   const km=k.Km_zbyva!=null?`~${Math.round(k.Km_zbyva).toLocaleString('cs-CZ')} km`:'—';
@@ -929,7 +966,7 @@ function renderKalendar(t){
     <div class="line">Soupeři v průměru <b>${f2(k.Sila)} b/z (vyrovnaný program ${f2(k.Sila_rel!=null?k.Sila-k.Sila_rel:L.sila_prumer)})</b></div>`;
   let t2;
   const rozp=nv(L.sila_rozpeti,0), malo=L.sila_rozpeti!=null&&rozp<0.05;   // starší JSON bez rozpětí → jako dřív bez věty
-  if(malo) t2=`Síla zbývajícího programu se zatím mezi týmy liší nejvýš o ${f2(rozp)} b. na zápas, takže pořadí „nejtěžší / nejlehčí program“ teď nic neznamená. Každý hraje s každým čtyřikrát a po pár kolech se síla týmů ještě tlumí k průměru — rozdíly v programu přijdou až ve druhé polovině sezóny. Teď víc rozhoduje nejbližší pětice, cestování a zápasy den po dni.`;
+  if(malo) t2=`Síla zbývajícího programu se zatím mezi týmy liší nejvýš o ${f2(rozp)} b. na zápas, takže pořadí „nejtěžší / nejlehčí program“ teď nic neznamená. Každý hraje s každým čtyřikrát, takže zbytek programu je na začátku sezóny skoro u všech stejný${ELO_K?'':' (a síla týmů se po pár kolech ještě tlumí k průměru)'} — rozdíly v programu přijdou až ve druhé polovině sezóny. Teď víc rozhoduje nejbližší pětice, cestování a zápasy den po dni.`;
   else{
     // (7. 10.) proti VYROVNANÉMU programu (stejně zápasů se všemi soupeři) — build.R Sila_rel;
     // starší gm_mod.json: proti průměru ligy (lídr tam vychází vždy "nejlehčí", nehraje sám se sebou)

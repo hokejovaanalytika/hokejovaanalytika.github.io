@@ -147,6 +147,22 @@
     /* radar chips */
     select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:var(--font-main);font-size:13px;}
     .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+    /* (19. 10.) Síla týmů — Elo (Power Rankings) */
+    table.tymy.elo-tab{max-width:720px;}
+    table.tymy.elo-tab th,table.tymy.elo-tab td{padding:7px 5px;}
+    .elo-tab td.elo-v{font-weight:700;color:var(--text);background-repeat:no-repeat;min-width:46px;}
+    .elo-tab td.zm-p{color:var(--win);font-weight:600;} .elo-tab td.zm-m{color:var(--loss);font-weight:600;}
+    .elo-tab td.tab{color:var(--text-dim);}
+    .elo-pozn{font-size:11.5px;color:var(--text-dim);margin-top:10px;line-height:1.5;}
+    .elo-info{margin:4px 0 12px;font-size:12.5px;}
+    .elo-info summary{cursor:pointer;color:var(--teal-light);font-size:12px;font-weight:600;padding:3px 0;list-style:none;display:inline-block;}
+    .elo-info summary::-webkit-details-marker{display:none;}
+    .elo-info summary::before{content:'▸ ';}
+    .elo-info[open] summary::before{content:'▾ ';}
+    .elo-info-tx{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:6px;color:var(--text-dim);line-height:1.5;font-size:12.5px;}
+    .elo-info-tx .elo-r{margin-bottom:7px;}
+    .elo-info-tx b{color:var(--text);font-weight:600;}
+    .elo-info-tx .elo-pozn{font-size:11.5px;margin:0;}
     .chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:16px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;transition:all .15s;}
     .chip:hover{color:var(--text);}
     .chip.on{background:var(--teal);color:#fff;border-color:var(--teal);}
@@ -289,12 +305,34 @@
 
     <div class="intro">
       <h1>Power Rankings 2.0</h1>
+      <p id="power-intro-elo" style="display:none;margin-bottom:6px">Dva pohledy na sílu týmů. <b style="color:var(--text)">Elo</b> stojí jen na výsledcích — koho tým porazil a kde, se startem z minulé sezóny; z něj počítají Predikce i simulace šancí. <b style="color:var(--text)">Power Index</b> měří, jak tým hraje letos.</p>
       <p>Síla týmu z brankového rozdílu, bodů a speciálních formací. Power Index = brankový rozdíl na zápas 35 % + body 30 % + přesilovky 17,5 % + oslabení 17,5 %. Fyzická hra (Grit) se nepočítá — s výsledky letos nesouvisí; najdeš ji v Team DNA.</p>
     </div>
 
     <div class="insight" id="insight-power" style="display:none">
       <div class="insight-h">Co ti to říká</div>
       <div class="insight-body"></div>
+    </div>
+
+    <!-- (19. 10.) Síla podle Elo: žebříček + vývoj v sezóně (elo.json z build.R sekce 11b) -->
+    <div class="card" id="elo-card" style="display:none">
+      <div class="card-title gold">Síla týmů — Elo</div>
+      <div class="card-sub">Seřazeno podle Elo. <b>Letos</b> = posun od startu sezóny, <b>5&nbsp;z.</b> = posun za posledních 5 zápasů týmu, <b>Tab.</b> = dnešní místo v tabulce.</div>
+      <div id="elo-info"></div>
+      <div class="tbl-wrap">
+        <table class="tymy uzka elo-tab">
+          <thead><tr><th>#</th><th>Tým</th><th>Elo</th><th title="posun od startu sezóny">Letos</th><th title="posun za posledních 5 zápasů týmu">5 z.</th><th title="dnešní místo v tabulce">Tab.</th></tr></thead>
+          <tbody id="elo-body"></tbody>
+        </table>
+      </div>
+      <div class="elo-pozn" id="elo-pozn"></div>
+    </div>
+
+    <div class="card" id="elo-vyvoj-card" style="display:none">
+      <div class="card-title">Vývoj síly v sezóně (Elo)</div>
+      <div class="card-sub" id="elo-vyvoj-sub">Elo po každém zápase — mění se jen zápasy, proto schody. Čárkovaně průměr ligy 1500. Klepni na týmy (nejvýš 6 naráz); ostatní šedě v pozadí.</div>
+      <div id="elo-chips" class="chips"></div>
+      <div class="chart-wrap-tall" id="chart-elo"></div>
     </div>
 
     <div class="card">
@@ -376,7 +414,7 @@
 
     <div class="card">
       <div class="card-title">Vývoj formy — průměr posledních 5 zápasů</div>
-      <div class="card-sub">Body na zápas z posledních 5 zápasů, spočítané po každém odehraném zápase (od 5. zápasu). Klepni na týmy (výchozí = top 4 tabulky).</div>
+      <div class="card-sub">Body na zápas z posledních 5 zápasů, spočítané po každém odehraném zápase (od 5. zápasu). Klepni na týmy (výchozí = top 4 tabulky).<span id="blocks-elo-odkaz" style="display:none"> Dlouhodobou sílu — se silou soupeřů a startem z minulé sezóny — ukazuje <a href="#power" style="color:var(--teal-light)">Elo v Power Rankings</a>.</span></div>
       <div id="blocks-chips" class="chips"></div>
       <div class="chart-wrap-tall" id="chart-blocks"></div>
     </div>
@@ -590,6 +628,7 @@ function emptyBox(id,msg){ document.getElementById(id).innerHTML = `<div class="
 
 let FORMA = [], POWER = [], MOM = null, DNA = [], HRACI = [], CB = null, GT = null, STATS = [], INS_POWER = [], INS_FORMA = [], INS_DNA = [], INS_MOM = [], INS_CB = [], INS_TIM = [];
 let PLAYOFF = null, PROTI = null;   // (8. 10.) projekce ze simulace (playoff.json), proti_komu.json
+let ELO_J = null, eloSel = null;    // (19. 10.) elo.json, vybrané týmy v grafu Vývoj síly
 let radarSel = [], blocksSel = [], dnaSel = [], playoffSel = null, ktState = 'clutch';
 
 /* loga týmů (Plotly layout.images) — soubory ve www/logos/, název = jméno týmu, .png */
@@ -697,7 +736,7 @@ const rendered = {forma:true, profil:false, power:false, momentum:false, dna:fal
 
 async function init(){
   try{
-    const [forma, power, momentum, dna, hraci, cb, gt, meta, insPower, insForma, insDna, insMom, insCb, insTim, stats, playoff, proti] = await Promise.all([
+    const [forma, power, momentum, dna, hraci, cb, gt, meta, insPower, insForma, insDna, insMom, insCb, insTim, stats, playoff, proti, elo] = await Promise.all([
       loadJSON('tymy_forma.json').catch(()=>[]),
       loadJSON('power_index.json').catch(()=>[]),
       loadJSON('momentum.json').catch(()=>null),
@@ -714,9 +753,11 @@ async function init(){
       loadJSON('insights_timing.json').catch(()=>[]),
       loadJSON('tymy_stats.json').catch(()=>[]),         // (7. 10.) Grit Index, přesunutý z Přehledu
       loadJSON('playoff.json').catch(()=>null),          // (8. 10.) projekce bodů ze simulace (Momentum)
-      loadJSON('proti_komu.json').catch(()=>null)        // (8. 10.) body proti horní/dolní polovině (Power)
+      loadJSON('proti_komu.json').catch(()=>null),       // (8. 10.) body proti horní/dolní polovině (Power)
+      loadJSON('elo.json').catch(()=>null)              // (19. 10.) síla podle Elo (Power Rankings)
     ]);
-    PLAYOFF = playoff; PROTI = proti;
+    PLAYOFF = playoff; PROTI = proti; ELO_J = elo&&Array.isArray(elo.tymy)&&elo.tymy.length?elo:null;
+    if(ELO_J){ const o=document.getElementById('blocks-elo-odkaz'); if(o) o.style.display=''; }   // odkaz z Vývoje formy na Elo
     FORMA = Array.isArray(forma) ? forma : [];
     POWER = Array.isArray(power) ? power : [];
     MOM = momentum;
@@ -922,14 +963,124 @@ function renderPower(){
   if(!POWER.length){ ['power-body'].forEach(()=>{}); 
     console.warn('power_index.json chybí — kartu build.R nevygeneroval.');document.getElementById('power-body').innerHTML='<tr><td colspan="9"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
     ['chart-power-radar','chart-sustain','chart-proti'].forEach(id=>emptyBox(id,'Zatím bez dat.'));
+    renderElo();
     return;
   }
   renderInsights('insight-power', INS_POWER, teamNames());
+  renderElo();       // (19. 10.) síla podle Elo — žebříček a vývoj (bez elo.json se karty neukážou)
   renderPowerTable();
   buildRadarChips();
   renderRadar();
   renderSustain();
   renderProti();     // (8. 10.) místo "PP vs PK" a "Útok vs Obrana" (to samé ukazuje Přehled)
+}
+
+/* ════════════════ (19. 10.) SÍLA TÝMŮ — ELO ════════════════
+   elo.json z build.R (sekce 11b): tymy = Elo, Start (z minulé sezóny), Zmena (od startu), Zmena5 (posledních 5 zápasů),
+   vyvoj = Elo po každém zápase týmu (+ soupeř, doma, skóre, výsledek, posun). Starší elo.json bez detailu zápasů
+   → bubliny jen s Elo; bez elo.json se karty neukážou a úvod zůstane původní. */
+function eloInfoHTML(){
+  return `<details class="elo-info"><summary>Co je Elo?</summary><div class="elo-info-tx">`+
+    `<div class="elo-r"><b>Jedno číslo síly týmu, spočítané jen z výsledků.</b> Průměr ligy je 1500 — nejsilnější týmy bývají kolem 1600, nejslabší kolem 1430.</div>`+
+    `<div class="elo-r"><b>Po každém zápase si vítěz vezme body od poraženého.</b> Kolik, záleží na tom, jak moc se výhra čekala: favorit za čekanou výhru dostane pár bodů, outsider za překvapení víc (nejvýš 12 za zápas). Výhra v prodloužení nebo na nájezdy se počítá jako tři čtvrtiny výhry — prodloužení je skoro loterie.</div>`+
+    `<div class="elo-r"><b>Z rozdílu Elo vychází šance.</b> 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě. Domácí led přidá 45 bodů, takže proti stejně silnému soupeři mají domácí asi 56 %.</div>`+
+    `<div class="elo-r"><b>Nová sezóna nezačíná od nuly.</b> Tým si přenese 70 % loňského odstupu od průměru (kdo skončil na 1600, začne na 1570), takže Elo ví, kdo je silný, hned od prvního kola. Letošní výsledky ho pak posouvají.</div>`+
+    `<div class="elo-r elo-pozn">Systém vymyslel fyzik Arpad Elo pro šachy — proto Elo, ne ELO: je to jméno, ne zkratka. Elo nezná sestavy, zranění ani brankáře, jen výsledky.</div>`+
+    `</div></details>`;
+}
+const eloZn = x => x==null||isNaN(x) ? '—' : (Math.round(x)===0 ? '0' : zn(Math.round(x)) + Math.abs(Math.round(x)));
+function renderElo(){
+  const ok = !!ELO_J;
+  ['elo-card','elo-vyvoj-card'].forEach(id=>document.getElementById(id).style.display = ok ? '' : 'none');
+  document.getElementById('power-intro-elo').style.display = ok ? '' : 'none';
+  { const o=document.getElementById('blocks-elo-odkaz'); if(o) o.style.display = ok ? '' : 'none'; }
+  if(!ok){ console.warn('elo.json chybí — karty Elo build.R nevygeneroval.'); return; }
+  const ei=document.getElementById('elo-info'); if(!ei.innerHTML) ei.innerHTML=eloInfoHTML();
+  renderEloTab(); buildEloChips(); renderEloVyvoj();
+}
+function renderEloTab(){
+  const tab = {}; POWER.forEach(t=>{ if(t.Poradi!=null) tab[t.Tym_clean]=+t.Poradi; });
+  const T = [...ELO_J.tymy].filter(t=>t.Elo!=null).sort((a,b)=>b.Elo-a.Elo);
+  const lo = Math.min(...T.map(t=>t.Elo)) - 25, hi = Math.max(...T.map(t=>t.Elo));
+  const cls = x => x==null||isNaN(x)||Math.round(x)===0 ? '' : (x>0 ? 'zm-p' : 'zm-m');
+  document.getElementById('elo-body').innerHTML = T.map((t,i)=>{
+    const w = Math.max(4, (t.Elo-lo)/Math.max(hi-lo,1)*100);
+    const r5 = t.Zmena5!=null ? +t.Zmena5 : null;
+    return `<tr><td>${i+1}</td><td>${t.Tym}</td>
+      <td class="elo-v" style="background-image:linear-gradient(90deg,rgba(212,168,67,.28) ${w}%,transparent ${w}%)">${Math.round(t.Elo)}</td>
+      <td class="${cls(t.Zmena)}">${eloZn(t.Zmena)}</td><td class="${cls(r5)}">${r5==null?'—':eloZn(r5)}</td>
+      <td class="tab">${tab[t.Tym]!=null?tab[t.Tym]+'.':'—'}</td></tr>`;
+  }).join('');
+  // rozdíl proti tabulce: největší odchylka (jen věta, žádné „protože“)
+  const roz = T.map((t,i)=>({t:t.Tym, e:i+1, b:tab[t.Tym]})).filter(x=>x.b!=null).map(x=>({...x, d:x.b-x.e}));
+  const m = roz.sort((a,b)=>Math.abs(b.d)-Math.abs(a.d))[0];
+  const z = ELO_J.info && ELO_J.info.zapasu_letos;
+  let p = `Elo bere v úvahu sílu soupeřů a na začátku sezóny ještě hodně i minulou sezónu, takže se od tabulky může lišit.`;
+  if(m && Math.abs(m.d)>=3) p += ` Nejvíc u týmu ${m.t}: v tabulce ${m.b}., podle Elo ${m.e}.`;
+  if(z!=null) p += ` Letos zatím ${z} ${z===1?'zápas':(z>=2&&z<=4?'zápasy':'zápasů')}.`;
+  document.getElementById('elo-pozn').textContent = p;
+}
+const ELO_MAX = 6;
+function buildEloChips(){
+  const box=document.getElementById('elo-chips');
+  const teams=[...ELO_J.tymy].map(t=>t.Tym).sort((a,b)=>a.localeCompare(b,'cs'));
+  if(eloSel===null){
+    // výchozí: dva týmy, které si od startu nejvíc polepšily, a dva, které nejvíc ztratily
+    const T=[...ELO_J.tymy].filter(t=>t.Zmena!=null).sort((a,b)=>b.Zmena-a.Zmena);
+    const max=T.length?Math.max(...T.map(t=>Math.abs(t.Zmena))):0;
+    eloSel = max>=5 ? [...T.slice(0,2), ...T.slice(-2).reverse()].map(t=>t.Tym)
+                    : [...ELO_J.tymy].sort((a,b)=>b.Elo-a.Elo).slice(0,4).map(t=>t.Tym);
+    eloSel=[...new Set(eloSel)];
+  }
+  box.innerHTML=teams.map(t=>`<button class="chip${eloSel.includes(t)?' on':''}" data-team="${t}">${t}</button>`).join('');
+  box.querySelectorAll('.chip').forEach(b=>b.addEventListener('click',()=>{
+    const t=b.dataset.team;
+    if(eloSel.includes(t)) eloSel=eloSel.filter(x=>x!==t);
+    else if(eloSel.length>=ELO_MAX) eloSel=[...eloSel.slice(1),t];      // 7. tým vystřídá nejdřív vybraný
+    else eloSel=[...eloSel,t];
+    box.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',eloSel.includes(c.dataset.team)));
+    renderEloVyvoj();
+  }));
+}
+function eloDen(s){ const m=/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(s||'').trim()); return m?new Date(+m[3],+m[2]-1,+m[1]):null; }
+const ELO_DNY=['ne','po','út','st','čt','pá','so'];
+function renderEloVyvoj(){
+  const V=Array.isArray(ELO_J.vyvoj)?ELO_J.vyvoj:[];
+  const her=V.filter(v=>eloDen(v.Datum));
+  if(!her.length){ emptyBox('chart-elo','Vývoj se ukáže po prvních odehraných zápasech.'); return; }
+  const d0=new Date(Math.min(...her.map(v=>eloDen(v.Datum).getTime())) - 2*864e5);   // start = 2 dny před 1. zápasem
+  const vsechny=[...new Set(V.map(v=>v.Tym))];
+  const sel=eloSel.filter(t=>vsechny.includes(t)), ostatni=vsechny.filter(t=>!sel.includes(t));
+  const BAR=pridelBarvy(sel,['#8FA3B0']); obarviChipy('elo-chips', BAR);
+  const rady=tm=>V.filter(v=>v.Tym===tm).map(v=>({...v, dt:eloDen(v.Datum)||d0})).sort((a,b)=>a.dt-b.dt);
+  const fmtD=d=>`${ELO_DNY[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`;
+  const VYS={V:'výhra',VP:'výhra po prodl.',PP:'prohra po prodl.',P:'prohra'};
+  const bub=(tm,r)=>{
+    if(!eloDen(r.Datum)) return `<b>${tm}</b> · start sezóny ${Math.round(r.Elo)}<br>(70 % loňského odstupu od průměru)`;
+    let h=`<b>${tm}</b> · ${Math.round(r.Elo)}`+(r.Zmena!=null?` (${eloZn(+r.Zmena)})`:'')+`<br>${fmtD(r.dt)}`;
+    // zápas jako „domácí – hosté skóre“ (skóre v elo.json je z pohledu týmu → u venkovního otočit)
+    if(r.Souper){ const doma=r.Doma===true||r.Doma==='TRUE', sk=String(r.Skore||'').split(':');
+      h+=` · ${doma?tm+' – '+r.Souper:r.Souper+' – '+tm} ${sk.length===2?(doma?sk[0]+':'+sk[1]:sk[1]+':'+sk[0]):''}`+(VYS[r.Vysl]?` (${VYS[r.Vysl]})`:''); }
+    return h;
+  };
+  const pozadi=ostatni.map(tm=>{ const R=rady(tm);
+    return {type:'scatter',mode:'lines',name:tm,showlegend:false,x:R.map(r=>r.dt),y:R.map(r=>r.Elo),
+      line:{width:1.2,color:'rgba(143,163,176,0.25)',shape:'hv'},hoverinfo:'text',hovertext:R.map(r=>`${tm} · ${Math.round(r.Elo)}`)}; });
+  const mob=window.innerWidth<600;
+  const vybrane=sel.map(tm=>{ const R=rady(tm);
+    return {type:'scatter',mode:R.length>30?'lines':'lines+markers',name:tm,x:R.map(r=>r.dt),y:R.map(r=>r.Elo),
+      line:{width:2.5,color:BAR[tm],shape:'hv'},marker:{size:5,color:BAR[tm]},hoverinfo:'text',hovertext:R.map(r=>bub(tm,r))}; });
+  const ys=V.map(v=>+v.Elo).filter(isFinite); const yLo=Math.min(1490,...ys)-8, yHi=Math.max(1510,...ys)+8;
+  const xHi=new Date(Math.max(...her.map(v=>eloDen(v.Datum).getTime())) + 864e5);
+  Plotly.newPlot('chart-elo', pozadi.concat(vybrane), Object.assign({}, BASE_LAYOUT, {
+    margin:{l:48,r:12,t:10,b:50},
+    xaxis:{...AX_LOCK, type:'date', range:[d0,xHi], tickformat:'%-d. %-m.', nticks:mob?5:10, color:'#4A6070', gridcolor:'rgba(42,139,139,0.08)', tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK, title:{text:'Elo',font:{size:11,color:'#4A6070'}}, range:[yLo,yHi], zeroline:false, color:'#4A6070', gridcolor:'rgba(42,139,139,0.1)', tickfont:{family:'JetBrains Mono',size:10}, separatethousands:false, tickformat:'d'},
+    shapes:[{type:'line',xref:'paper',x0:0,x1:1,y0:1500,y1:1500,line:{dash:'dash',color:'rgba(143,163,176,0.55)',width:1}}],
+    annotations:[{xref:'paper',x:0.005,xanchor:'left',yref:'y',y:1500,yanchor:'bottom',text:'průměr ligy 1500',showarrow:false,
+      font:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},bgcolor:'rgba(27,43,52,0.8)',borderpad:2}],
+    showlegend:true, legend:{orientation:'h',x:0.5,xanchor:'center',y:-0.16,font:{size:10,color:'#8FA3B0'}}
+  }), LOCK_CONFIG);
 }
 
 function renderPowerTable(){
