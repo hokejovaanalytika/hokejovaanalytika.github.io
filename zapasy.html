@@ -343,7 +343,7 @@
   </div>
     <div class="intro">
       <h1>Predikce — Model 2.0</h1>
-      <p id="pred-intro">Elo — síla týmu z výsledků. Start sezóny vychází z minulých ročníků (70 % loňské síly nad průměrem nebo pod ním), po každém zápase se síla posune podle výsledku a domácí led přidá zhruba 45 bodů. Ve zpětném testu na 5 sezónách Extraligy trefilo 60–61 % zápasů (tip „vždy domácí“ 58 %, předchozí model s 10 faktory 56 %). Přepočítává se každou aktualizací dat.</p>
+      <p id="pred-intro">Elo — síla týmu z výsledků. Start sezóny vychází z minulých ročníků (70 % loňské síly nad průměrem nebo pod ním), po každém zápase se síla posune podle výsledku a domácí led přidá zhruba 45 bodů. Ve zpětném testu na 4 sezónách Extraligy (2022/23–2025/26, 1 456 zápasů) trefilo 60–61 % zápasů (tip „vždy domácí“ 58 %, předchozí model s 10 faktory 56 %). Přepočítává se každou aktualizací dat.</p>
       <div id="pred-elo-info"></div>
     </div>
 
@@ -923,7 +923,7 @@ function renderVersus(zapsat=true){
   const sr=a&&a.srovnani&&+a.srovnani.zapasu>0?a.srovnani:null;
   const ae=a&&a.elo&&+a.elo.tipovano>0?a.elo:null;
   h+=jeElo
-    ? `<div class="vs-pozn">Stejný model jako <a href="#predikce" style="color:var(--teal-light)">Predikce</a>: Elo z výsledků, bez sestav a zranění. Ve zpětném testu na 5 sezónách Extraligy trefilo 60–61 % zápasů (tip „vždy domácí“ 58 %).`+
+    ? `<div class="vs-pozn">Stejný model jako <a href="#predikce" style="color:var(--teal-light)">Predikce</a>: Elo z výsledků, bez sestav a zranění. Ve zpětném testu na 4 sezónách Extraligy (2022/23–2025/26, 1 456 zápasů) trefilo 60–61 % zápasů (tip „vždy domácí“ 58 %).`+
       (ae?` Letos zatím ${+ae.spravne} z ${+ae.tipovano} (${pct(+ae.pct_spravne)}).`:'')+` Hokej je hodně náhodný — i favorit s 65 % prohraje třetinu takových zápasů.</div>`+eloInfoHTML()
     : `<div class="vs-pozn">Stejný model jako <a href="#predikce" style="color:var(--teal-light)">Predikce</a>: 10 faktorů z dosavadních výsledků, bez sestav a zranění.`+
     (tip>0?` Zatím trefil ${+a.spravne||0} z ${tip} tipů (${pct(a.pct_spravne!=null?+a.pct_spravne:(+a.spravne||0)/tip*100)})`+(sr?`; jednoduchý tip „tým s víc body na zápas“ by na stejných zápasech trefil ${pct(+sr.body_pct)}.`:'.'):'')+
