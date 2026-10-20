@@ -119,6 +119,22 @@
     .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
     .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
+    /* (20. 10.) Góly v oslabení — počítadlo, týmy / hráči */
+    .osl-stats{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px;}
+    .osl-stat{flex:1;min-width:90px;background:var(--slate);border:1px solid var(--border);border-radius:9px;padding:9px 8px;text-align:center;}
+    .osl-stat .n{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--text);line-height:1.15;}
+    .osl-stat .n.gold{color:var(--gold);}
+    .osl-stat .l{font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.35;}
+    .osl-veta{font-size:13px;color:var(--text-dim);margin:0 0 12px;line-height:1.5;}
+    .osl-veta b{color:var(--text);}
+    table.osl-tab{width:100%;border-collapse:collapse;}
+    .osl-tab th{padding:7px 6px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--border);background:var(--slate-light);}
+    .osl-tab th:first-child{text-align:left;}
+    .osl-tab td{padding:8px 6px;text-align:right;vertical-align:top;border-bottom:1px solid rgba(42,139,139,0.08);font-family:var(--font-mono);font-size:13px;color:var(--text);}
+    .osl-tab td:first-child{text-align:left;font-family:var(--font-main);}
+    .osl-tab td .jm{font-weight:600;font-size:13.5px;} .osl-tab td .tm{color:var(--text-dim);font-size:12px;margin-left:5px;}
+    .osl-tab td .gl{display:block;font-size:11.5px;color:var(--text-dim);margin-top:3px;line-height:1.45;}
+    .osl-tab td.a{color:var(--text-dim);}
     .cest-defs{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:12px;color:var(--text-dim);margin:0 0 12px;}
     .cest-defs dt{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;}
     .cest-defs dd{margin:0;line-height:1.45;}
@@ -250,6 +266,16 @@
       <div class="card-title">Special Teams Net</div>
       <div class="card-sub">Góly, které tým dal v přesilovce i v oslabení, minus góly, které v oslabení i v přesilovce dostal = čistý přínos speciálních formací.</div>
       <div class="chart-wrap-tall" id="c-stnet"></div>
+    </div>
+
+    <div class="card" id="osl-card" style="display:none">
+      <div class="card-title gold">Góly v oslabení</div>
+      <div class="osl-stats" id="osl-stats"></div>
+      <div class="osl-veta" id="osl-veta"></div>
+      <div class="toggle" id="osl-toggle"><button data-osl="tymy" class="active">Týmy</button><button data-osl="hraci">Hráči</button></div>
+      <div class="card-sub" id="osl-sub"></div>
+      <div class="chart-wrap-tall" id="c-osl"></div>
+      <div class="tbl-wrap" id="osl-hraci" style="display:none"></div>
     </div>
 
     <div class="card">
@@ -783,7 +809,7 @@ function renderInsights(boxId, data, names){
 function renderLiga(){
   renderInsights('insight-liga', INS_LIGA, ligaNames());
   if(!LIGA){console.warn('analytika_liga.json chybí — kartu build.R nevygeneroval.');['c-vedeni','c-drama','c-pdo','c-tesne','c-stnet','c-odpoved','c-efekt','c-disc','c-tlak','c-navst'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));return;}
-  casVedeni(); drama(); pdo(); tesne(); stnet(); odpoved(); efekt(); disciplina(); tlak(); navst();
+  casVedeni(); drama(); pdo(); tesne(); stnet(); oslabeni(); odpoved(); efekt(); disciplina(); tlak(); navst();
 }
 function hbar(id,d,xkey,namekey,opts){opts=opts||{};
   if(!d||!d.length){emptyBox(id,'Zatím bez dat.');return;}
@@ -842,6 +868,58 @@ function tesne(){const d=[...(LIGA.tesne||[])].filter(r=>r.Pct!=null).sort((a,b)
     xaxis:{range:[0,112],title:{text:'% výher v těsných zápasech',font:{size:11,color:'#4A6070'}}}});}
 function stnet(){const d=[...(LIGA.st_net||[])].sort((a,b)=>a.Net-b.Net);
   hbar('c-stnet',d,'Net','Tym',{colors:d.map(r=>r.Net>=0?'#4CAF82':'#E05555'),txt:r=>(r.Net>0?'+':'')+r.Net,hover:r=>`${r.Tym}<br>V přesilovce: dal ${r.PP_skore}, v oslabení dostal ${r.PK_inkaso}`+(r.SH_skore!=null?`<br>V oslabení: dal ${r.SH_skore}, v přesilovce dostal ${r.SH_inkaso}`:'')+`<br>Čistý přínos: ${r.Net>0?'+':''}${r.Net}`,xaxis:{title:{text:'čistý přínos speciálních formací (góly)',font:{size:11,color:'#4A6070'}},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'}});}
+/* (20. 10.) GÓLY V OSLABENÍ — analytika_liga.json → oslabeni (build.R): počet letos, loni ve stejné fázi sezóny
+   (když je v projektu zapasy_loni.csv), týmy (dal v oslabení / dostal ve vlastní přesilovce) a střelci.
+   Starší JSON pole nemá → karta zůstane skrytá. */
+let oslRezim='tymy';
+const oslEsc = x => String(x==null?'':x).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const gol = n => n===1?'gól':(n>=2&&n<=4?'góly':'gólů');
+function oslabeni(){
+  const O=LIGA&&LIGA.oslabeni, card=document.getElementById('osl-card');
+  if(!O||O.celkem==null){ card.style.display='none'; return; }
+  card.style.display='';
+  const L=O.loni&&O.loni.celkem!=null?O.loni:null, n=+O.celkem, z=+O.zapasu;
+  const box=(v,l,c)=>`<div class="osl-stat"><div class="n${c?' '+c:''}">${v}</div><div class="l">${l}</div></div>`;
+  document.getElementById('osl-stats').innerHTML=box(n,`${gol(n)} v oslabení letos<br>${z} ${z===1?'zápas':(z<5?'zápasy':'zápasů')} · ${f2(O.na_zapas).replace('.',',')} na zápas`,'gold')+
+    (L?box(L.faze,`loni po ${L.zapasu_faze} zápasech<br>(${oslEsc(L.sezona)}, stejná fáze)`)+box(L.celkem,`za celou sezónu<br>${oslEsc(L.sezona)}`):'');
+  let v='';
+  if(L&&+L.zapasu_faze===z){ const p=L.faze>0?n/L.faze:Infinity;
+    const srov=p>=2.5?'skoro třikrát víc než':p>=1.8?'zhruba dvakrát víc než':p>=1.25?'víc než':p<=0.5?'zhruba o polovinu míň než':p<=0.8?'míň než':'zhruba stejně jako';
+    v=`Letos padá gólů v oslabení <b>${srov} loni</b> ve stejné fázi sezóny.`; }   // bez „takovým tempem by jich bylo…“ — prosté protažení tempa po pár kolech přestřeluje
+  document.getElementById('osl-veta').innerHTML=v; document.getElementById('osl-veta').style.display=v?'':'none';
+  const H=Array.isArray(O.hraci)?O.hraci:[], T=Array.isArray(O.tymy)?O.tymy:[];
+  const sub=document.getElementById('osl-sub'), ch=document.getElementById('c-osl'), hr=document.getElementById('osl-hraci');
+  if(oslRezim==='hraci'){
+    ch.style.display='none'; hr.style.display='';
+    sub.textContent='Všichni letošní střelci gólů v oslabení. A = asistence u gólů v oslabení. Pod jménem kdy a v jakém zápase gól padl, v kolikáté minutě a stav po gólu.';
+    if(!H.length){ hr.innerHTML='<div class="empty">Letos zatím žádný gól v oslabení.</div>'; return; }
+    hr.innerHTML='<table class="osl-tab"><thead><tr><th>Hráč</th><th>G</th><th>A</th></tr></thead><tbody>'+H.map(h=>{
+      const g=Array.isArray(h.Goly)?h.Goly:[];
+      return `<tr><td><span class="jm">${oslEsc(h.Jmeno)}</span><span class="tm">${oslEsc(h.Tym)}</span>`+
+        g.map(x=>`<span class="gl">${oslEsc(x.D)} · ${oslEsc(x.Zapas)} · ${oslEsc(String(x.Cas||'').replace(/^0(\d):/,'$1:'))} · na ${oslEsc(x.Stav)}</span>`).join('')+
+        `</td><td>${h.G}</td><td class="a">${h.A}</td></tr>`;}).join('')+'</tbody></table>';
+    return;
+  }
+  hr.style.display='none'; ch.style.display='';
+  sub.textContent='Vpravo góly, které tým dal v oslabení, vlevo góly, které sám dostal ve vlastní přesilovce. Seřazeno podle rozdílu.';
+  if(!T.length){ emptyBox('c-osl','Zatím bez dat.'); return; }
+  const d=[...T].sort((a,b)=>a.Rozdil-b.Rozdil||a.Dal-b.Dal), cats=d.map(r=>r.Tym);
+  const m=Math.max(1,...d.map(r=>Math.max(+r.Dal,+r.Dostal)));
+  const tv=[]; for(let i=-m;i<=m;i++) if(m<=6||i%2===0) tv.push(i);
+  const hov=d.map(r=>`${r.Tym}<br>V oslabení dal: ${r.Dal}<br>Ve vlastní přesilovce dostal: ${r.Dostal}<br>Rozdíl: ${r.Rozdil>0?'+':r.Rozdil<0?'−':''}${Math.abs(r.Rozdil)}`);
+  Plotly.newPlot('c-osl',[
+    {type:'bar',orientation:'h',name:'dal v oslabení',y:cats,x:d.map(r=>+r.Dal),marker:{color:'#4CAF82'},text:d.map(r=>r.Dal>0?String(r.Dal):''),textposition:'outside',cliponaxis:false,
+      textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},hoverinfo:'text',hovertext:hov},
+    {type:'bar',orientation:'h',name:'dostal ve vlastní přesilovce',y:cats,x:d.map(r=>-r.Dostal),marker:{color:'#E05555'},text:d.map(r=>r.Dostal>0?String(r.Dostal):''),textposition:'outside',cliponaxis:false,
+      textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},hoverinfo:'text',hovertext:hov}
+  ],Object.assign({},BASE_LAYOUT,{barmode:'relative',margin:{l:110,r:20,t:30,b:40},
+    xaxis:{...AX_LOCK,range:[-m-0.9,m+0.9],tickvals:tv,ticktext:tv.map(v=>String(Math.abs(v))),zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)',
+      title:{text:'← dostal v přesilovce · dal v oslabení →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:cats,tickfont:{family:'DM Sans',size:9,color:'#8FA3B0'}},
+    legend:{orientation:'h',x:0.5,xanchor:'center',y:1.0,yanchor:'bottom',font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
+document.querySelectorAll('[data-osl]').forEach(b=>b.addEventListener('click',()=>{oslRezim=b.dataset.osl;
+  document.querySelectorAll('[data-osl]').forEach(x=>x.classList.toggle('active',x.dataset.osl===oslRezim)); oslabeni();}));
 function odpoved(){const all=LIGA.odpoved||[];
   if(all.length && all[0].Pct===undefined){   // starší build: jen průměrný čas odpovědi
     const d=[...all].filter(r=>r.Min!=null).sort((a,b)=>b.Min-a.Min);
@@ -1686,7 +1764,7 @@ function renderVyvoj(){
     Plotly.newPlot('c-trend',[
       {x:k,y:t.map(r=>r.Max),type:'scatter',mode:'lines',line:{width:0},hoverinfo:'skip',showlegend:false},
       {x:k,y:t.map(r=>r.Min),type:'scatter',mode:'lines',fill:'tonexty',fillcolor:'rgba(59,130,246,0.12)',line:{width:0},hoverinfo:'skip',showlegend:false},
-      {x:k,y:t.map(r=>r.Prumer),type:'scatter',mode:'lines+markers',line:{width:3,color:'#3B82F6',shape:'spline'},marker:{size:6,color:'#3B82F6'},name:'Ø na zápas',hoverinfo:'text',hovertext:t.map(r=>`${r.Kolo}. kolo`+(r.Zapasu!=null?` · ${r.Zapasu} ${sk(r.Zapasu,'zápas','zápasy','zápasů')}`:'')+`<br>Ø ${f2(r.Prumer)} gólu na zápas<br>min ${r.Min} · max ${r.Max} · celkem ${r.Soucet}`)},
+      {x:k,y:t.map(r=>r.Prumer),type:'scatter',mode:'lines+markers',line:{width:3,color:'#3B82F6',shape:'spline'},marker:{size:6,color:'#3B82F6'},name:'Ø na zápas',hoverinfo:'text',hovertext:t.map(r=>`${r.Kolo}. kolo`+(r.Zapasu!=null?` · ${r.Zapasu} ${sk(r.Zapasu,'zápas','zápasy','zápasů')}`:'')+`<br>Ø ${f2(r.Prumer)} gólu na zápas<br>min ${r.Min} · max ${r.Max} · celkem ${r.Soucet}`+(r.Pozn?`<br><span style="color:#8FA3B0">${String(r.Pozn).replace(/; /g,'<br>')}</span>`:''))},
       {x:[k[0],k[k.length-1]],y:[VYV.liga_prumer,VYV.liga_prumer],type:'scatter',mode:'lines',line:{width:1.5,color:'#D4A843',dash:'dash'},name:'sezónní Ø',hoverinfo:'text',hovertext:`Sezónní průměr ${f2(VYV.liga_prumer)}`}
     ],Object.assign({},BASE_LAYOUT,{margin:{l:45,r:15,t:10,b:40},
       xaxis:{...AX_LOCK,title:{text:'kolo',font:{size:11,color:'#4A6070'}},dtick:2,color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:10}},
