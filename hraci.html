@@ -226,7 +226,7 @@
   <!-- 1. COMPLETE PLAYER INDEX -->
   <div class="card">
     <div class="card-title gold">Complete Player Index</div>
-    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem. Hledání najde hráče v celém výběru.</div>
+    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). S = střely na branku, Ú% = úspěšnost střelby. Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem. Hledání najde hráče v celém výběru.</div>
     <input type="search" id="cpi-hledat" class="hledat" placeholder="🔍 Hledat hráče podle jména…" autocomplete="off">
     <div class="sort-toggle" id="cpi-sort">
       <button data-sort="body" class="active">Řadit dle: Body</button>
@@ -235,7 +235,7 @@
     <div class="tbl-wrap">
       <table class="players">
         <thead><tr id="cpi-head"></tr></thead>
-        <tbody id="cpi-body"><tr><td colspan="16"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
+        <tbody id="cpi-body"><tr><td colspan="18"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table>
     </div>
     <button class="expandbtn" id="cpi-expand" style="display:none"></button>
@@ -764,8 +764,8 @@ function renderTable(d){
     } else { exp.style.display='none'; }
   }
   // (8. 10.) hlavní čísla (body, CPI) hned za jménem — na telefonu jsou vidět bez posouvání
-  head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th class="l">Hráč</th><th>B</th><th>CPI</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th>`;
-  if(!rows.length){ body.innerHTML=`<tr><td colspan="16"><div class="empty">${hledam?'Žádný hráč s tímhle jménem neodpovídá filtru.':'Žádní hráči neodpovídají filtru.'}</div></td></tr>`; return; }
+  head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th class="l">Hráč</th><th>B</th><th>CPI</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th title="střely na branku">S</th><th title="úspěšnost střelby (%)">Ú%</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th>`;
+  if(!rows.length){ body.innerHTML=`<tr><td colspan="18"><div class="empty">${hledam?'Žádný hráč s tímhle jménem neodpovídá filtru.':'Žádní hráči neodpovídají filtru.'}</div></td></tr>`; return; }
   const pmCol = v => v==null ? 'var(--text-dim)' : v<0 ? 'var(--loss)' : v>0 ? 'var(--win)' : 'var(--text-dim)';
   body.innerHTML = rows.map(p=>{
     const bz = (p.Body!=null && p.GP) ? p.Body/p.GP : null;
@@ -785,6 +785,8 @@ function renderTable(d){
       <td>${p.GP ?? '—'}</td>
       <td>${p.G ?? '—'}</td>
       <td>${p.A ?? '—'}</td>
+      <td>${p.Strely ?? '—'}</td>
+      <td>${p.Strely ? f1(p.Strely_pct!=null ? p.Strely_pct : (p.G||0)/p.Strely*100) : '—'}</td>
       <td>${f1(bz)}</td>
       <td>${f2(p.P60)}</td>
       <td>${f2(p.G60)}</td>

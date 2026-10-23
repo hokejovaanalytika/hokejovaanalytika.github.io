@@ -69,6 +69,10 @@
     .insight-pozn{font-size:11.5px;line-height:1.45;color:var(--text-dim);border-top:1px dashed rgba(42,139,139,.25);margin-top:6px;padding-top:8px;}
     .insight-pozn+.insight-pozn{border-top:0;margin-top:2px;padding-top:0;}
     .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+    /* (23. 10.) Štěstí, nebo forma? — legenda barev a odkaz do Analytiky */
+    .st-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--text-dim);margin:-4px 0 6px;}
+    .st-leg span{display:inline-flex;align-items:center;gap:5px;} .st-leg i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+    .st-odkaz{display:inline-block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--teal-light);text-decoration:none;}
     .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;flex-shrink:0;}
     .card-title.gold::before{background:var(--gold);}
     .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
@@ -254,11 +258,13 @@
     <div class="kola-grid" id="kola-body"><div class="loading"><div class="spinner"></div> Načítám...</div></div>
   </div>
 
-  <!-- 5. NERVY Z PRODLOUŽENÍ -->
+  <!-- 5. ŠTĚSTÍ, NEBO FORMA? (23. 10.; dřív Nervy z prodloužení — bez stesti.json se ukážou ty) -->
   <div class="card">
-    <div class="card-title">🎲 Nervy z prodloužení — kdo žije z nájezdů?</div>
-    <div class="card-sub">Rozdíl výher a proher v prodloužení/nájezdech (VP − PP). Prodloužení i nájezdy jsou hodně o štěstí — velký plus se může otočit dolů, velký mínus nahoru.</div>
+    <div class="card-title" id="stesti-title">🍀 Štěstí, nebo forma?</div>
+    <div class="card-sub" id="stesti-sub">Kolik bodů má tým navíc nebo méně proti tomu, co by čekal podle síly svojí i soupeřů (Elo, s domácím ledem). Barva = <b>PDO</b>: úspěšnost střelby + úspěšnost brankářů, průměr ligy kolem 100. Body navíc při vysokém PDO bývají hlavně štěstí a obvykle se vrátí.</div>
+    <div class="st-leg" id="stesti-leg"><span><i style="background:#D4A843"></i>PDO nad 102</span><span><i style="background:#8FA3B0"></i>98–102</span><span><i style="background:#5B9BD5"></i>pod 98</span></div>
     <div class="chart-wrap-tall" id="chart-otso"></div>
+    <a class="st-odkaz" id="stesti-odkaz" href="analytika.html#stesti-card">Podrobně, s větou ke každému týmu → Analytika</a>
   </div>
 
   <!-- 6. GÓLY NA ZÁPAS + 7. SPECIÁLNÍ FORMACE -->
@@ -345,14 +351,15 @@ function bezpecne(nazev, fn, id){
 }
 
 async function init(){
-  const [tabulka, highlights, doma_venku, meta, insPrehled, playoff, kola] = await Promise.all([
+  const [tabulka, highlights, doma_venku, meta, insPrehled, playoff, kola, stesti] = await Promise.all([
     zkus('tabulka.json', []),
     zkus('highlights.json', []),
     zkus('doma_venku.json', []),
     zkus('meta.json', {}),
     zkus('insights_prehled.json', []),
     zkus('playoff.json', null),
-    zkus('prehled_kola.json', null)
+    zkus('prehled_kola.json', null),
+    zkus('stesti.json', null)          // (23. 10.) Štěstí, nebo forma?
   ]);
   const tab = Array.isArray(tabulka) ? tabulka : [];
   if(!tab.length) console.warn('tabulka.json je prázdná nebo chybí — tabulka a grafy z ní se odemknou po prvním kole.');
@@ -363,7 +370,15 @@ async function init(){
   bezpecne('Co ti to říká', () => renderInsights('insight-prehled', insPrehled, tab.map(t=>t.Tym_clean)));
   bezpecne('Tabulka', () => renderStandings(tab));
   bezpecne('Poslední a příští kolo', () => renderKola(kola), 'kola-body');
-  bezpecne('Nervy z prodloužení', () => tab.length ? renderOTSO(tab) : prazdne('chart-otso'), 'chart-otso');
+  bezpecne('Štěstí, nebo forma?', () => {
+    if(stesti && Array.isArray(stesti.tymy) && stesti.tymy.length) renderStesti(stesti);
+    else {   // starší data bez stesti.json → původní karta Nervy z prodloužení
+      document.getElementById('stesti-title').textContent='🎲 Nervy z prodloužení — kdo žije z nájezdů?';
+      document.getElementById('stesti-sub').textContent='Rozdíl výher a proher v prodloužení/nájezdech (VP − PP). Prodloužení i nájezdy jsou hodně o štěstí — velký plus se může otočit dolů, velký mínus nahoru.';
+      ['stesti-leg','stesti-odkaz'].forEach(id=>document.getElementById(id).style.display='none');
+      tab.length ? renderOTSO(tab) : prazdne('chart-otso');
+    }
+  }, 'chart-otso');
   bezpecne('Góly na zápas', () => renderGolyNaZapas(tab), 'chart-goly-zapas');
   bezpecne('Speciální formace', () => renderSpecial(tab), 'chart-special');
   bezpecne('Doma vs venku', () => renderDomaVenku(doma_venku), 'chart-doma-venku');
@@ -615,6 +630,28 @@ function renderOTSO(tabulka){
     ],
     showlegend:false
   }), LOCK_CONFIG);
+}
+
+/* ── 5. (23. 10.) ŠTĚSTÍ, NEBO FORMA? — stesti.json z build.R ──────────────
+   Sloupec = body proti očekávání podle Elo (Nad), barva = PDO. V bublině PDO rozložené
+   na střelbu a brankáře a bilance prodloužení. Podrobná tabulka s větami je v Analytice. */
+function stestiBarva(pdo){ return pdo>=102 ? '#D4A843' : pdo<=98 ? '#5B9BD5' : '#8FA3B0'; }
+function renderStesti(S){
+  const d=[...S.tymy].sort((a,b)=>a.Nad-b.Nad);              // Plotly kreslí první dole → nejvíc nad očekávání nahoře
+  const zn=v=>(v>0?'+':v<0?'−':'')+cz1(Math.abs(v));
+  const m=Math.max(2,...d.map(r=>Math.abs(+r.Nad)));
+  const uzky=document.getElementById('chart-otso').clientWidth<520;   // na mobilu je graf úzký → krátké popisky stran
+  Plotly.newPlot('chart-otso',[{type:'bar',orientation:'h',y:d.map(r=>r.Tym),x:d.map(r=>+r.Nad),
+    marker:{color:d.map(r=>stestiBarva(+r.PDO))},text:d.map(r=>zn(+r.Nad)),textposition:'outside',cliponaxis:false,
+    textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'},hoverinfo:'text',
+    hovertext:d.map(r=>`<b>${esc(r.Tym)}</b><br>Body: ${r.Body} · podle Elo čekal ${cz1(r.Ocek)} (${zn(+r.Nad)})<br>PDO ${cz1(r.PDO)}: střelba ${cz1(r.Usp)} % + brankáři ${cz1(r.Sv)} %<br>Prodloužení a nájezdy: ${r.VP}–${r.PP}`)}],
+    Object.assign({},BASE_LAYOUT,{margin:{l:105,r:45,t:24,b:40},
+      xaxis:{...AX_LOCK,range:[-m*1.3,m*1.3],zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',
+        tickfont:{family:'JetBrains Mono',size:10},title:{text:'body proti očekávání podle Elo',font:{size:11,color:'#4A6070'}}},
+      yaxis:{...AX_LOCK,tickfont:{family:'DM Sans',size:11,color:'#8FA3B0'}},
+      annotations:[{x:1,y:1.05,xref:'paper',yref:'paper',xanchor:'right',text:uzky?'NAD →':'🍀 NAD OČEKÁVÁNÍM →',showarrow:false,font:{size:10.5,color:'#4CAF82'}},
+                   {x:0,y:1.05,xref:'paper',yref:'paper',xanchor:'left',text:uzky?'← POD':'← POD OČEKÁVÁNÍM',showarrow:false,font:{size:10.5,color:'#E05555'}}],
+      showlegend:false}),LOCK_CONFIG);
 }
 
 /* ── 6. GÓLY NA ZÁPAS — vstřelené vpravo, obdržené vlevo ────────── */

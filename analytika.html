@@ -135,6 +135,12 @@
     .osl-tab td .jm{font-weight:600;font-size:13.5px;} .osl-tab td .tm{color:var(--text-dim);font-size:12px;margin-left:5px;}
     .osl-tab td .gl{display:block;font-size:11.5px;color:var(--text-dim);margin-top:3px;line-height:1.45;}
     .osl-tab td.a{color:var(--text-dim);}
+    /* (22. 10.) Střelba týmů */
+    .str-tab td.p{color:var(--win);font-weight:700;} .str-tab td.m{color:var(--loss);font-weight:700;}
+    #stesti-card,#regrese-card{scroll-margin-top:90px;}   /* (23. 10.) odkazy na kartu — ať ji nepřekryje lepivá hlavička */
+    .str-tab td.hi{color:#D4A843;font-weight:700;} .str-tab td.lo{color:#5B9BD5;font-weight:700;}
+    .str-tab td .vt{display:block;font-size:11.5px;color:var(--text-dim);margin-top:3px;line-height:1.45;white-space:normal;}
+    .str-tab td:not(:first-child){white-space:nowrap;}
     .cest-defs{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:12px;color:var(--text-dim);margin:0 0 12px;}
     .cest-defs dt{font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;}
     .cest-defs dd{margin:0;line-height:1.45;}
@@ -250,9 +256,16 @@
       <div class="chart-wrap" id="c-drama"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="stesti-card" style="display:none">
+      <div class="card-title gold">🍀 Štěstí, nebo forma?</div>
+      <div class="card-sub"><b>Elo ±</b> = body proti tomu, co by tým čekal podle síly svojí i soupeřů (Elo před každým zápasem, s domácím ledem). <b>PDO</b> = úspěšnost střelby + úspěšnost brankářů, průměr ligy kolem 100 — vysoké PDO se během sezóny obvykle vrací dolů, nízké nahoru. <b>Prodl.</b> = výhry–prohry v prodloužení a na nájezdech. Věta říká, co body navíc nosí (nebo bere). Třetí pohled — body proti brankovému rozdílu — je v kartě <a href="#regrese-card" style="color:var(--teal-light)">Regrese: body vs zasloužené</a> níž.</div>
+      <div class="tbl-wrap"><table class="osl-tab str-tab"><thead><tr><th>Tým</th><th title="body proti očekávání podle Elo">Elo ±</th><th title="úspěšnost střelby + úspěšnost brankářů">PDO</th><th title="výhry–prohry v prodloužení a na nájezdech">Prodl.</th></tr></thead><tbody id="stesti-body"></tbody></table></div>
+      <div id="stesti-pozn" style="font-size:11.5px;color:var(--text-dim);margin-top:10px;line-height:1.5"></div>
+    </div>
+
+    <div class="card" id="regrese-card">
       <div class="card-title">Regrese: body vs zasloužené</div>
-      <div class="card-sub">Skutečné body minus body, které v lize obvykle odpovídají danému brankovému rozdílu na zápas (přepočteno na počet odehraných zápasů, takže tým s víc zápasy není znevýhodněný). Nad nulou (červená) = má víc bodů, než by odpovídalo skóre, čeká korekce dolů. Pod nulou (zelená) = čeká zlepšení.</div>
+      <div class="card-sub">Skutečné body minus body, které v lize obvykle odpovídají danému brankovému rozdílu na zápas (přepočteno na počet odehraných zápasů, takže tým s víc zápasy není znevýhodněný). Nad nulou (zelená) = má víc bodů, než by odpovídalo skóre — dá se čekat korekce dolů. Pod nulou (červená) = má bodů méně, čeká zlepšení.</div>
       <div class="chart-wrap-tall" id="c-pdo"></div>
     </div>
 
@@ -288,6 +301,13 @@
       <div class="card-title">Gólová efektivita</div>
       <div class="card-sub">Góly na zápas vs body na zápas. Čárkovaná čára = kolik bodů v lize obvykle odpovídá danému počtu vstřelených gólů. Nad čarou = tým má víc bodů, než by odpovídalo jeho útoku — většinou díky obraně (málo inkasuje), někdy i díky štěstí v těsných zápasech. Pod čarou = góly dává, ale hodně jich i dostává.</div>
       <div class="chart-wrap-tall" id="c-efekt"></div>
+    </div>
+
+    <div class="card" id="str-card" style="display:none">
+      <div class="card-title">Střelba týmů — kolik střílí a kolik promění</div>
+      <div class="card-sub">Střely na branku a úspěšnost ze součtu statistik hráčů, seřazeno podle gólů na zápas. Zeleně / červeně = přidává / ubírá proti průměru ligy. Věta u týmu rozloží góly na zápas proti průměru na dvě části: kolik dělá <b>počet střel</b> a kolik <b>proměňování</b> (čísla v závorce = góly na zápas navíc / méně). Proměňování se během sezóny obvykle vrací k průměru, počet střel ne.</div>
+      <div class="tbl-wrap"><table class="osl-tab str-tab"><thead><tr><th>Tým</th><th title="střely na branku na zápas">Střely/z</th><th title="úspěšnost střelby">Úsp.</th><th>Góly/z</th></tr></thead><tbody id="str-body"></tbody></table></div>
+      <div class="elo-pozn" id="str-pozn" style="font-size:11.5px;color:var(--text-dim);margin-top:10px;line-height:1.5"></div>
     </div>
 
     <div class="card">
@@ -768,6 +788,7 @@ async function init(){
     // (12. 10.) analytika.html#nhl apod. (odkazy z Profilu týmu) otevře rovnou danou záložku
     const zHashe=location.hash.replace('#','');
     if(zHashe && zHashe!=='liga' && document.getElementById('panel-'+zHashe)) showSub(zHashe);
+    else if(zHashe){ const el=document.getElementById(zHashe); if(el && el.offsetParent) setTimeout(()=>el.scrollIntoView(),60); }   // (23. 10.) analytika.html#stesti-card z Přehledu — karta se ukáže až po načtení dat
     window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(h && document.getElementById('panel-'+h)) showSub(h); });
   }catch(e){
     console.error(e);
@@ -809,7 +830,7 @@ function renderInsights(boxId, data, names){
 function renderLiga(){
   renderInsights('insight-liga', INS_LIGA, ligaNames());
   if(!LIGA){console.warn('analytika_liga.json chybí — kartu build.R nevygeneroval.');['c-vedeni','c-drama','c-pdo','c-tesne','c-stnet','c-odpoved','c-efekt','c-disc','c-tlak','c-navst'].forEach(id=>emptyBox(id,'Tahle karta se odemkne, až bude odehráno víc zápasů.'));return;}
-  casVedeni(); drama(); pdo(); tesne(); stnet(); oslabeni(); odpoved(); efekt(); disciplina(); tlak(); navst();
+  casVedeni(); drama(); stesti(); pdo(); tesne(); stnet(); oslabeni(); odpoved(); efekt(); strelba(); disciplina(); tlak(); navst();
 }
 function hbar(id,d,xkey,namekey,opts){opts=opts||{};
   if(!d||!d.length){emptyBox(id,'Zatím bez dat.');return;}
@@ -859,7 +880,7 @@ document.querySelectorAll('[data-ved]').forEach(b=>b.addEventListener('click',()
 function drama(){const d=[...(LIGA.drama||[])].sort((a,b)=>a.Zmeny_vedeni-b.Zmeny_vedeni);
   hbar('c-drama',d,'Zmeny_vedeni','Tym',{colors:'#D4A843',txt:r=>f2(r.Zmeny_vedeni),hover:r=>`${r.Tym}<br>Změn vedení/zápas: ${f2(r.Zmeny_vedeni)}`,xaxis:{title:{text:'změny vedení / zápas',font:{size:11,color:'#4A6070'}}}});}
 function pdo(){const d=[...(LIGA.pdo_watch||[])].sort((a,b)=>a.Odchylka-b.Odchylka);
-  hbar('c-pdo',d,'Odchylka','Tym',{colors:d.map(r=>r.Odchylka>=0?'#E05555':'#4CAF82'),txt:r=>(r.Odchylka>0?'+':'')+f1(r.Odchylka),hover:r=>`${r.Tym}<br>Body: ${r.B} · očekávané: ${f1(r.Ocekavane)}<br>Odchylka: ${r.Odchylka>0?'+':''}${f1(r.Odchylka)}<br>Pozice: ${r.Poradi}.`,xaxis:{title:{text:'← podstřeluje (zlepší se) | přestřeluje výsledky (klesne) →',font:{size:11,color:'#4A6070'}},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'}});}
+  hbar('c-pdo',d,'Odchylka','Tym',{colors:d.map(r=>r.Odchylka>=0?'#4CAF82':'#E05555'),   /* (23. 10.) zelená = víc bodů, stejně jako Štěstí, nebo forma? */txt:r=>(r.Odchylka>0?'+':'')+f1(r.Odchylka),hover:r=>`${r.Tym}<br>Body: ${r.B} · očekávané: ${f1(r.Ocekavane)}<br>Odchylka: ${r.Odchylka>0?'+':''}${f1(r.Odchylka)}<br>Pozice: ${r.Poradi}.`,xaxis:{title:{text:'← podstřeluje (zlepší se) | přestřeluje výsledky (klesne) →',font:{size:11,color:'#4A6070'}},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'}});}
 const TESNE_MIN=3;   // od kolika těsných zápasů má procento smysl (stejně jako insight v build.R)
 function tesne(){const d=[...(LIGA.tesne||[])].filter(r=>r.Pct!=null).sort((a,b)=>(a.Zapasy>=TESNE_MIN)-(b.Zapasy>=TESNE_MIN)||a.Pct-b.Pct||a.Zapasy-b.Zapasy);
   hbar('c-tesne',d,'Pct','Tym',{colors:d.map(r=>r.Zapasy<TESNE_MIN?'#5E7384':r.Pct>=50?'#4CAF82':'#E05555'),
@@ -920,6 +941,65 @@ function oslabeni(){
 }
 document.querySelectorAll('[data-osl]').forEach(b=>b.addEventListener('click',()=>{oslRezim=b.dataset.osl;
   document.querySelectorAll('[data-osl]').forEach(x=>x.classList.toggle('active',x.dataset.osl===oslRezim)); oslabeni();}));
+/* (22. 10.) STŘELBA TÝMŮ — analytika_liga.json → strelba (build.R): střely/z, úspěšnost, góly/z a rozklad gólů
+   na zápas proti průměru ligy: Objem (počet střel při ligové úspěšnosti) + Promenovani (úspěšnost). Starší JSON → skryto. */
+function strelba(){
+  const S=LIGA&&LIGA.strelba, card=document.getElementById('str-card');
+  const T=S&&Array.isArray(S.tymy)?S.tymy:[];
+  if(!T.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const c=x=>(Math.round(Math.abs(x)*10)/10).toFixed(1).replace('.',','), zn=x=>(x>=0?'+':'−')+c(x);
+  const cls=x=>Math.abs(x)<0.1?'':(x>0?'p':'m');
+  const veta=r=>{ const o=+r.Objem, p=+r.Promenovani, MIN=0.15;
+    if(Math.max(Math.abs(o),Math.abs(p))<MIN) return 'Střelbou i proměňováním kolem průměru ligy.';
+    let v, dalsi='';
+    if(Math.abs(p)>=Math.abs(o)){
+      v = p>0 ? `Góly táhne hlavně proměňování (${zn(p)}) — to se obvykle nedrží` : `Ztrácí hlavně na proměňování (${zn(p)}) — dá se čekat zlepšení`;
+      if(Math.abs(o)>=MIN) dalsi = `; počet střel ${zn(o)}`;
+    } else {
+      v = o>0 ? `Góly táhne hlavně počet střel (${zn(o)})` : `Ztrácí hlavně tím, že málo střílí (${zn(o)})`;
+      if(Math.abs(p)>=MIN) dalsi = `; proměňování ${zn(p)}`;
+    }
+    return v+dalsi+'.'; };
+  document.getElementById('str-body').innerHTML=T.map(r=>`<tr><td><span class="jm">${oslEsc(r.Tym)}</span><span class="vt">${veta(r)}</span></td>`+
+    `<td class="${cls(r.Objem)}">${c(r.Strely_z)}</td><td class="${cls(r.Promenovani)}">${c(r.Usp)}&nbsp;%</td><td>${f2(r.Goly_z)}</td></tr>`).join('');
+  const L=S.liga||{};
+  document.getElementById('str-pozn').textContent=`Průměr ligy: ${c(L.strely_z)} střel na zápas, úspěšnost ${c(L.usp)} %, ${f2(L.goly_z)} gólu na zápas. Góly = góly hráčů (rozhodující nájezdy se nepočítají). Hráče najdeš v Hráčích (sloupce S a Ú%) a v grafu Shooting Matrix.`;
+}
+/* (23. 10.) ŠTĚSTÍ, NEBO FORMA? — analytika_liga.json → stesti (build.R): body proti očekávání podle Elo (Nad),
+   PDO = střelba + brankáři, G_strelba / G_brankari = kolik gólů na zápas to dělá proti průměru ligy, OT = VP − PP.
+   Věta: co body navíc nosí / co je bere. Starší JSON → karta skrytá. */
+function stesti(){
+  const S=LIGA&&LIGA.stesti, card=document.getElementById('stesti-card');
+  const T=S&&Array.isArray(S.tymy)?S.tymy:[];
+  if(!T.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const c=x=>(Math.round(Math.abs(x)*10)/10).toFixed(1).replace('.',','), zn=x=>(x>0?'+':x<0?'−':'')+c(x);
+  const veta=r=>{ const n=+r.Nad, gs=+r.G_strelba, gb=+r.G_brankari, ot=+r.OT, pdo=+r.PDO, MIN=0.15;
+    let v;
+    if(n>=2){
+      if(Math.max(gs,gb)>=MIN) v = gs>=gb ? `Body navíc nosí hlavně proměňování (${c(r.Usp)} %) — to se obvykle neudrží.`
+                                          : `Body navíc nosí hlavně brankáři (${c(r.Sv)} % zákroků) — dobrý gólman to umí držet déle, ale ne celé.`;
+      else v = 'PDO kolem průměru — tým je možná prostě lepší, než si Elo myslí.';
+      if(ot>=2) v += ` Pomáhá i bilance prodloužení (+${ot}).`;
+    } else if(n<=-2){
+      if(Math.min(gs,gb)<=-MIN) v = gs<=gb ? `Body bere hlavně proměňování (${c(r.Usp)} %) — tady se dá čekat zlepšení.`
+                                           : `Body bere hlavně úspěšnost brankářů (${c(r.Sv)} % zákroků) — když se gólman zvedne, body přijdou.`;
+      else v = 'PDO kolem průměru — tým je možná slabší, než si Elo myslí.';
+      if(ot<=-2) v += ` Ubírá i smůla v prodloužení (−${-ot}).`;
+    } else {
+      v = 'Body zhruba odpovídají síle podle Elo.';
+      if(pdo>=102) v += ` PDO ${c(pdo)} ale napovídá, že pomáhá i střelba a brankáři.`;
+      else if(pdo<=98) v += ` S PDO ${c(pdo)} je tu spíš prostor ke zlepšení.`;
+    }
+    return v; };
+  const kN=x=>Math.abs(x)<1?'':(x>0?'p':'m'), kP=x=>x>=102?'hi':x<=98?'lo':'';
+  document.getElementById('stesti-body').innerHTML=T.map(r=>`<tr><td><span class="jm">${oslEsc(r.Tym)}</span><span class="vt">${veta(r)}</span></td>`+
+    `<td class="${kN(+r.Nad)}">${zn(+r.Nad)}</td><td class="${kP(+r.PDO)}" title="střelba ${c(r.Usp)} % + brankáři ${c(r.Sv)} %">${c(r.PDO)}</td>`+
+    `<td>${r.VP}–${r.PP}</td></tr>`).join('');
+  const L=S.liga||{};
+  document.getElementById('stesti-pozn').textContent=`Průměr ligy: střelba ${c(L.usp)} %, brankáři ${c(L.sv)} %, PDO ${c(L.pdo)}. Zeleně / červeně = body nad / pod očekáváním; zlatě / modře = PDO nad 102 / pod 98 (stejné barvy jako na Přehledu). Body nad očekáváním nemusí být jen štěstí — na začátku sezóny může tým být i lepší, než si Elo (start z minulé sezóny) myslí.`;
+}
 function odpoved(){const all=LIGA.odpoved||[];
   if(all.length && all[0].Pct===undefined){   // starší build: jen průměrný čas odpovědi
     const d=[...all].filter(r=>r.Min!=null).sort((a,b)=>b.Min-a.Min);
