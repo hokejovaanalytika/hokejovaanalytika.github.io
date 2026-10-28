@@ -79,6 +79,9 @@
     .ibox .line{display:flex;justify-content:space-between;padding:2px 0;color:var(--text-dim);}
     .ibox .line b{color:var(--text);font-family:var(--font-mono);}
     .verdict{padding:14px;border-radius:9px;font-size:14px;margin-top:6px;}
+    /* (28. 10.) odkaz z Výhledu na 🎮 Co kdyby (Playoff) */
+    .ck-odkaz{display:inline-block;margin-top:12px;font-size:13px;font-weight:600;color:var(--teal-light);text-decoration:none;}
+    .ck-odkaz:hover{text-decoration:underline;}
     .v-ok{background:rgba(76,175,130,.14);border-left:3px solid var(--win);}
     .v-warn{background:rgba(224,85,85,.12);border-left:3px solid var(--loss);}
     .bn-card{background:var(--slate);border:2px solid var(--loss);border-radius:10px;padding:16px;text-align:center;}
@@ -229,7 +232,89 @@
     .srtbl tr.grp td{padding:12px 6px 4px;font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;border-bottom:none;}
     .srtbl td small{display:block;color:var(--text-faint);font-size:10px;white-space:normal;}
     .srtbl th{overflow-wrap:anywhere;}
+    /* (28. 10.) VÝMĚNA — výběr hráče s hledáním (stejný jako Analytika → NHL Rating) */
+    .pick{position:relative;display:inline-block;width:360px;max-width:100%;vertical-align:middle;}
+    .pick-in{width:100%;background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 62px 7px 10px;font-family:var(--font-main);font-size:13px;text-overflow:ellipsis;}
+    .pick-in:focus{outline:none;border-color:var(--teal-light);}
+    .pick-in::placeholder{color:var(--text-faint);}
+    .pick-ov-in{position:absolute;right:26px;top:50%;transform:translateY(-50%);font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-dim);background:var(--slate-light);border-radius:4px;padding:1px 6px;pointer-events:none;}
+    .pick.hleda .pick-ov-in{display:none;}
+    .pick::after{content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;font-size:12px;}
+    .pick-list{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:60;max-height:300px;overflow-y:auto;background:var(--slate);border:1px solid var(--teal-dim);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.5);}
+    .pick-it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0 10px;padding:7px 10px;cursor:pointer;border-bottom:1px solid rgba(42,139,139,.08);}
+    .pick-it:last-child{border-bottom:0;}
+    .pick-it.akt,.pick-it:hover{background:var(--slate-light);}
+    .pick-jm{color:var(--text);font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .pick-meta{grid-column:1;color:var(--text-dim);font-size:11px;}
+    .pick-ov{grid-column:2;grid-row:1 / span 2;align-self:center;font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-dim);}
+    .pick-nic{padding:9px 10px;color:var(--text-dim);font-size:12px;}
+    /* (14. 10.) hráč pod hranicí zápasů — jen informace, nedá se vybrat */
+    .pick-it.neh{cursor:default;opacity:.62;}
+    .pick-it.neh:hover{background:transparent;}
+    .pick-it.neh .pick-ov{font-family:var(--font-main);font-size:11px;font-weight:400;font-style:italic;}
+    .pick-neh-h{padding:6px 10px 3px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-faint);border-top:1px solid var(--border);}
+    .cmp-pozor{font-size:12.5px;color:var(--text-dim);line-height:1.5;background:rgba(212,168,67,.08);border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:7px 10px;margin-bottom:6px;}
+    .cmp-pozor b{color:var(--text);}
+    @media(max-width:640px){.pick-in{font-size:16px;}}   /* iOS jinak při psaní přiblíží stránku */
+    /* (28. 10.) VÝMĚNA — zrcadlové řádky jako Zápasy → Souboj dvou týmů */
+    .vs-pct{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-mono);font-weight:700;font-size:28px;line-height:1.1;}
+    .vs-bar{display:flex;gap:3px;height:12px;margin-top:6px;}
+    .vs-bar i{display:block;height:100%;border-radius:6px;}
+    .vs-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-dim);margin:20px 0 10px;padding-top:14px;border-top:1px solid var(--border);}
+    .vs-row{margin-bottom:11px;}
+    .vs-lab{text-align:center;font-size:12px;color:var(--text-dim);margin-bottom:3px;line-height:1.35;}
+    .vs-lab small{color:var(--text-faint);font-size:11px;}
+    .vs-cmp{display:grid;grid-template-columns:62px minmax(0,1fr) minmax(0,1fr) 62px;align-items:center;gap:6px;}
+    .vs-v{font-family:var(--font-mono);font-size:13px;color:var(--text-faint);white-space:nowrap;}
+    .vs-v.a{text-align:right;} .vs-v.lepsi{color:var(--text);font-weight:700;}
+    .vs-tr{height:8px;background:rgba(143,163,176,.08);border-radius:4px;display:flex;}
+    .vs-tr.a{justify-content:flex-end;}
+    .vs-tr i{display:block;height:100%;border-radius:4px;}
+    .vs-det{margin-top:6px;font-size:13px;}
+    .vs-det summary{cursor:pointer;color:var(--teal-light);font-size:12px;font-weight:600;padding:4px 0;}
+    .vs-pozn{font-size:11px;color:var(--text-faint);margin-top:14px;line-height:1.5;}
+    .vs-det-sub{font-size:11px;color:var(--text-faint);margin:4px 0 8px;line-height:1.45;}
+    .vym-real{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:2px 0 12px;font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.5px;}
+    .vym-chip{background:var(--slate);border:1px solid var(--border);color:var(--text);font-family:var(--font-main);font-size:12.5px;font-weight:600;padding:5px 10px;border-radius:14px;cursor:pointer;text-transform:none;letter-spacing:0;}
+    .vym-chip small{color:var(--text-faint);font-weight:400;margin-left:6px;font-size:11px;}
+    .vym-chip.akt{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+    .vym-pick{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px 10px;align-items:start;margin-bottom:6px;}
+    .vym-side{display:flex;flex-direction:column;gap:5px;min-width:0;}
+    .vym-side .pick{width:100%;}
+    .vym-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint);}
+    .vym-smer{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px;min-height:18px;}
+    .vym-smer i{display:inline-block;width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+    .vym-swap{margin-top:20px;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);font-size:17px;line-height:1;cursor:pointer;}
+    .vym-swap:hover{color:var(--text);border-color:var(--teal);}
+    @media(max-width:640px){.vym-pick{grid-template-columns:1fr;} .vym-swap{margin:0 auto;}}
+    .vym-ukazka{font-size:12.5px;color:var(--text-dim);background:rgba(42,139,139,.08);border-left:3px solid var(--teal-dim);border-radius:0 6px 6px 0;padding:7px 10px;margin:10px 0 0;line-height:1.5;}
+    .vym-bil{margin:16px 0 4px;}
+    .vym-bil-t{display:flex;justify-content:space-between;gap:10px;font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+    .vym-bil-t span{display:flex;align-items:center;gap:6px;min-width:0;}
+    .vym-logo{width:26px;height:26px;object-fit:contain;flex-shrink:0;}
+    .vym-kat{text-align:center;font-size:15px;font-weight:700;color:var(--text);margin-top:10px;}
+    .vym-jist{text-align:center;font-size:12px;color:var(--text-dim);margin-top:3px;}
+    .vym-jist b.nizka{color:var(--orange);} .vym-jist b.stredni{color:var(--gold);} .vym-jist b.dobra{color:var(--win);}
+    .vym-shrn{margin-top:12px;font-size:13.5px;color:var(--text-dim);line-height:1.55;}
+    .vym-shrn p+p{margin-top:6px;}
+    .vym-tymy{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+    .vym-tymy>*{min-width:0;}
+    @media(max-width:700px){.vym-tymy{grid-template-columns:1fr;}}
+    .vym-tym{background:var(--slate);border:1px solid var(--border);border-top:3px solid var(--teal);border-radius:8px;padding:12px;font-size:13px;color:var(--text-dim);line-height:1.55;}
+    .vym-tym h4{font-size:14px;color:var(--text);margin-bottom:2px;}
+    .vym-tym h4 span{font-weight:500;color:var(--text-dim);font-size:13px;}
+    .vym-tym-sub{font-size:11.5px;color:var(--text-faint);margin-bottom:8px;}
+    .vym-tym p+p{margin-top:7px;}
+    .vym-tym b{color:var(--text);font-weight:600;}
+    .vym-hraci{display:flex;justify-content:space-between;gap:12px;font-size:13px;font-weight:700;margin-bottom:10px;}
+    .vym-hraci span{min-width:0;} .vym-hraci span:last-child{text-align:right;}
+    .vym-hraci small{display:block;font-size:11px;font-weight:400;color:var(--text-faint);}
+    .vym-det .vs-det-sub p+p{margin-top:5px;} .vym-det b{color:var(--text-dim);}
+    .vym-pozn b{color:var(--text-dim);}
+    #vym-body .vs-row,#vym-body .vym-hraci,#vym-body .vs-h,#vym-body .cmp-pozor,#vym-body .vym-det{max-width:760px;margin-left:auto;margin-right:auto;}   /* na PC ať se srovnání neroztáhne přes celou šířku */
     @media(max-width:420px){.subnav{gap:2px;} .subnav button{padding:8px 9px;font-size:12px;}}
+    /* (28. 10.) 6 záložek: na telefonu ve dvou řádcích po třech, ať Výměna nezapadne za okraj */
+    @media(max-width:560px){.subnav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow-x:visible;} .subnav button{padding:8px 4px;}}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
     footer a{color:var(--teal-light);text-decoration:none;}
   </style>
@@ -278,6 +363,7 @@
     <button data-tab="opt">Optimalizace</button>
     <button data-tab="kadr">Kádr</button>
     <button data-tab="srov">Srovnání</button>
+    <button data-tab="vymena">🔄 Výměna</button>
   </div>
 
   <!-- ETAPA 1 -->
@@ -320,6 +406,7 @@
       <div class="card-title">Co je ve hře v nejbližších zápasech</div>
       <div class="card-sub">Šance na cíl, když tým zápas vyhraje, a když prohraje (ze stejné simulace zbytku sezóny jako na stránce Playoff). Zlatě jsou zápasy s klíčovým soupeřem — přímým konkurentem, se kterým zápas váží výrazně víc než běžný, protože body bere tým a zároveň je ztrácí konkurent. Přepíná se tlačítky Top 4 / Top 12 nahoře.</div>
       <div id="gm-klic"></div>
+      <a class="ck-odkaz" id="gm-ck-link" href="playoff.html#cokdyby" style="display:none">🎮 Co kdyby: nastav výsledky zápasů a uvidíš, jak se šance změní →</a>
     </div>
 
     <div class="card">
@@ -459,6 +546,21 @@
       <div id="gm-srov-text"></div>
     </div>
   </section>
+
+  <!-- (28. 10.) VÝMĚNA: rozbor výměny 1 za 1 (build.R → gm_vymena.json) -->
+  <section class="subpanel" id="panel-vymena">
+    <div class="card" id="vym-card">
+      <div class="card-title">🔄 Rozbor výměny hráčů</div>
+      <div class="card-sub">Vyber dva hráče z různých týmů a uvidíš, kdo si výměnou polepší a proč — podle výkonu obou hráčů a podle toho, co který tým potřebuje (stejné potřeby jako Trade Help v záložce Kádr). Funguje pro skutečné výměny i pro „co kdyby“. Odkaz na rozbor se dá sdílet — je v adrese stránky.</div>
+      <div id="vym-real"></div>
+      <div class="vym-pick" id="vym-pick">
+        <div class="vym-side"><span class="vym-role">Hráč 1</span><div class="pick" id="vym-pa"></div><span class="vym-smer" id="vym-smer-a"></span></div>
+        <button class="vym-swap" id="vym-swap" type="button" title="Prohodit strany" aria-label="Prohodit strany">⇄</button>
+        <div class="vym-side"><span class="vym-role">Hráč 2</span><div class="pick" id="vym-pb"></div><span class="vym-smer" id="vym-smer-b"></span></div>
+      </div>
+      <div id="vym-body"><div class="loading"><div class="spinner"></div> Načítám…</div></div>
+    </div>
+  </section>
 </main>
 
 <footer>Data: <a href="https://hokej.cz" target="_blank">hokej.cz</a> &nbsp;·&nbsp; Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp; <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp; <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp; <a href="index.html">hokejovaanalytika.cz</a>
@@ -507,7 +609,7 @@ const sanceTxt=t=>jisteCil(t)?'jisté ✓':(venkuCil(t)?'už nejde':f0(pctCil(t)
 let GM=null, DREAM=null, TRADE=null, gmTeam=null, gmCil='top4', tradeExpanded=false, srovTym=null;
 let META={}, HRACI=null, BRANK=null, KADR_P=null;   // Kádr: hráči a brankáři se načtou na pozadí
 let KZ=null;   // (17. 10.) gm_kadr.json — přišli / odešli / nehrají (starší build ho nemá)
-const rendered={cil:true,vyhled:false,opt:false,kadr:false,srov:false};
+const rendered={cil:true,vyhled:false,opt:false,kadr:false,srov:false,vymena:false};
 
 async function init(){
   try{
@@ -530,6 +632,9 @@ async function init(){
     document.querySelectorAll('#gm-goal button').forEach(b=>b.addEventListener('click',()=>{gmCil=b.dataset.cil;document.querySelectorAll('#gm-goal button').forEach(x=>x.classList.toggle('active',x.dataset.cil===gmCil));refresh();}));
     document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.addEventListener('click',()=>showSub(b.dataset.tab)));
     refresh();
+    // (28. 10.) gm-mod.html#vymena=vala-mccormack otevře rovnou rozbor výměny
+    if(/^#vymena/.test(location.hash)) showSub('vymena');
+    document.getElementById('vym-swap').onclick=()=>{ if(VYM&&vymPlatne()){ [vymA,vymB]=[vymB,vymA]; vymUkazka=null; vymKresli(); } };
   }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+e.message+'</div>';}
 }
 function showSub(name){
@@ -540,6 +645,10 @@ function showSub(name){
   if(name==='opt' && !rendered.opt){rendered.opt=true; renderOpt(true);}
   if(name==='kadr' && !rendered.kadr){rendered.kadr=true; renderKadr();}
   if(name==='srov' && !rendered.srov){rendered.srov=true; renderSrov();}
+  // (28. 10.) Výměna: tým a cíl nahoře s ní nesouvisí → skrýt; adresa #vymena=… jen v téhle záložce
+  { const c=document.querySelector('.controls'); if(c) c.style.display=name==='vymena'?'none':''; }
+  if(name==='vymena' && !rendered.vymena){rendered.vymena=true; renderVymena();}
+  if(name!=='vymena' && /^#vymena/.test(location.hash)){ try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){ } }
   setTimeout(()=>document.querySelectorAll('#panel-'+name+' .js-plotly-plot').forEach(g=>{try{Plotly.Plots.resize(g);}catch(_){}}),40);
   window.scrollTo(0,0);
 }
@@ -654,7 +763,16 @@ function renderCascade(t,cb){
 }
 
 /* ════════════════ VÝHLED (6. 10.) ════════════════ */
-function renderVyhled(t){ if(!t)return; renderKlicove(t); renderMilniky(t); renderKonkurenti(t); renderKalendar(t); renderVyvoj(t); }
+function renderVyhled(t){ if(!t)return; renderKlicove(t); renderMilniky(t); renderKonkurenti(t); renderKalendar(t); renderVyvoj(t); ckOdkaz(t); }
+/* (28. 10.) Odkaz na 🎮 Co kdyby na Playoff: playoff.html#cokdyby=Tým otevře rovnou zápasy vybraného týmu.
+   Ukáže se jen, když build.R vyrobil cokdyby.json (starší build ho nemá). */
+let ckJson=null;
+function ckOdkaz(t){
+  const a=document.getElementById('gm-ck-link'); if(!a||!t) return;
+  a.href='playoff.html#cokdyby='+encodeURIComponent(t.Tym);
+  if(ckJson===null){ ckJson=fetch(DATA+'cokdyby.json',{method:'HEAD'}).then(r=>r.ok).catch(()=>false); }
+  ckJson.then(ok=>{ a.style.display=ok?'inline-block':'none'; });
+}
 
 /* (8. 10.) MILNÍKY K CÍLI: kolik bodů by měl tým mít v průběhu sezóny, aby na konci
    dosáhl na hranici cíle. build.R posílá body po každém odehraném zápase (Hrano) a pro
@@ -1572,6 +1690,485 @@ function renderKadr(){
   renderDream(); renderTrade();
   if(KADR_P) KADR_P.then(()=>{const t=team(); if(!t)return; renderZmeny(t); renderRezerva(t); renderHvezdy(t); renderBrankari(t);});
 }
+
+/* ══ (28. 10.) VÝMĚNA — rozbor výměny 1 za 1 ════════════════════════════════
+   Data: gm_vymena.json z build.R — hráči do pole s NHL Ratingem (dnešní tým, čísla na zápas,
+   8 stránek hry, 4 oblasti jako Trade Help), týmy (potřeby proti úrovni Top 4 = Trade Help,
+   pořadí v lize, minuty přesilovek a oslabení), skutečné výměny v sezóně. Dvojic je ~60 000,
+   proto čísla i věty skládá stránka.
+   BILANCE:  zisk týmu = (1 − λ/2) × (Výkon příchozího − Výkon odcházejícího)
+                        +    λ/2  × (Fit příchozího − Fit odcházejícího)       Fit = pro TENTO tým
+             λ = jak moc tým potřeby má: součet ztrát na úroveň Top 4 ve 4 oblastech / VYM_G0, nejvýš 1
+                 (tým s velkými slabinami: výkon a Fit půl na půl; tým skoro bez slabin: hlavně výkon —
+                 jinak by u Pardubic s jedinou drobnou ztrátou v oslabení vážilo oslabení 100 %)
+             podíl prvního týmu = 100 / (1 + e^(−(zisk1 − zisk2) / VYM_S))
+   Výkon = NHL Rating bez Důvěry trenéra (pořadí mezi hráči na stejném postu, 0–100).
+   Fit = jak silné stránky hráče sedí na to, co týmu chybí do úrovně Top 4 (stejně jako Trade Help). */
+const VYM_S=30;          // rozdíl zisků 10 → 58 : 42, 30 → 73 : 27, 60 → 88 : 12
+const VYM_VYROVNANA=5;   // do 45 : 55 vyrovnaná výměna
+const VYM_JASNE=15;      // od 65 : 35 výrazně víc pro jeden tým
+const VYM_ZISK=5;        // ✅ / ⚠️ u týmu od ±5 bodů zisku, mezi tím ⚖️
+const VYM_ROZDIL=15;     // rozdíl v oblasti (body 0–100), od kterého věta říká, že výměna pomáhá / ubírá
+const VYM_G0=1.0;        // od kolika gólů na zápas ztráty na Top 4 (součet 4 oblastí) váží Fit plně (½)
+const VYM_OBL=['pp','pk','ut','ob'];
+const VYM_SUBS=[['Strelba','Střelba'],['Tvorivost','Tvořivost'],['Presilovka','Přesilovka'],['Oslabeni','Oslabení'],
+  ['Dvoucestnost','Hra do obou stran'],['Fyzicnost','Fyzičnost'],['Clutch','Těsné zápasy'],['Duvera','Důvěra trenéra']];
+// herní typ z NHL Ratingu → stránka hry, ze které vznikl (build.R: NHL_TYP)
+const VYM_TYP_SUB={'Střelec':'Strelba','Střílející obránce':'Strelba','Tvůrce hry':'Tvorivost','Rozehrávač':'Tvorivost',
+  'Specialista na přesilovku':'Presilovka','Rozehrávač přesilovky':'Presilovka','Specialista na oslabení':'Oslabeni',
+  'Defenzivní specialista':'Oslabeni','Obousměrný útočník':'Dvoucestnost','Obousměrný obránce':'Dvoucestnost',
+  'Silový útočník':'Fyzicnost','Důrazný obránce':'Fyzicnost','Muž do těsných zápasů':'Clutch','Tahoun sestavy':'Duvera','Opora obrany':'Duvera'};
+let VYM=null, VYM_P=null, vymA=null, vymB=null, vymInit=false, vymUkazka=null;
+
+/* klubové barvy — stejný blok jako na Týmech, Hráčích, Zápasech a Playoff */
+/* ── (15. 10.) BARVY TÝMŮ podle skutečných klubových barev ──────────────────
+   Zdroj: klubové barvy z Wikipedie a barvy log; zesvětlené, aby čáry byly vidět na tmavém pozadí.
+   1. barva = hlavní klubová, další = vedlejší klubové barvy, pak dva světlejší odstíny hlavní.
+   pridelBarvy(tymy): když je v grafu víc týmů s podobnou barvou (Sparta, Pardubice, Třinec…),
+   vybere každému tu z jeho barev, aby se týmy od sebe co nejvíc lišily. Do 6 týmů hledá
+   nejlepší kombinaci (dřív vybraný tým má přednost a hlavní barvu si drží), víc týmů postupně.
+   Ověřeno výpočtem (OKLab, ×100): u libovolných 2–3 týmů naráz rozdíl vždy aspoň 12, u 4–6 týmů
+   aspoň 10 (skoro vždy přes 12). Náhradní barva je vždy klubová, nebo světlejší odstín té hlavní. */
+const TYM_BARVY_ZAKLAD = {
+  'Sparta':        ['#C43A78', '#F2C94C', '#5B8DEF'],   // rudá (vínová), žlutá, modrá
+  'Pardubice':     ['#F2463C', '#F6B8B0'],              // červená, červenobílá
+  'Třinec':        ['#E0213F', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Olomouc':       ['#FF7A5C', '#F6B8B0', '#C9D2DA'],   // červená, bílá
+  'Hr. Králové':   ['#C0393F', '#E6B53C', '#C9D2DA'],   // tmavě červená, žlutá, bílá
+  'Č. Budějovice': ['#3F6FD8', '#F2463C', '#C9D2DA'],   // modrá, červená, bílá
+  'Kometa':        ['#2A6AE8', '#C9D2DA'],              // modrá, bílá
+  'Vítkovice':     ['#5AA9FF', '#C9D2DA'],              // modrá, bílá
+  'Plzeň':         ['#5B6FB8', '#C9D2DA'],              // námořnická modrá, bílá
+  'Liberec':       ['#35BFD8', '#5B7BD5'],              // tyrkysová (aqua), námořnická
+  'Kladno':        ['#8A84E8', '#C9D2DA'],              // tmavě modrá, bílá
+  'Litvínov':      ['#F5C518'],                         // žlutá (černá na tmavém pozadí není vidět)
+  'Karlovy Vary':  ['#9AA6B2', '#D4A843'],              // šedá / stříbrná, zlatá (bílá by splývala s bílými čarami)
+  'Ml. Boleslav':  ['#3DB05A', '#C9D2DA'],              // zelená, bílá
+};
+// jiné zápisy názvů (kdyby se v datech objevil celý název)
+const TYM_ALIAS = {
+  'Hradec Králové': 'Hr. Králové', 'Mountfield HK': 'Hr. Králové', 'České Budějovice': 'Č. Budějovice',
+  'Mladá Boleslav': 'Ml. Boleslav', 'K. Vary': 'Karlovy Vary', 'Kometa Brno': 'Kometa', 'Brno': 'Kometa',
+  'Sparta Praha': 'Sparta', 'Dynamo Pardubice': 'Pardubice', 'Oceláři Třinec': 'Třinec', 'Bílí Tygři Liberec': 'Liberec',
+};
+// tým, který tu chybí (nováček po baráži), dostane neutrální barvy, které se od klubových dobře liší
+const TYM_BARVY_JINE = ['#9575CD', '#26A69A', '#FF8A3D', '#EC407A', '#8D6E63'];
+const tymZesvetli = (h, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - t) + 255 * t)
+  .toString(16).padStart(2, '0')).join('').toUpperCase();
+const TYM_BARVY = Object.fromEntries(Object.entries(TYM_BARVY_ZAKLAD)
+  .map(([k, v]) => [k, [...v, tymZesvetli(v[0], 0.45), tymZesvetli(v[0], 0.7)]]));
+const tymKlic = t => TYM_BARVY[t] ? t : (TYM_ALIAS[t] || t);
+const tymKandidati = t => TYM_BARVY[tymKlic(t)] || TYM_BARVY_JINE;
+function barvaTymu(t){ return tymKandidati(t)[0]; }
+// vzdálenost barev v OKLab (×100) — jak moc se dvě barvy liší pro oko
+const _tymLab = {};
+function tymLab(h){
+  if (_tymLab[h]) return _tymLab[h];
+  const lin = c => { c /= 255; return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); };
+  const [r, g, b] = [1, 3, 5].map(i => lin(parseInt(h.slice(i, i + 2), 16)));
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return (_tymLab[h] = [0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+                        1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+                        0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s]);
+}
+function tymDE(a, b){ const A = tymLab(a), B = tymLab(b); return 100 * Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]); }
+// tymy = v pořadí výběru; vyhnout = barvy, které už v grafu jsou (např. bílá playoffová čára)
+function pridelBarvy(tymy, vyhnout){
+  const T = [...new Set(tymy)], K = T.map(tymKandidati), V = vyhnout || [], out = {}, n = T.length;
+  const minK = (c, vybrane) => Math.min(99, ...vybrane.map(u => tymDE(c, u)), ...V.map(u => tymDE(c, u)));
+  if (n && n <= 6) {
+    // matice vzdáleností předem; průběžné minimum + ořezávání větví, které už nemůžou vyhrát
+    const D = K.map((ka, a) => K.map((kb, b) => ka.map(ca => kb.map(cb => a === b ? 99 : tymDE(ca, cb)))));
+    const DV = K.map(ka => ka.map(c => Math.min(99, ...V.map(u => tymDE(c, u)))));
+    const idx = new Array(n).fill(0); let best = null;
+    const rec = (i, m, cena) => {
+      if (best && Math.min(m, 12) < best.sc[0]) return;
+      if (i === n) {
+        const sc = [Math.min(m, 12), -cena, m];   // rozdíl do 12 stačí, pak co nejvíc hlavních barev (dřív vybraný tým má přednost)
+        if (!best || sc[0] > best.sc[0] || (sc[0] === best.sc[0] && (sc[1] > best.sc[1] || (sc[1] === best.sc[1] && sc[2] > best.sc[2])))) best = {sc, idx: [...idx]};
+        return;
+      }
+      for (let c = 0; c < K[i].length; c++) {
+        let mm = Math.min(m, DV[i][c]);
+        for (let a = 0; a < i; a++) mm = Math.min(mm, D[a][i][idx[a]][c]);
+        idx[i] = c; rec(i + 1, mm, cena + c * (n - i));
+      }
+    };
+    rec(0, 99, 0); T.forEach((t, j) => out[t] = K[j][best.idx[j]]);
+  } else {
+    const vyb = [];
+    T.forEach((t, j) => { let bc = K[j][0], bd = -1;
+      for (const c of K[j]) { const d = minK(c, vyb); if (d >= 12) { bc = c; bd = d; break; } if (d > bd) { bc = c; bd = d; } }
+      out[t] = bc; vyb.push(bc); });
+  }
+  return out;
+}
+
+// (14. 10.) výběr hráče s hledáním — stejný jako v Analytice → NHL Rating (bez ohledu na diakritiku, šipky + Enter, Esc)
+function hracPicker(boxId, polozky, vychozi, onPick, extra, prah){
+  const box=document.getElementById(boxId); if(!box) return;
+  box.innerHTML=`<input type="text" class="pick-in" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" placeholder="Napiš jméno, příjmení nebo tým…" aria-label="Hledat hráče" role="combobox" aria-expanded="false"><span class="pick-ov-in" title="rating"></span><div class="pick-list" role="listbox" hidden></div>`;
+  const inp=box.querySelector('input'), list=box.querySelector('.pick-list'), ovIn=box.querySelector('.pick-ov-in');
+  const MAX=60;
+  let vybrany=vychozi, nalez=[], akt=0;
+  // v políčku jméno (tým), rating zvlášť vpravo — na mobilu se dlouhé jméno zkrátí, rating zůstane vidět
+  const ukaz=()=>{ const x=polozky.find(p=>p.i===vybrany); inp.value=x?`${x.jm} (${x.tym})`:''; ovIn.textContent=x?rt(x.ov):''; box.classList.remove('hleda'); };
+  extra=Array.isArray(extra)?extra:[]; let nalezNeh=[];
+  const filtr=(q,zdroj=polozky)=>{
+    const t=bezDiak(q).trim().split(/\s+/).filter(Boolean); if(!t.length) return zdroj;
+    const slova=x=>x._s||(x._s=bezDiak(`${x.jm} ${x.tym}`).split(/[\s.\-]+/).filter(Boolean));
+    let r=zdroj.filter(x=>t.every(tk=>slova(x).some(w=>w.startsWith(tk))));
+    if(!r.length){ const q2=t.join(' '); r=zdroj.filter(x=>bezDiak(`${x.jm} ${x.tym}`).includes(q2)); }   // záchrana: kus uprostřed slova
+    return r;
+  };
+  const odKolika=prah?` od ${prah} ${sk(prah,'zápasu','zápasů','zápasů')}`:'';
+  const kresli=()=>{
+    let h='';
+    if(nalez.length) h=nalez.slice(0,MAX).map((x,k)=>`<div class="pick-it${k===akt?' akt':''}" role="option" data-i="${x.i}"${x.i===vybrany?' aria-selected="true"':''}>
+        <span class="pick-jm">${pickEsc(x.jm)}</span><span class="pick-meta">${pickEsc(x.tym)}${x.poz?' · '+postTxt(x.poz):''}</span><span class="pick-ov">${rt(x.ov)}</span></div>`).join('')
+      +(nalez.length>MAX?`<div class="pick-nic">… a ${nalez.length-MAX} dalších — napiš víc písmen.</div>`:'');
+    if(nalezNeh.length) h+=`<div class="pick-neh-h">Zatím bez ratingu — hodnotíme${odKolika}</div>`+nalezNeh.slice(0,20).map(x=>`<div class="pick-it neh" aria-disabled="true">
+        <span class="pick-jm">${pickEsc(x.jm)}</span><span class="pick-meta">${pickEsc(x.tym)}${x.poz?' · '+postTxt(x.poz):''}</span><span class="pick-ov">${x.gp} ${sk(x.gp,'zápas','zápasy','zápasů')}</span></div>`).join('');
+    if(!h) h=`<div class="pick-nic">Nikdo takový — zkus jiná písmena.${prah?` Rating mají jen hráči${odKolika}.`:''}</div>`;
+    list.innerHTML=h;
+    list.hidden=false; inp.setAttribute('aria-expanded','true');
+    const a=list.querySelector('.pick-it.akt'); if(a) a.scrollIntoView({block:'nearest'});
+  };
+  const zavri=()=>{ list.hidden=true; inp.setAttribute('aria-expanded','false'); };
+  const vyber=i=>{ vybrany=i; ukaz(); zavri(); inp.blur(); onPick(i); };
+  inp.addEventListener('focus',()=>{
+    nalez=filtr(''); nalezNeh=[]; akt=Math.max(0,nalez.findIndex(x=>x.i===vybrany)); inp.value=''; box.classList.add('hleda'); kresli();
+    // na mobilu posunout políčko nahoru, ať seznam nezakryje klávesnice
+    if(window.innerWidth<640) setTimeout(()=>{ const r=box.getBoundingClientRect(); if(r.top>window.innerHeight*0.3) window.scrollBy({top:r.top-110,behavior:'smooth'}); },60);
+  });
+  inp.addEventListener('input',()=>{ nalez=filtr(inp.value); nalezNeh=inp.value.trim()?filtr(inp.value,extra):[]; akt=0; kresli(); });
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'){ e.preventDefault(); if(list.hidden){nalez=filtr(inp.value);} akt=Math.min(akt+1,Math.min(nalez.length,MAX)-1); kresli(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); akt=Math.max(akt-1,0); kresli(); }
+    else if(e.key==='Enter'){ e.preventDefault(); if(nalez[akt]) vyber(nalez[akt].i); }
+    else if(e.key==='Escape'){ zavri(); ukaz(); inp.blur(); }
+  });
+  inp.addEventListener('blur',()=>setTimeout(()=>{ if(document.activeElement!==inp){ zavri(); ukaz(); } },150));
+  // pointerdown (ne click): vybere dřív, než políčko ztratí fokus; na dotyku se nesmí vybírat při posouvání seznamu
+  let dotyk=null;
+  list.addEventListener('pointerdown',e=>{ const it=e.target.closest('.pick-it'); if(!it) return; e.preventDefault(); if(it.classList.contains('neh')) return;
+    if(e.pointerType==='mouse') vyber(+it.dataset.i); else dotyk={i:+it.dataset.i,y:e.clientY}; });
+  list.addEventListener('pointerup',e=>{ if(!dotyk) return; const it=e.target.closest('.pick-it');
+    if(it&&+it.dataset.i===dotyk.i&&Math.abs(e.clientY-dotyk.y)<10) vyber(dotyk.i); dotyk=null; });
+  list.addEventListener('pointercancel',()=>{ dotyk=null; });
+  ukaz();
+}
+
+
+const vymEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pickEsc=vymEsc;
+const bezDiak=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const sk=(n,a,b,c)=>pl(n,a,b,c);
+const rt=x=>x==null||isNaN(x)?'—':String(Math.round(x));
+const postTxt=p=>p==='O'?'obránce':p==='U'?'útočník':'';
+const postMn2=p=>p==='O'?'obránců':'útočníků';        // 2. pád množného čísla: "z 7 obránců"
+const vymTym=t=>VYM&&VYM.tymy?VYM.tymy[t]:null;
+const vymVf=(t,sg,pl_)=>{const x=vymTym(t); return (x?x.Mn:TEAM_MN.includes(t))?pl_:sg;};   // má / mají
+const vymPrijm=j=>String(j||'').trim().split(/\s+/).slice(-1)[0];
+const vymZn=x=>x==null||isNaN(x)?'—':(x>0?'+':x<0?'−':'±')+f1(Math.abs(x)).replace('−','');
+const vymPct0=x=>Math.round(x*100)+' %';
+
+function vymNacti(){
+  if(!VYM_P) VYM_P=loadJSON('gm_vymena.json').then(v=>{
+      VYM=v&&Array.isArray(v.hraci)&&v.hraci.length>1&&v.tymy?v:null;
+      if(!VYM) console.warn('gm_vymena.json je prázdný — záložka Výměna se nezobrazí.');})
+    .catch(()=>{VYM=null; console.warn('gm_vymena.json chybí — záložka Výměna se odemkne po dalším spuštění build.R.');});
+  return VYM_P;
+}
+const vymH=i=>VYM.hraci[i];
+// λ: jak moc tým potřebuje posily do slabin (0 = nic mu nechybí, 1 = chybí aspoň VYM_G0 gólu na zápas)
+function vymLambda(t){const T=vymTym(t); if(!T) return 0; let g=0; VYM_OBL.forEach(k=>{g+=Math.max(0,nv(T.potreby[k],0));}); return Math.min(1,g/VYM_G0);}
+// Fit hráče pro tým: oblasti hráče × váhy potřeb týmu (Trade Help)
+function vymFit(p,t){const T=vymTym(t); if(!T) return NaN; let s=0; VYM_OBL.forEach(k=>{s+=nv(T.vahy[k],0)*nv(p.obl[k],50);}); return s;}
+// Odkud kam: skutečná výměna z logu (statistiky jsou za původní tým), jinak dnešní týmy hráčů
+function vymSmer(a,b){
+  const pa=vymH(a), pb=vymH(b);
+  const v=(VYM.vymeny||[]).find(x=>(x.A===pa.Jmeno&&x.A_do===pa.Tym&&x.B===pb.Jmeno&&x.B_do===pb.Tym)||(x.B===pa.Jmeno&&x.B_do===pa.Tym&&x.A===pb.Jmeno&&x.A_do===pb.Tym));
+  if(v){ const aJeA=v.A===pa.Jmeno; return {ta:aJeA?v.A_z:v.B_z, tb:aJeA?v.B_z:v.A_z, skutecna:v}; }
+  return {ta:pa.Tym, tb:pb.Tym, skutecna:null};
+}
+// Jádro výpočtu (bez textů) — window.vymRozbor kvůli ověření
+function vymRozbor(a,b){
+  const A=vymH(a), B=vymH(b), S=vymSmer(a,b), TA=S.ta, TB=S.tb;
+  if(!A||!B||a===b||TA===TB||!vymTym(TA)||!vymTym(TB)) return null;
+  const fA_TA=vymFit(A,TA), fB_TA=vymFit(B,TA), fA_TB=vymFit(A,TB), fB_TB=vymFit(B,TB);
+  const lA=vymLambda(TA), lB=vymLambda(TB);
+  const casti={vyA:(1-lA/2)*(B.Vykon-A.Vykon), fitA:lA/2*(fB_TA-fA_TA),     // tým TA dává A, dostává B
+               vyB:(1-lB/2)*(A.Vykon-B.Vykon), fitB:lB/2*(fA_TB-fB_TB)};    // tým TB dává B, dostává A
+  const ziskA=casti.vyA+casti.fitA, ziskB=casti.vyB+casti.fitB;
+  const podilA=100/(1+Math.exp(-(ziskA-ziskB)/VYM_S));
+  const pA=Math.min(99,Math.max(1,Math.round(podilA)));
+  const kat=Math.abs(podilA-50)<VYM_VYROVNANA?'vyrovnana':(Math.abs(podilA-50)<VYM_JASNE?'mirne':'jasne');
+  const verd=z=>z>=VYM_ZISK?'plus':(z<=-VYM_ZISK?'minus':'nula');
+  const m=Math.min(+A.GP,+B.GP);
+  return {A,B,TA,TB,skutecna:S.skutecna,fit:{A_TA:fA_TA,B_TA:fB_TA,A_TB:fA_TB,B_TB:fB_TB},lambda:{A:lA,B:lB},casti,ziskA,ziskB,podilA,pA,pB:100-pA,kat,
+    verdA:verd(ziskA),verdB:verd(ziskB),jistota:m<15?'nizka':(m<30?'stredni':'dobra')};
+}
+window.vymRozbor=vymRozbor;
+
+/* ── věty ───────────────────────────────────────────────────────────── */
+// konkrétní čísla k nejsilnější stránce hráče
+function vymDetailSub(p,sub){
+  switch(sub){
+    case 'Strelba': return `${p.G} ${sk(p.G,'gól','góly','gólů')} a ${f1(p.Strely_zg)} střely na zápas`;
+    case 'Tvorivost': return `${p.A} ${sk(p.A,'asistence','asistence','asistencí')} za ${p.GP} ${sk(p.GP,'zápas','zápasy','zápasů')}`+(p.PP_TOI_GP>=1.5?`, na přesilovce ${mmss(p.PP_TOI_GP)} na zápas`:'');
+    case 'Presilovka': return `${p.PPP} ${sk(p.PPP,'bod','body','bodů')} v přesilovce, na přesilovce ${mmss(p.PP_TOI_GP)} na zápas`;
+    case 'Oslabeni': return `v oslabení ${mmss(p.SH_TOI_GP)} na zápas, ${f1(p.Bloky_zg)} zblokované střely na zápas`;
+    case 'Dvoucestnost': return `+/− proti týmu ${vymZn(p.PM_rel)}, ${p.G}+${p.A} za ${p.GP} ${sk(p.GP,'zápas','zápasy','zápasů')}`;
+    case 'Fyzicnost': return `${f1(p.Hity_zg)} hitu a ${f1(p.Bloky_zg)} zblokované střely na zápas`;
+    case 'Clutch': return `${p.G} ${sk(p.G,'gól','góly','gólů')}, nejvíc z nich za těsného stavu`;
+    case 'Duvera': return `${mmss(p.TOI_GP)} na ledě na zápas`;
+  }
+  return `${p.G}+${p.A} za ${p.GP} ${sk(p.GP,'zápas','zápasy','zápasů')}`;
+}
+// oblast potřeb (Trade Help) — popis u týmu a srovnání hráčů v ní
+function vymOblTym(k,t){
+  const T=vymTym(t), r=T.poradi||{}, n=Object.keys(VYM.tymy).length;
+  switch(k){
+    case 'pk': return `ubrání ${f1(T.PK_pct)} %, ${r.PK_pct}. z ${n} v lize`;
+    case 'pp': return `promění ${f1(T.PP_pct)} %, ${r.PP_pct}. z ${n} v lize`;
+    case 'ut': return `${f2(T.ESGF_z)} gólu na zápas při hře 5 na 5, ${r.ESGF_z}. z ${n} v lize`;
+    case 'ob': return `soupeři vystřelí ${f1(T.SA_z)} střely na branku na zápas, ${r.SA_z===1?'nejvíc':r.SA_z+'. nejvíc'} v lize`;
+  }
+  return '';
+}
+const VYM_OBL_LOK={pp:'v přesilovce',pk:'v oslabení',ut:'v útoku 5 na 5',ob:'v bránění střelám'};
+const VYM_OBL_NAZ={pp:'přesilovka',pk:'oslabení',ut:'útok 5 na 5',ob:'bránění střelám'};
+// "Vála v oslabení hraje 3:11 na zápas" + krátký tvar pro druhého hráče "McCormack jen 0:07"
+function vymOblHrac(k,p,kratce){
+  const j=vymEsc(vymPrijm(p.Jmeno));
+  switch(k){
+    case 'pk': return kratce?`${j} ${mmss(p.SH_TOI_GP)}`:`${j} v oslabení hraje ${mmss(p.SH_TOI_GP)} na zápas`;
+    case 'pp': return kratce?`${j} ${mmss(p.PP_TOI_GP)} a ${p.PPP} ${sk(p.PPP,'bod','body','bodů')}`:`${j} hraje na přesilovce ${mmss(p.PP_TOI_GP)} na zápas a má v ní ${p.PPP} ${sk(p.PPP,'bod','body','bodů')}`;
+    case 'ut': return kratce?`${j} ${f2(p.P60)}`:`${j} sbírá ${f2(p.P60)} bodu na 60 minut (${p.G}+${p.A})`;
+    case 'ob': return kratce?`${j} ${vymZn(p.PM_rel)} a ${f1(p.Bloky_zg+p.Hity_zg)}`:`${j} má +/− proti týmu ${vymZn(p.PM_rel)} a ${f1(p.Bloky_zg+p.Hity_zg)} bloku a hitu na zápas`;
+  }
+  return j;
+}
+// soupiska týmu (dnešní tým), stejný post, bez vyjmenovaných hráčů
+const vymSoupiska=(t,poz,bez)=>VYM.hraci.filter(p=>p.Tym===t&&p.Pozice===poz&&!bez.includes(p));
+function vymPoradi(p,soup){ return 1+soup.filter(x=>x!==p&&x.Overall>p.Overall).length; }
+
+// věty pro tým T, který dostává IN a dává OUT
+function vymVetyTym(T,IN,OUT){
+  const t=vymTym(T), V=[]; const jIn=vymEsc(vymPrijm(IN.Jmeno)), jOut=vymEsc(vymPrijm(OUT.Jmeno));
+  // 1) největší slabina týmu a co s ní výměna udělá
+  const g=t.potreby||{}; const top=VYM_OBL.slice().sort((x,y)=>nv(g[y],0)-nv(g[x],0))[0]; const lam=vymLambda(T);
+  if(lam<0.1||!(nv(g[top],0)>0.02)){
+    V.push(`${vymEsc(T)} ${vymVf(T,'je','jsou')} ve všech čtyřech oblastech na úrovni Top 4 nebo jen kousek pod ní, takže výměna nespravuje žádnou slabinu — rozhoduje hlavně, kdo je lepší hráč.`);
+  } else {
+    const d=nv(IN.obl[top],50)-nv(OUT.obl[top],50);
+    // malá ztráta na Top 4 (pod 0,15 gólu na zápas) — neříkat "největší slabina" týmu, který je skoro všude v Top 4
+    let s=lam<0.5?`<b>Slabiny jsou malé</b>, takže rozhoduje víc výkon hráče — proti úrovni Top 4 ${vymVf(T,'ztrácí','ztrácejí')} nejvíc ${VYM_OBL_LOK[top]} (${vymOblTym(top,T)}). `
+                           :`<b>Největší slabina:</b> ${VYM_OBL_NAZ[top]} (${vymOblTym(top,T)}). `;
+    if(d>=VYM_ROZDIL) s+=`Tady výměna pomáhá — ${vymOblHrac(top,IN)}, ${vymOblHrac(top,OUT,true)}.`;
+    else if(d<=-VYM_ROZDIL) s+=`Tady výměna spíš ubírá — ${vymOblHrac(top,OUT)}, ${vymOblHrac(top,IN,true)}.`;
+    else s+=`Tady se výměnou moc nemění (${VYM_OBL_NAZ[top]}: ${jIn} ${rt(IN.obl[top])}, ${jOut} ${rt(OUT.obl[top])} ze 100).`;
+    if(top==='pk'&&Math.abs(d)>=VYM_ROZDIL&&(d>0?IN:OUT).SH_TOI_GP>=1.5) s+=` Jestli v něm ${d>0?jIn:jOut} hrál dobře, z dat nepoznáme — skóre oslabení stojí hlavně na minutách a góly na ledě v oslabení nemáme.`;
+    // další slabina s aspoň čtvrtinovou váhou, kde se hráči výrazně liší (vysvětlí ✅ / ⚠️, když v té největší se nic nemění)
+    const dalsi=VYM_OBL.filter(k=>k!==top&&nv(t.vahy[k],0)>=0.25&&Math.abs(nv(IN.obl[k],50)-nv(OUT.obl[k],50))>=VYM_ROZDIL).sort((x,y)=>nv(g[y],0)-nv(g[x],0))[0];
+    if(dalsi){ const d2=nv(IN.obl[dalsi],50)-nv(OUT.obl[dalsi],50);
+      s+=` V další slabině (${VYM_OBL_NAZ[dalsi]}) výměna ${d2>0?'pomáhá':'ubírá'} — ${d2>0?vymOblHrac(dalsi,IN)+', '+vymOblHrac(dalsi,OUT,true):vymOblHrac(dalsi,OUT)+', '+vymOblHrac(dalsi,IN,true)}.`; }
+    V.push(s);
+  }
+  // 2) co přichází: herní typ a jeho čísla (+ souvislost s týmem u přesilovky)
+  const sub=VYM_TYP_SUB[IN.Typ];
+  let s2=sub?`<b>Přichází ${vymEsc(String(IN.Typ).toLowerCase())}:</b> ${jIn} — ${vymDetailSub(IN,sub)}.`
+            :`<b>Přichází univerzál:</b> ${jIn} nemá výrazně nejsilnější stránku — ${IN.G}+${IN.A} za ${IN.GP} ${sk(IN.GP,'zápas','zápasy','zápasů')}, ${mmss(IN.TOI_GP)} na ledě na zápas.`;
+  const ppHrac=sub==='Presilovka'||(sub==='Tvorivost'&&IN.PP_TOI_GP>=1.5);
+  if(ppHrac){
+    const rp=t.poradi.Pr_z, rpp=t.poradi.PP_pct;
+    if(rp<=3) s2+=` ${vymEsc(T)} ${vymVf(T,'hraje','hrají')} ${rp===1?'nejvíc':rp+'. nejvíc'} přesilovek v lize (${f1(t.Pr_z)} na zápas), práce na ní bude dost.`;
+    if(rpp<=3) s2+=` Svou přesilovku ale už teď ${vymVf(T,'má','mají')} ${rpp===1?'nejlepší':rpp+'. nejlepší'} v lize.`;
+  }
+  V.push(s2);
+  // 3) co odchází: role v týmu (podíl oslabení / přesilovky), podíl bodů, nebo minuty
+  const soupT=vymSoupiska(T,OUT.Pozice,[OUT,IN]);
+  const shP=t.SH_TOI_GP>0?OUT.SH_TOI_GP/t.SH_TOI_GP:0, ppP=t.PP_TOI_GP>0?OUT.PP_TOI_GP/t.PP_TOI_GP:0;
+  const bP=t.Body_hracu>0?OUT.Body/t.Body_hracu:0;
+  const nahr=key=>{const x=soupT.slice().sort((a,b)=>b[key]-a[key])[0]; return x?`${vymEsc(x.Jmeno)} (${mmss(x[key])})`:null;};
+  let s3;
+  if(shP>=0.4&&OUT.SH_TOI_GP>=1.5&&shP>=ppP){ const n=nahr('SH_TOI_GP');
+    s3=`<b>Odchází:</b> ${jOut} odehrál ${vymPct0(shP)} času svého týmu v oslabení.`+(n?` Nejvíc z ostatních ${postMn2(OUT.Pozice)} v něm hraje ${n}.`:''); }
+  else if(ppP>=0.4&&OUT.PP_TOI_GP>=1.5){ const n=nahr('PP_TOI_GP');
+    s3=`<b>Odchází:</b> ${jOut} odehrál ${vymPct0(ppP)} času svého týmu v přesilovce (${OUT.PPP} ${sk(OUT.PPP,'bod','body','bodů')}).`+(n?` Nejvíc z ostatních ${postMn2(OUT.Pozice)} na ní hraje ${n}.`:''); }
+  else if(bP>=0.12){ s3=`<b>Odchází:</b> ${jOut} s ${vymPct0(bP)} kanadských bodů hráčů týmu (${OUT.G}+${OUT.A}).`; }
+  else { const r=1+soupT.filter(x=>x.TOI_GP>OUT.TOI_GP).length;
+    s3=`<b>Odchází:</b> ${jOut}, ${r}. nejvytíženější ${postTxt(OUT.Pozice)} týmu (${mmss(OUT.TOI_GP)} na ledě na zápas, ${OUT.G}+${OUT.A}).`; }
+  V.push(s3);
+  // 4) kam zapadne: pořadí podle NHL Ratingu v novém týmu
+  const soupIn=vymSoupiska(T,IN.Pozice,[OUT,IN]);
+  const rIn=vymPoradi(IN,soupIn), rOut=vymPoradi(OUT,soupT);
+  V.push(`<b>V sestavě:</b> podle NHL Ratingu by ${jIn} byl v novém týmu ${rIn}. z ${soupIn.length+1} ${postMn2(IN.Pozice)} (${rt(IN.Overall)})`+
+    (IN.Pozice===OUT.Pozice?`; ${jOut} tu byl ${rOut}. (${rt(OUT.Overall)}).`:`; odcházející ${postTxt(OUT.Pozice)} ${jOut} tu byl ${rOut}. z ${soupT.length+1} ${postMn2(OUT.Pozice)}.`));
+  return V;
+}
+// shrnutí nad týmy: výkon, role, celkový verdikt
+function vymShrnuti(R){
+  const A=R.A, B=R.B, jA=vymEsc(vymPrijm(A.Jmeno)), jB=vymEsc(vymPrijm(B.Jmeno)), V=[];
+  const dv=A.Vykon-B.Vykon;
+  if(Math.abs(dv)<8) V.push(`Výkonem jsou skoro stejní: ${jA} ${rt(A.Vykon)}, ${jB} ${rt(B.Vykon)} (NHL Rating bez minut a důvěry trenéra, pořadí na postu 0–100).`);
+  else { const L=dv>0?[jA,A,jB,B]:[jB,B,jA,A];
+    V.push(`Výkonem je ${Math.abs(dv)>=25?'výrazně ':''}lepší ${L[0]}: ${rt(L[1].Vykon)} proti ${rt(L[3].Vykon)} (NHL Rating bez minut a důvěry trenéra, pořadí na postu 0–100).`); }
+  if(A.Typ!==B.Typ&&A.Typ!=='Univerzál'&&B.Typ!=='Univerzál') V.push(`Hrají ale jinou roli: ${jA} je ${vymEsc(String(A.Typ).toLowerCase())}, ${jB} ${vymEsc(String(B.Typ).toLowerCase())}.`);
+  else if(A.Typ===B.Typ&&A.Typ!=='Univerzál') V.push(`Mají podobnou roli (${vymEsc(String(A.Typ).toLowerCase())}).`);
+  if(R.ziskA<=-3&&R.ziskB<=-3) V.push(`Podle čísel ani jeden tým nedostal hráče, který by víc pomohl tomu, co potřebuje. Výměnu tak nejspíš vysvětluje něco, co v datech není — plán trenéra, smlouvy nebo šatna.`);
+  else if(R.ziskA>=3&&R.ziskB>=3) V.push(`Výměna dává smysl oběma: každý tým dostává hráče, který mu podle čísel pomůže víc než ten, kterého pouští.`);
+  else if(Math.abs(R.ziskA)<VYM_ZISK&&Math.abs(R.ziskB)<VYM_ZISK) V.push(`Ani jeden tým si podle čísel výrazně nepolepší ani nepohorší.`);
+  else if(R.kat!=='vyrovnana'){
+    const aW=R.podilA>50, W=aW?R.TA:R.TB, L=aW?R.TB:R.TA, zW=aW?R.ziskA:R.ziskB;
+    const vW=aW?R.casti.vyA:R.casti.vyB, fW=aW?R.casti.fitA:R.casti.fitB, vL=aW?R.casti.vyB:R.casti.vyA, fL=aW?R.casti.fitB:R.casti.fitA;
+    // důvod "slabiny týmu" jen u týmu, který nějaké má (λ ≥ 0,1) — jinak by věta odporovala větě u týmu
+    const fitW=vymLambda(W)>=0.1&&fW>=vW, fitL=vymLambda(L)>=0.1&&fL<=vL;
+    if(zW>=VYM_ZISK) V.push(`Víc z ní ${vymVf(W,'má','mají')} ${vymEsc(W)} — `+(fitW?`hlavně proto, že nový hráč líp sedí na slabiny týmu.`:`hlavně proto, že dostává výkonnějšího hráče.`));
+    else V.push(`Víc na ní tratí ${vymEsc(L)} — `+(fitL?`odchází hráč, který líp sedí na slabiny týmu.`:`odchází výkonnější hráč.`)+
+      (zW<=-3?` Ani ${vymEsc(W)} si ale podle čísel nepolepší.`:''));
+  }
+  return V;
+}
+
+/* ── kreslení ───────────────────────────────────────────────────────── */
+function vymPicker(boxId, vybrany, onPick){
+  const ps=VYM.hraci.map((p,i)=>({i,jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,ov:p.Overall})).sort((a,b)=>b.ov-a.ov||a.jm.localeCompare(b.jm,'cs'));
+  const neh=(VYM.nehodnoceni||[]).map(p=>({jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,gp:+p.GP}));
+  const prah=+VYM.prah_gp>0?+VYM.prah_gp:null;
+  hracPicker(boxId, ps, vybrany, onPick, neh, prah);
+}
+function vymSlugZ(s){ return bezDiak(s).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+function vymSlug(p){ const s=vymSlugZ(vymPrijm(p.Jmeno)); return VYM.hraci.filter(x=>vymSlugZ(vymPrijm(x.Jmeno))===s).length===1?s:vymSlugZ(p.Jmeno); }
+function vymNajdi(slug){
+  let k=VYM.hraci.findIndex(x=>vymSlugZ(x.Jmeno)===slug); if(k>=0) return k;
+  const m=[]; VYM.hraci.forEach((x,i)=>{ if(vymSlugZ(vymPrijm(x.Jmeno))===slug) m.push(i); }); return m.length===1?m[0]:-1;
+}
+function vymCtiHash(h){
+  const m=/^#?vymena=(.+)$/.exec(h||''); if(!m) return false;
+  let r=''; try{ r=decodeURIComponent(m[1]); }catch(_){ r=m[1]; } const d=r.split('-');
+  for(let i=1;i<d.length;i++){ const a=vymNajdi(d.slice(0,i).join('-')), b=vymNajdi(d.slice(i).join('-')); if(a>=0&&b>=0&&a!==b){ vymA=a; vymB=b; return true; } }
+  return false;
+}
+function vymIdx(jm,tym){ return VYM.hraci.findIndex(p=>p.Jmeno===jm&&p.Tym===tym); }
+// výchozí dvojice: poslední skutečná výměna → ukázka z Trade Help pro tým vybraný nahoře → dva nejlepší z různých týmů
+function vymVychozi(){
+  vymUkazka=null;
+  const v=(VYM.vymeny||[])[0];
+  if(v){ const a=vymIdx(v.A,v.A_do), b=vymIdx(v.B,v.B_do); if(a>=0&&b>=0){ vymA=a; vymB=b; return; } }
+  const tr=TRADE&&gmTeam?TRADE[gmTeam]:null;
+  if(tr&&Array.isArray(tr.targets)&&tr.targets.length&&tr.nejslabsi){
+    const c=tr.targets[0], b=vymIdx(c.Jmeno,c.Tym), sl=tr.nejslabsi[c.Pozice==='O'?'O':'U'], a=sl?vymIdx(sl.Jmeno,gmTeam):-1;
+    if(a>=0&&b>=0){ vymA=a; vymB=b; vymUkazka=gmTeam; return; }
+  }
+  const s=VYM.hraci.map((p,i)=>i).sort((x,y)=>vymH(y).Overall-vymH(x).Overall);
+  vymA=s[0]; vymB=s.find(i=>vymH(i).Tym!==vymH(vymA).Tym);
+}
+function vymPlatne(){ return vymA!=null&&vymB!=null&&vymH(vymA)&&vymH(vymB); }
+
+function renderVymena(){
+  const body=document.getElementById('vym-body');
+  vymNacti().then(()=>{
+    if(!VYM){ document.getElementById('vym-pick').style.display='none'; document.getElementById('vym-real').innerHTML='';
+      body.innerHTML='<div class="empty">Rozbor výměny se odemkne po dalším spuštění build.R.</div>'; return; }
+    if(!vymInit){ vymInit=true; if(vymCtiHash(location.hash)) vymUkazka=null; else vymVychozi(); }
+    vymKresli();
+  });
+}
+function vymKresli(zapsat=true){
+  const body=document.getElementById('vym-body');
+  if(!vymPlatne()) vymVychozi();
+  vymPicker('vym-pa', vymA, i=>{ vymA=i; vymUkazka=null; vymKresli(); });
+  vymPicker('vym-pb', vymB, i=>{ vymB=i; vymUkazka=null; vymKresli(); });
+  // skutečné výměny v sezóně — klepnutím se otevřou
+  const vy=(VYM.vymeny||[]).map(v=>({v,a:vymIdx(v.A,v.A_do),b:vymIdx(v.B,v.B_do)})).filter(x=>x.a>=0&&x.b>=0);
+  document.getElementById('vym-real').innerHTML=vy.length?`<div class="vym-real"><span>Výměny v sezóně:</span>`+
+    vy.map((x,k)=>`<button type="button" class="vym-chip${(x.a===vymA&&x.b===vymB)||(x.a===vymB&&x.b===vymA)?' akt':''}" data-k="${k}">${vymEsc(vymPrijm(x.v.A))} ⇄ ${vymEsc(vymPrijm(x.v.B))}<small>${vymEsc(String(x.v.Datum).replace(/^0?(\d+)\.0?(\d+)\.\d+$/,'$1. $2.'))}</small></button>`).join('')+`</div>`:'';
+  document.querySelectorAll('#vym-real .vym-chip').forEach(b=>b.onclick=()=>{ const x=vy[+b.dataset.k]; vymA=x.a; vymB=x.b; vymUkazka=null; vymKresli(); });
+  const R=vymRozbor(vymA,vymB);
+  const sA=document.getElementById('vym-smer-a'), sB=document.getElementById('vym-smer-b');
+  if(!R){
+    const pa=vymH(vymA), pb=vymH(vymB);
+    sA.textContent=''; sB.textContent='';
+    body.innerHTML=`<div class="empty">${vymA===vymB?'Vyber dva různé hráče.':`Oba hráči hrají za ${vymEsc(pa.Tym)} — vyber hráče z jiného týmu.`}</div>`;
+    return;
+  }
+  if(zapsat){ try{ history.replaceState(null,'','#vymena='+vymSlug(R.A)+'-'+vymSlug(R.B)); }catch(_){ } }
+  const BAR=pridelBarvy([R.TA,R.TB]), cA=BAR[R.TA], cB=BAR[R.TB];
+  sA.innerHTML=`<i style="background:${cA}"></i>${vymEsc(R.TA)} → ${vymEsc(R.TB)}`;
+  sB.innerHTML=`<i style="background:${cB}"></i>${vymEsc(R.TB)} → ${vymEsc(R.TA)}`;
+  const logo=t=>`<img class="vym-logo" src="logos/${encodeURIComponent(t)}.png" alt="" onerror="this.style.display='none'">`;
+  // "líp z ní vychází" (ne "získá") — vítěz bilance si nemusí polepšit, stačí, že druhý tým tratí víc
+  const kat=R.kat==='vyrovnana'?'Vyrovnaná výměna':`${R.kat==='jasne'?'Výrazně':'O něco'} líp z ní ${vymVf(R.podilA>50?R.TA:R.TB,'vychází','vycházejí')} ${vymEsc(R.podilA>50?R.TA:R.TB)}`;
+  const jist={nizka:'nízká',stredni:'střední',dobra:'dobrá'}[R.jistota];
+  const mGP=Math.min(+R.A.GP,+R.B.GP);
+  const gpA=+R.A.GP, gpB=+R.B.GP;
+  const jistTxt=R.jistota==='nizka'?(gpA<15&&gpB<15?`oba hráči mají za sebou jen ${gpA===gpB?gpA:Math.min(gpA,gpB)+' a '+Math.max(gpA,gpB)} ${sk(Math.max(gpA,gpB),'zápas','zápasy','zápasů')}`
+      :`${vymEsc(vymPrijm((+R.A.GP<+R.B.GP?R.A:R.B).Jmeno))} má za sebou jen ${mGP} ${sk(mGP,'zápas','zápasy','zápasů')}`)
+    :(R.jistota==='stredni'?`nejméně ${mGP} ${sk(mGP,'zápas','zápasy','zápasů')} na hráče`:`${mGP}+ zápasů na hráče`);
+  let h='';
+  if(vymUkazka) h+=`<div class="vym-ukazka">Ukázka z Trade Help (tým ${vymEsc(vymUkazka)}): nejslabší vlastní ${postTxt(R.A.Pozice)} podle Fit Score za nejlepší posilu, kterou Trade Help najde. Napiš do políček libovolné dva hráče.</div>`;
+  if(R.skutecna) h+=`<div class="vym-ukazka">Skutečná výměna z ${vymEsc(R.skutecna.Datum)} — rozbor je z pohledu před ní: čísla obou hráčů jsou za jejich původní týmy.</div>`;
+  h+=`<div class="vym-bil">
+    <div class="vym-bil-t"><span>${logo(R.TA)}${vymEsc(R.TA)}</span><span>${vymEsc(R.TB)}${logo(R.TB)}</span></div>
+    <div class="vs-pct"><span style="color:${cA}">${R.pA} %</span><span style="color:${cB}">${R.pB} %</span></div>
+    <div class="vs-bar"><i style="width:${R.pA}%;background:${cA}"></i><i style="width:${R.pB}%;background:${cB}"></i></div>
+    <div class="vym-kat">${kat}</div>
+    <div class="vym-jist">Jistota: <b class="${R.jistota}">${jist}</b> — ${jistTxt}.</div>
+  </div>`;
+  h+=`<div class="vym-shrn">${vymShrnuti(R).map(s=>`<p>${s}</p>`).join('')}</div>`;
+  // co výměna přinese každému týmu
+  const verdTxt={plus:['✅','si podle čísel polepší'],nula:['⚖️','— zhruba nastejno'],minus:['⚠️','si podle čísel pohorší']};
+  const blok=(T,IN,OUT,v,c)=>{const [ic,tx]=verdTxt[v];
+    return `<div class="vym-tym" style="border-top-color:${c}"><h4>${ic} ${vymEsc(T)} <span>${tx}</span></h4>
+      <div class="vym-tym-sub">přichází ${vymEsc(IN.Jmeno)}, odchází ${vymEsc(OUT.Jmeno)}</div>
+      ${vymVetyTym(T,IN,OUT).map(s=>`<p>${s}</p>`).join('')}</div>`;};
+  h+=`<div class="vym-tymy">${blok(R.TA,R.B,R.A,R.verdA,cA)}${blok(R.TB,R.A,R.B,R.verdB,cB)}</div>`;
+  // srovnání hráčů — zrcadlové řádky (vlevo hráč 1, vpravo hráč 2), pruh = pořadí na postu
+  const ps=poz=>VYM.hraci.filter(p=>p.Pozice===poz);
+  const pctl=(p,f)=>{const a=ps(p.Pozice).map(f).filter(x=>x!=null&&!isNaN(x)), v=f(p); if(v==null||isNaN(v)||a.length<2) return 50;
+    return 100*(a.filter(x=>x<v).length+(a.filter(x=>x===v).length-1)/2)/(a.length-1);};
+  const radek=(l,s,f,fmt,q)=>{const va=f(R.A), vb=f(R.B), la=va>vb, lb=vb>va;
+    const qa=q?q(R.A):pctl(R.A,f), qb=q?q(R.B):pctl(R.B,f), w=x=>Math.round(6+Math.max(0,Math.min(100,x))*0.94);
+    return `<div class="vs-row"><div class="vs-lab">${l}${s?` <small>· ${s}</small>`:''}</div>
+      <div class="vs-cmp"><span class="vs-v a${la?' lepsi':''}">${fmt(va,R.A)}</span>
+        <span class="vs-tr a"><i style="width:${w(qa)}%;background:${la?cA:'rgba(143,163,176,.35)'}"></i></span>
+        <span class="vs-tr"><i style="width:${w(qb)}%;background:${lb?cB:'rgba(143,163,176,.35)'}"></i></span>
+        <span class="vs-v${lb?' lepsi':''}">${fmt(vb,R.B)}</span></div></div>`;};
+  const id=x=>x, cel=x=>rt(x);
+  h+=`<div class="vs-h">Srovnání hráčů</div>
+    <div class="vym-hraci"><span style="color:${cA}">${vymEsc(R.A.Jmeno)}<small>${postTxt(R.A.Pozice)} · ${R.A.GP} ${sk(R.A.GP,'zápas','zápasy','zápasů')}${R.A.Kadr==='nehraje'?' · teď nehraje':''}</small></span>
+      <span style="color:${cB}">${vymEsc(R.B.Jmeno)}<small>${postTxt(R.B.Pozice)} · ${R.B.GP} ${sk(R.B.GP,'zápas','zápasy','zápasů')}${R.B.Kadr==='nehraje'?' · teď nehraje':''}</small></span></div>`;
+  if(R.A.Pozice!==R.B.Pozice) h+=`<div class="cmp-pozor">Pozor, porovnáváš <b>útočníka a obránce</b>. Skóre 0–100 je pořadí každého mezi hráči na jeho postu, takže řádky nejsou úplně srovnatelné.</div>`;
+  h+=radek('NHL Rating','celkem, 0–100 na postu',p=>p.Overall,cel,p=>p.Overall)+
+     radek('Výkon','rating bez minut a důvěry trenéra',p=>p.Vykon,cel,p=>p.Vykon)+
+     radek('Body','góly + asistence',p=>p.Body/Math.max(1,p.GP),(v,p)=>`${p.G}+${p.A}`)+
+     radek('Body na 60 minut','',p=>p.P60,v=>f2(v))+
+     radek('Čas na ledě','na zápas',p=>p.TOI_GP,v=>mmss(v))+
+     radek('Přesilovka','minuty na zápas',p=>p.PP_TOI_GP,v=>mmss(v))+
+     radek('Oslabení','minuty na zápas',p=>p.SH_TOI_GP,v=>mmss(v))+
+     radek('Bloky a hity','na zápas',p=>p.Bloky_zg+p.Hity_zg,v=>f1(v))+
+     radek('+/− proti týmu','',p=>p.PM_rel,v=>vymZn(v));
+  h+=`<div class="vs-h">Stránky hry <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-faint)">(0–100 = kolik procent hráčů na stejném postu je horších)</small></div>`+
+     VYM_SUBS.map(([k,l])=>radek(l,'',p=>p.subs[k],cel,p=>p.subs[k])).join('');
+  h+=`<div class="vs-h">Jak hráč sedí na potřeby týmu <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-faint)">(Fit jako v Trade Help)</small></div>`+
+     [R.TA,R.TB].map(T=>{const g=vymTym(T).potreby, lam=vymLambda(T), top=VYM_OBL.filter(k=>nv(g[k],0)>0.02).sort((x,y)=>g[y]-g[x]).map(k=>VYM_OBL_NAZ[k]);
+       const pop=lam<0.1||!top.length?'skoro bez slabin proti Top 4 — Fit tu skoro neváží':'potřebuje '+spoj(top.slice(0,2))+(lam<0.5?' (slabiny malé, Fit váží méně)':'');
+       return radek(vymEsc(T), pop,p=>vymFit(p,T),cel,p=>vymFit(p,T));}).join('');
+  // jak to počítáme + poctivá poznámka
+  h+=`<details class="vs-det vym-det"><summary>Jak to počítáme</summary><div class="vs-det-sub">
+    <p><b>Výkon</b> = NHL Rating bez Důvěry trenéra (bez minut a počtu střídání) — pořadí mezi hráči na stejném postu, 0–100.</p>
+    <p><b>Fit</b> = jak silné stránky hráče sedí na to, co týmu chybí do úrovně Top 4 (4. nejlepší tým ligy) v přesilovce, oslabení, útoku 5 na 5 a bránění střelám. Stejný výpočet jako Trade Help v záložce Kádr. Kde je tým aspoň na úrovni Top 4, ta oblast se nepočítá.</p>
+    <p><b>Zisk týmu</b> = rozdíl Výkonu a rozdíl Fit dohromady (hráč, který přichází, minus hráč, který odchází). Týmu, kterému do úrovně Top 4 chybí aspoň ${f1(VYM_G0)} gólu na zápas (součet všech čtyř oblastí), se počítají půl na půl. Komu chybí míň, tomu Fit váží úměrně méně a rozhoduje hlavně výkon — týmu skoro bez slabin nepomůže hráč „do slabiny“, kterou nemá. ✅ od +${VYM_ZISK}, ⚠️ od −${VYM_ZISK}, mezi tím ⚖️.</p>
+    <p><b>Procenta</b> = rozdíl zisků obou týmů převedený na podíl: 50 : 50 je vyrovnaná výměna, rozdíl 10 bodů dá zhruba 58 : 42, rozdíl 30 bodů 73 : 27. Do 45 : 55 píšeme „vyrovnaná“, od 65 : 35 „výrazně líp“. Líp z výměny může vycházet i tým, který si sám nepolepší — stačí, že druhý tým tratí víc.</p>
+    <p><b>Jistota</b> podle počtu zápasů méně vytíženého hráče: do 15 nízká, do 30 střední.</p></div></details>`;
+  h+=`<div class="vs-pozn vym-pozn"><b>Co čísla nevidí:</b> hráč přichází z jiné role, s jinými spoluhráči a trenérem — u nového týmu může hrát víc, míň nebo jinak. Nevidíme smlouvy, zranění, šatnu ani to, jak dobře hráč hrál v oslabení (góly na ledě ve speciálních formacích nemáme, skóre oslabení stojí hlavně na minutách). Podíly na čase přesilovek a oslabení jsou z čísel na zápas, ve kterých hráč nastoupil.${(+VYM.odehrano||99)<=(+VYM.maly_vzorek_do||10)?' Po pár kolech je v číslech hodně náhody.':''}</div>`;
+  body.innerHTML=h;
+}
+
 
 init();
 </script>

@@ -172,6 +172,8 @@
     .vs-pozn{font-size:11px;color:var(--text-faint);margin-top:14px;line-height:1.5;}
     .vs-link{display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:var(--teal-light);text-decoration:none;}
     .vs-link:hover{text-decoration:underline;}
+    /* (28. 10.) odkazy pod Predikcí: Souboj + 🎮 Co kdyby na Playoff */
+    .pred-odkazy{display:flex;flex-wrap:wrap;gap:0 20px;}
     @media (max-width:420px){ .vs-pct{font-size:24px;} .vs-logo{width:52px;height:52px;} .vs-cmp{grid-template-columns:56px minmax(0,1fr) minmax(0,1fr) 56px;} .vs-v{font-size:12px;} }
     /* Výsledky — seznam zápasů s rozklikem (4. 10.) */
     .m-list{display:flex;flex-direction:column;gap:6px;}
@@ -212,6 +214,23 @@
     .d-h2h{margin-top:10px;color:var(--text-dim);font-size:12.5px;line-height:1.55;}
     .d-h2h b{color:var(--text);font-family:var(--font-mono);}
     .d-pozn{color:var(--text-faint);font-size:12.5px;margin:4px 0;}
+    /* (26. 10.) zajímavosti zápasu — nahoře v rozkliku, pod štítky */
+    .d-zaj{background:rgba(42,139,139,.08);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;padding:7px 10px 6px;margin-bottom:10px;}
+    .d-zaj-h{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin-bottom:3px;}
+    .d-zaj-r{display:flex;gap:7px;align-items:baseline;margin:3px 0;font-size:12.5px;line-height:1.45;color:var(--text);}
+    .d-zaj-r .i{flex:0 0 auto;width:18px;text-align:center;}
+    /* (25. 10.) statistika zápasu v rozkliku: střely, bloky, hity, vhazování… (domácí vlevo, hosté vpravo) */
+    .d-st{margin:12px 0 2px;padding-top:10px;border-top:1px dashed rgba(42,139,139,.25);max-width:620px;}
+    .d-st-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;font-weight:600;margin-bottom:4px;}
+    .d-st-h .t{color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.6px;font-size:10px;white-space:nowrap;}
+    .d-st-r{display:grid;grid-template-columns:62px 1fr 62px;align-items:center;column-gap:8px;margin:7px 0;}
+    .d-st-r .v{font-family:var(--font-mono);font-weight:700;font-size:13px;color:var(--text);white-space:nowrap;}
+    .d-st-r .v.h{text-align:right;}
+    .d-st-r .l{font-size:11.5px;color:var(--text-dim);text-align:center;line-height:1.25;}
+    .d-st-bar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:3px;background:var(--slate-light);}
+    .d-st-bar i{display:block;height:100%;} .d-st-bar i:first-child{border-right:2px solid var(--slate);}
+    .d-st-t{font-size:12px;color:var(--text-dim);margin-top:7px;line-height:1.5;} .d-st-t b{color:var(--text);font-family:var(--font-mono);font-weight:700;} .d-st-t b.n{font-family:inherit;}
+    .d-st-p{font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.45;}
     /* forma týmu nad seznamem */
     .forma{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
     .fm-h{font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px;} .fm-h small{color:var(--text-faint);font-weight:400;}
@@ -320,13 +339,13 @@
 
     <div class="card">
       <div class="card-title">Bilance proti soupeřům</div>
-      <div class="card-sub">Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, červená = trápení. V popisku celkové skóre. Soupeři, se kterými se tým ještě nepotkal, jsou jen v tabulce pod grafem.</div>
+      <div class="card-sub" id="h2h-sub-graf">Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, žlutá = napůl, červená = trápení. V popisku celkové skóre.</div>
       <div class="chart-wrap-tall" id="c-h2h"></div>
     </div>
 
     <div class="card">
       <div class="card-title">Detailní přehled</div>
-      <div class="card-sub">Všichni soupeři včetně těch, se kterými se tým letos ještě nepotkal. V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra · Příště = další vzájemný zápas.</div>
+      <div class="card-sub" id="h2h-sub-tab">Bilance proti všem soupeřům. V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra · Příště = další vzájemný zápas.</div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Body</th><th>Úspěšnost</th><th>Příště</th></tr></thead>
         <tbody id="t-h2h"><tr><td colspan="10"><div class="empty">Vyber tým výše.</div></td></tr></tbody>
@@ -356,7 +375,10 @@
           <tbody id="pred-body"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
         </table>
       </div>
-      <a class="vs-link" href="#vs" id="pred-vs-link" style="display:none">🆚 Zkusit libovolnou dvojici týmů →</a>
+      <div class="pred-odkazy">
+        <a class="vs-link" href="#vs" id="pred-vs-link" style="display:none">🆚 Zkusit libovolnou dvojici týmů →</a>
+        <a class="vs-link" href="playoff.html#cokdyby" id="pred-ck-link" style="display:none">🎮 Co kdyby: nastav výsledky a uvidíš šance na playoff →</a>
+      </div>
     </div>
 
     <div class="card">
@@ -646,10 +668,53 @@ function tretinyHtml(z,g){
   if(ot) casti.push(OT[0]+OT[1]>0?`prodl. <b>${OT[0]}:${OT[1]}</b>`:`prodl. <b>0:0</b>${sn?' · nájezdy':''}`);
   return `<div class="d-tr">Třetiny: ${casti.join(' · ')}</div>`;
 }
+// (25. 10.) STATISTIKA ZÁPASU — zapasy_detail.json → st (build.R ze zapasy_statistiky.csv, blok „Statistika
+//   zápasu“ na hokej.cz). Dvojice [domácí, hosté]: s střely na branku, bl bloky (střely soupeře zblokované hráči
+//   týmu), hi hity, fo vyhraná vhazování, vy vyloučení, pp / sh góly v přesilovce / oslabení, tm trestné minuty,
+//   za zákroky brankářů, s3 střely po třetinách ("10-12-16"), div / kap diváci a kapacita, ok = zkontrolováno.
+//   Starší JSON bez st → blok se nevypíše.
+function statHtml(z,st){
+  if(!st||!Array.isArray(st.s)||st.s.length!==2) return '';
+  const cz=n=>Number(n).toLocaleString('cs-CZ');
+  const rad=(lab,v,tit)=>{
+    if(!Array.isArray(v)||v.length!==2) return '';
+    const a=+v[0], b=+v[1], sum=a+b, pa=sum>0?a/sum*100:50;
+    return `<div class="d-st-r"${tit?` title="${esc(tit)}"`:''}><span class="v">${a}</span><div class="l">${lab}`+
+      `<div class="d-st-bar"><i style="width:${pa.toFixed(1)}%;background:#3AADAD"></i><i style="width:${(100-pa).toFixed(1)}%;background:#5B9BD5"></i></div></div><span class="v h">${b}</span></div>`;
+  };
+  let h=`<div class="d-st"><div class="d-st-h"><span style="color:#3AADAD">${esc(z.Domaci)}</span><span class="t">Statistika zápasu</span><span style="color:#5B9BD5">${esc(z.Hoste)}</span></div>`;
+  h+=rad('Střely na branku',st.s);
+  h+=rad('Bloky',st.bl,'střely soupeře, které hráči týmu zblokovali');
+  h+=rad('Hity',st.hi);
+  h+=rad('Vyhraná vhazování',st.fo);
+  // úspěšnost brankářů = zákroky / střely soupeře na branku (gól do prázdné branky se nerozlišuje)
+  if(Array.isArray(st.za)&&st.za.length===2&&+st.s[0]>0&&+st.s[1]>0){
+    const u=[+st.za[0]/+st.s[1]*100, +st.za[1]/+st.s[0]*100];
+    h+=`<div class="d-st-r" title="zákroky brankářů / střely soupeře na branku"><span class="v">${c1(u[0])}&nbsp;%</span><div class="l">Úspěšnost brankářů</div><span class="v h">${c1(u[1])}&nbsp;%</span></div>`;
+  }
+  h+=rad('Vyloučení',st.vy);
+  h+=rad('Góly v přesilovce',st.pp);
+  if(Array.isArray(st.sh)&&(+st.sh[0])+(+st.sh[1])>0) h+=rad('Góly v oslabení',st.sh);
+  h+=rad('Trestné minuty',st.tm);
+  // střely po třetinách ve stejném tvaru jako „Třetiny:“ u gólů (domácí : hosté)
+  if(Array.isArray(st.s3)&&st.s3.length===2){
+    const d=String(st.s3[0]).split('-'), o=String(st.s3[1]).split('-');
+    if(d.length===o.length&&d.length>=3) h+=`<div class="d-st-t">Střely po třetinách: ${d.map((x,i)=>`${i>=3?'prodl. ':''}<b>${esc(x)}:${esc(o[i])}</b>`).join(' · ')}</div>`;
+  }
+  if(st.div!=null&&!isNaN(+st.div)){
+    const kap=st.kap!=null&&+st.kap>0?+st.kap:null, plno=kap!=null&&+st.div>=kap;
+    h+=`<div class="d-st-t">Diváci: <b class="n">${cz(st.div)}</b>${plno?' — vyprodáno':(kap?` z ${cz(kap)} (${Math.round(+st.div/kap*100)}&nbsp;%)`:'')}</div>`;
+  }
+  if(st.ok===false) h+=`<div class="d-st-p">Statistiky zápasu hokej.cz ještě kontroluje — čísla se můžou mírně změnit.</div>`;
+  return h+'</div>';
+}
 function detailHtml(z,x){
   const gd=+z.Goly_domaci, gh=+z.Goly_hoste, vitD=gd>gh, vit=vitD?z.Domaci:z.Hoste;
   let h='';
   if(x&&x.tag&&x.tag.length) h+=`<div class="d-tags">${x.tag.map(t=>`<span class="d-tag">${t.ic} ${esc(t.t)}</span>`).join('')}</div>`;
+  // (26. 10.) Zajímavosti zápasu — nejvýš 3 věty z build.R (zapasy_detail.json → zaj); bez nich box není
+  if(x&&Array.isArray(x.zaj)&&x.zaj.length)
+    h+=`<div class="d-zaj"><div class="d-zaj-h">Zajímavosti zápasu</div>${x.zaj.map(o=>`<div class="d-zaj-r"><span class="i">${esc(o.ic)}</span><span>${esc(o.t)}</span></div>`).join('')}</div>`;
   // tip modelu
   if(x&&x.tip&&x.tip.pd!=null&&x.tip.ph!=null){
     const pd=+x.tip.pd, ph=+x.tip.ph, vyr=Math.abs(pd-ph)<6, favD=pd>=ph;
@@ -671,6 +736,7 @@ function detailHtml(z,x){
       const jm=o.sit==='SN'?(i===posledniSN?`rozhodl ${esc(o.st)}`:esc(o.st)):`${esc(o.st)}${as.length?` <small>(${as.map(esc).join(', ')})</small>`:''}`;
       return `<div class="g-row ${o.k==='D'?'gd':'gh'}"><span class="g-t">${esc(kdy)}</span><span class="g-s">${esc(o.s)}</span><span class="g-n">${jm}</span>${sitLabel(o)}</div>`;}).join('')+'</div>';
   } else h+=`<div class="d-pozn">Gólový detail k tomuhle zápasu zatím není.</div>`;
+  h+=statHtml(z,x&&x.st);   // (25. 10.)
   // letošní vzájemné zápasy
   const dalsi=seradZapasy(VYS.filter(o=>o!==z&&((o.Domaci===z.Domaci&&o.Hoste===z.Hoste)||(o.Domaci===z.Hoste&&o.Hoste===z.Domaci))),false);
   if(dalsi.length){
@@ -973,6 +1039,11 @@ function drawH2H(){
   const nepotkani=vsichni.filter(t=>!potkani.has(t)).sort((a,b)=>{
     const da=den(((H2H.pristi||[]).find(x=>x.Tym===h2hTym&&x.Souper===a)||{}).Datum), db=den(((H2H.pristi||[]).find(x=>x.Tym===h2hTym&&x.Souper===b)||{}).Datum);
     return (isNaN(da)?Infinity:da)-(isNaN(db)?Infinity:db)||a.localeCompare(b,'cs');});
+  // (25. 10.) věta o soupeřích, se kterými se tým ještě nepotkal, jen když takoví jsou (od 2. čtvrtiny už ne)
+  const LEG='V = výhra · VP = výhra v prodloužení · PP = prohra v prodloužení · P = prohra · Příště = další vzájemný zápas.';
+  document.getElementById('h2h-sub-graf').textContent='Získané body ze vzájemných zápasů v procentech možného zisku. Zelená = daří se, žlutá = napůl, červená = trápení. V popisku celkové skóre.'+
+    (nepotkani.length?' Soupeři, se kterými se tým ještě nepotkal, jsou jen v tabulce pod grafem.':'');
+  document.getElementById('h2h-sub-tab').textContent=(nepotkani.length?'Všichni soupeři včetně těch, se kterými se tým letos ještě nepotkal. ':'Bilance proti všem soupeřům. ')+LEG;
   if(!rows.length) emptyBox('c-h2h','Tento tým zatím nikoho nepotkal.');
   else {
   const y=rows.map(r=>r.Souper);
@@ -1030,6 +1101,8 @@ function renderPredikce(){
   if(!PRED){ [['pred-body',6],['hist-body',7]].forEach(([id,n])=>document.getElementById(id).innerHTML=`<tr><td colspan="${n}"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>`); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Zatím bez dat.</div>'; return; }
   renderPredTable(); buildBreakdownSelect(); renderBreakdown(); renderAccuracy();
   nactiVersus().then(()=>{ if(VS) document.getElementById('pred-vs-link').style.display='inline-block'; });
+  // (28. 10.) odkaz na 🎮 Co kdyby (Playoff) jen když build.R vyrobil cokdyby.json — starší build ho nemá
+  fetch(DATA+'cokdyby.json',{method:'HEAD'}).then(r=>{ if(r.ok) document.getElementById('pred-ck-link').style.display='inline-block'; }).catch(()=>{});
 }
 function renderPredTable(){
   const nr=PRED.next_round||[];

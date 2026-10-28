@@ -164,6 +164,65 @@
     .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
     footer a{color:var(--teal-light);text-decoration:none;}
+    /* (28. 10.) 🎮 CO KDYBY — vlastní výsledky zbývajících zápasů → šance */
+    #cokdyby{scroll-margin-top:78px;}
+    .ck-odkaz{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:var(--teal-light);text-decoration:none;}
+    .ck-odkaz:hover{text-decoration:underline;}
+    .ck-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-bottom:12px;}
+    .ck-top .chips{margin-bottom:0;align-items:center;}
+    .ck-top select{background:var(--slate);color:var(--text);border:1px solid var(--teal-dim);border-radius:16px;padding:5px 10px;font-family:var(--font-main);font-size:12.5px;font-weight:600;max-width:170px;}
+    .ck-stav{font-size:12px;color:var(--text-dim);display:flex;align-items:center;gap:6px;}
+    .ck-stav b{color:var(--gold);font-family:var(--font-mono);}
+    .ck-reset{background:none;border:1px solid var(--border);border-radius:14px;color:var(--text-dim);font-family:var(--font-main);font-size:11.5px;font-weight:600;padding:3px 9px;cursor:pointer;}
+    .ck-reset:hover{color:var(--text);border-color:var(--teal-dim);}
+    .ck-grid{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:20px;align-items:start;}
+    @media (min-width:861px) and (min-height:760px){ .ck-vys{position:sticky;top:80px;} }
+    @media (max-width:860px){ .ck-grid{grid-template-columns:1fr;gap:14px;} }
+    .ck-blok+.ck-blok{margin-top:14px;}
+    .ck-blok-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;font-weight:700;color:var(--gold);padding-bottom:4px;}
+    .ck-blok-h small{font-size:11px;font-weight:400;color:var(--text-faint);font-family:var(--font-mono);white-space:nowrap;}
+    .ck-tym-h{font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;}
+    .ck-tym-h small{display:block;font-weight:400;color:var(--text-dim);font-size:12px;}
+    .ck-rychle{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+    .ck-rychle button{background:var(--slate);border:1px solid var(--border);border-radius:14px;color:var(--text-dim);font-family:var(--font-main);font-size:12px;font-weight:600;padding:5px 10px;cursor:pointer;}
+    .ck-rychle button:hover{color:var(--text);border-color:var(--teal-dim);}
+    .ck-z{padding:8px 0 9px;border-top:1px solid rgba(42,139,139,.12);}
+    .ck-meta{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-faint);margin-bottom:5px;}
+    .ck-meta span:last-child{font-family:var(--font-mono);white-space:nowrap;}
+    .ck-btns{display:grid;grid-template-columns:minmax(0,1fr) 50px 36px 50px minmax(0,1fr);gap:4px;}
+    .ck-b{background:var(--slate);border:1px solid var(--border);border-radius:7px;color:var(--text-dim);font-family:var(--font-main);font-size:12px;font-weight:600;line-height:1.15;padding:6px 4px;min-height:34px;cursor:pointer;transition:background .12s,border-color .12s,color .12s,opacity .12s;}
+    .ck-b:hover{border-color:var(--teal-dim);color:var(--text);}
+    .ck-b.tm{color:var(--text);overflow-wrap:anywhere;}
+    .ck-b.tm.muj{color:var(--gold);}
+    .ck-b.pr{font-size:10.5px;font-weight:500;padding:6px 2px;}
+    .ck-b.md{font-size:14px;padding:4px 0;}
+    .ck-b.on,.ck-b.tm.muj.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .ck-b.md.on{background:var(--slate-light);border-color:var(--text-faint);}
+    .ck-b.cast{border-color:var(--teal-light);color:var(--teal-light);}
+    .ck-b.prohra{opacity:.45;}
+    .ck-dalsi{display:block;width:100%;margin-top:12px;background:rgba(42,139,139,.10);border:1px dashed var(--teal-dim);border-radius:8px;color:var(--teal-light);font-family:var(--font-main);font-size:13px;font-weight:600;padding:9px;cursor:pointer;}
+    .ck-dalsi small{font-weight:400;color:var(--text-dim);margin-left:4px;}
+    .ck-dalsi:hover{background:rgba(42,139,139,.18);}
+    .ck-shrnuti{font-size:13px;line-height:1.5;color:var(--text);margin-bottom:10px;min-height:20px;}
+    .ck-shrnuti div+div{margin-top:3px;}
+    .ck-shrnuti .ck-nic{color:var(--text-dim);font-size:12.5px;}
+    .ck-pocitam{display:inline-flex;align-items:center;gap:8px;color:var(--text-dim);font-size:12.5px;}
+    .tbl.ck-tbl{min-width:0;font-size:12px;}
+    .ck-tbl th,.ck-tbl td{padding:5px 4px;vertical-align:top;}
+    .ck-tbl td{color:var(--text);}
+    .ck-tbl td small{display:block;font-size:10px;line-height:1.25;color:var(--text-faint);font-weight:400;}
+    .ck-tbl td:nth-child(2) small{font-family:var(--font-mono);}
+    .ck-tbl .ck-up{color:var(--win);} .ck-tbl .ck-dn{color:var(--loss);}
+    .ck-tbl small.ck-up,.ck-tbl small.ck-dn{font-weight:600;}
+    .ck-tbl b.ck-up{font-weight:600;}
+    .ck-tbl .ck-br{color:var(--loss);font-weight:600;}
+    .ck-tbl tr.ck-moje td{background:rgba(212,168,67,.10);}
+    .ck-tbl tr.ck-moje td:nth-child(2){color:var(--gold);}
+    .ck-vys.pocita .ck-tbl{opacity:.45;transition:opacity .1s;}
+    .ck-shrnuti b.ck-up{color:var(--win);} .ck-shrnuti b.ck-dn{color:var(--loss);}
+    .ck-pozn{font-size:11.5px;line-height:1.45;color:var(--text-dim);margin-top:10px;}
+    .ck-pozn b{color:var(--text);font-weight:600;}
+    @media (max-width:400px){ .ck-b{font-size:11.5px;} .ck-btns{grid-template-columns:minmax(0,1fr) 46px 34px 46px minmax(0,1fr);} }
   </style>
 </head>
 <body>
@@ -209,6 +268,7 @@
       <span><i style="background:#D6605B"></i> Baráž (14.)</span>
     </div>
     <div class="chart-wrap-tall" id="c-prob"></div>
+    <a class="ck-odkaz" id="ck-odkaz" href="#cokdyby" style="display:none">🎮 Co kdyby: zkus si vlastní výsledky zápasů ↓</a>
   </div>
 
   <div class="card">
@@ -219,6 +279,28 @@
         <thead><tr><th>#</th><th>Tým</th><th>Body</th><th>Playoff</th><th>Top 4</th><th>Baráž</th><th>Odhad b.</th><th>Na playoff potřebuje</th><th>Odehr.</th><th>Zbývá</th></tr></thead>
         <tbody id="t-prob"><tr><td colspan="10"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- (28. 10.) 🎮 CO KDYBY: zadej výsledky zbývajících zápasů a šance se přepočítají (cokdyby.json z build.R; bez něj karta zůstane skrytá).
+       Odkazy sem: playoff.html#cokdyby (Zápasy → Predikce) a playoff.html#cokdyby=Tým (GM mód → Výhled, otevře zápasy týmu). -->
+  <div class="card" id="cokdyby" style="display:none">
+    <div class="card-title">🎮 Co kdyby — nastav výsledky a uvidíš šance</div>
+    <div class="card-sub" id="ck-sub"></div>
+    <div class="ck-top">
+      <div class="chips" id="ck-mod"></div>
+      <div class="ck-stav" id="ck-stav"></div>
+    </div>
+    <div class="ck-grid">
+      <div id="ck-zapasy"></div>
+      <div class="ck-vys" id="ck-vys">
+        <div class="ck-shrnuti" id="ck-shrnuti"></div>
+        <table class="tbl ck-tbl">
+          <thead><tr><th>#</th><th>Tým</th><th>Playoff</th><th>Top 4</th><th>Baráž</th><th>Odhad</th></tr></thead>
+          <tbody id="ck-tab"></tbody>
+        </table>
+        <div class="ck-pozn" id="ck-pozn"></div>
+      </div>
     </div>
   </div>
 
@@ -298,6 +380,7 @@ async function init(){
     // (19. 10.) popis simulace podle toho, čím počítá sílu (playoff.json info.sila); starší JSON = původní text
     if(pl.info&&pl.info.sila==='elo') document.getElementById('sub-prob').innerHTML='20 000 simulací zbývajících zápasů. Síla týmu = <b>Elo</b>: start z minulé sezóny a letošní výsledky, doma se počítá s výhodou domácího ledu. Protože sílu nikdo nezná přesně, simulace ji v každém běhu losuje kolem odhadu. <b>✓</b> = matematicky jisté (i kdyby tým už všechno prohrál), <b>✗</b> = matematicky ztracené. 100 % a 0 % jen při jistotě.';
     if(pl.info&&pl.info.sila==='elo'&&!document.querySelector('#sub-prob + .elo-info')) document.getElementById('sub-prob').insertAdjacentHTML('afterend',eloInfoHTML());
+    ckInit();   // (28. 10.) 🎮 Co kdyby — vlastní chyby si hlídá sám, zbytek stránky neshodí
   }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+esc(e.message)+'</div>';}
 }
 
@@ -599,6 +682,294 @@ function renderHistorie(){
     if(D&&D.playoff!=null&&D.zakladni!=null) h+=`<div class="hist-txt">Domácí v playoff vyhráli <b>${pc(D.playoff*100)} %</b> zápasů (z ${D.playoff_n}), v základní části ${pc(D.zakladni*100)} %.</div>`;
     document.getElementById('hist-serie').innerHTML=h;
   } else sb.style.display='none';
+}
+
+/* ══ (28. 10.) 🎮 CO KDYBY — výpočet ════════════════════════════════════════
+   Stejný model jako simulace v build.R (sim_sezona): síla z Elo + N(0, elo_sd) losovaná
+   v každém běhu, šance domácích 1 / (1 + 10^(−(Elo dom − Elo host + domácí led) / 400)),
+   prodloužení v p_ot zápasů (vítěz 2 body, poražený 1), při shodě bodů los.
+   Bez Elo (model.sila = "body"): tlumený podíl bodů ± nejistota jako postaru.
+   Zadaný výsledek se použije místo losu; náhodná čísla se přesto vytáhnou, aby výpočet
+   "dnes" a "s tvými výsledky" běžel se STEJNÝMI náhodnými čísly — rozdíl pak není šum. */
+// náhodná čísla (mulberry32): stav v Int32Array a obyčejná funkce místo closure — prohlížeč ji
+//   pak drží zoptimalizovanou i při dalších výpočtech (s closure byl každý další výpočet 2× pomalejší)
+function ckR(st){ const a=st[0]=st[0]+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }
+// fix: pole délky počtu zápasů, '' = nech na modelu, 'D' / 'DP' / 'HP' / 'H'
+function ckSim(C, fix, N){
+  const T=C.tymy, nT=T.length, Z=C.zapasy, G=Z.length, M=C.model||{};
+  const ix={}; T.forEach((t,i)=>ix[t.Tym]=i);
+  const di=new Int32Array(G), hi=new Int32Array(G), fx=new Int8Array(G);   // 0 = model, 1 D, 2 DP, 3 HP, 4 H
+  const KOD={D:1,DP:2,HP:3,H:4};
+  Z.forEach((z,g)=>{ di[g]=ix[z.D]; hi[g]=ix[z.H]; fx[g]=KOD[fix&&fix[g]]||0; });
+  const elo=M.sila==='elo'&&T.every(t=>t.Elo!=null&&isFinite(+t.Elo));
+  const B=T.map(t=>+t.B), Zt=T.map(t=>+t.Z);
+  let mu, sd;
+  if(elo){ mu=T.map(t=>+t.Elo); sd=T.map(()=>+M.elo_sd||0); }
+  else { const K=+M.sim_k||30, tau2=+M.sim_tau2||0.007, sB=B.reduce((a,b)=>a+b,0), sZ=Zt.reduce((a,b)=>a+b,0)*3, sl=sB/Math.max(sZ,1);
+    mu=B.map((b,i)=>sl+(b/Math.max(Zt[i]*3,1)-sl)*Zt[i]/(Zt[i]+K)); sd=Zt.map(z=>Math.sqrt(tau2*K/(z+K))); }
+  const doma=+M.elo_doma||0, pot=+M.p_ot||0.2, LN=elo?Math.LN10/400:4;
+  // šance domácích 1/(1+e^(−(Sd−Sh+doma)·LN)) = Ed·Dm / (Ed·Dm + Eh), kde E = e^((S − střed)·LN):
+  //   exponenciála jednou na tým a simulaci, ne u každého zápasu (stejné číslo, rychlejší)
+  const stred=mu.reduce((a,b)=>a+b,0)/nT, Dm=elo?Math.exp(doma*LN):1;
+  const RS=new Int32Array([20261028]), S=new Float64Array(nT), E=new Float64Array(nT), ED=new Float64Array(nT), P=new Float64Array(nT), Q=new Float64Array(nT);
+  const c4=new Float64Array(nT), c12=new Float64Array(nT), c13=new Float64Array(nT), sP=new Float64Array(nT), sR=new Float64Array(nT);
+  for(let s=0;s<N;s++){
+    for(let i=0;i<nT;i+=2){ const u1=ckR(RS)||1e-12, u2=ckR(RS), R=Math.sqrt(-2*Math.log(u1));
+      S[i]=mu[i]+sd[i]*R*Math.cos(2*Math.PI*u2); if(i+1<nT) S[i+1]=mu[i+1]+sd[i+1]*R*Math.sin(2*Math.PI*u2); }
+    for(let i=0;i<nT;i++){ P[i]=B[i]; E[i]=Math.exp((S[i]-stred)*LN); ED[i]=E[i]*Dm; }
+    for(let g=0;g<G;g++){
+      const a=di[g], b=hi[g], uv=ckR(RS), uo=ckR(RS); let v, ot;
+      if(fx[g]){ v=fx[g]<=2; ot=fx[g]===2||fx[g]===3; }
+      else { v=uv<ED[a]/(ED[a]+E[b]); ot=uo<pot; }
+      if(v){ P[a]+=ot?2:3; P[b]+=ot?1:0; } else { P[a]+=ot?1:0; P[b]+=ot?2:3; }
+    }
+    for(let i=0;i<nT;i++) Q[i]=P[i]+ckR(RS)*0.5;
+    for(let i=0;i<nT;i++){ let rk=1; for(let j=0;j<nT;j++) if(Q[j]>Q[i]) rk++;
+      if(rk<=4) c4[i]++; if(rk<=12) c12[i]++; if(rk<=13) c13[i]++; sP[i]+=P[i]; sR[i]+=rk; }
+  }
+  return {N,c4,c12,c13,sP,sR};
+}
+// body ze zadaných zápasů a matice zbývajících (nezadaných) vzájemných zápasů
+function ckStav(C, fix){
+  const T=C.tymy, nT=T.length, ix={}; T.forEach((t,i)=>ix[t.Tym]=i);
+  const B=T.map(t=>+t.B), Nm=Array.from({length:nT},()=>new Array(nT).fill(0));
+  C.zapasy.forEach((z,g)=>{ const a=ix[z.D], b=ix[z.H], f=fix&&fix[g];
+    if(f==='D'){B[a]+=3;} else if(f==='DP'){B[a]+=2;B[b]+=1;} else if(f==='HP'){B[a]+=1;B[b]+=2;} else if(f==='H'){B[b]+=3;}
+    else { Nm[a][b]++; Nm[b][a]++; } });
+  return {B,N:Nm};
+}
+/* MATEMATICKÁ JISTOTA — převod jiste_top / venku_z_top z build.R (Hallova podmínka přes
+   podmnožiny). Shody bodů vždy v neprospěch závěru: "jistě" znamená jistě. */
+function ckKombinace(n,k,f){ const c=[]; const rec=(st)=>{ if(c.length===k){ return f(c); } for(let i=st;i<=n-(k-c.length);i++){ c.push(i); if(rec(i+1)) return true; c.pop(); } return false; }; return rec(0); }
+function ckLzeDosahnout(need,A,NO){            // mohou týmy A všechny získat potřebné body?
+  A=A.filter(i=>need[i]>0); if(!A.length) return true;
+  const n=NO.length; let tot=0; for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) tot+=NO[i][j];
+  const inA=new Array(n).fill(false);
+  for(let m=1;m<(1<<A.length);m++){
+    inA.fill(false); let sn=0; A.forEach((t,q)=>{ if(m>>q&1){ inA[t]=true; sn+=need[t]; } });
+    let out=0; for(let i=0;i<n;i++){ if(inA[i]) continue; for(let j=i+1;j<n;j++) if(!inA[j]) out+=NO[i][j]; }
+    if(sn>3*(tot-out)+1e-9) return false;
+  }
+  return true;
+}
+function ckVejdeSe(cap,NC){                     // vejdou se body ze zápasů uvnitř C do kapacit?
+  const n=cap.length; if(n<2) return true; let any=false; for(let i=0;i<n;i++) for(let j=0;j<n;j++) if(NC[i][j]) any=true; if(!any) return true;
+  for(let m=1;m<(1<<n);m++){ let c=0, g=0; for(let i=0;i<n;i++) if(m>>i&1){ c+=cap[i]; for(let j=i+1;j<n;j++) if(m>>j&1) g+=NC[i][j]; }
+    if(3*g>c+1e-9) return false; }
+  return true;
+}
+function ckJisteTop(k,ti,B,N){
+  const nT=B.length; if(k>=nT) return true;
+  const O=[]; for(let i=0;i<nT;i++) if(i!==ti) O.push(i);
+  const NO=O.map(a=>O.map(b=>N[a][b])), need=O.map(a=>Math.max(0,B[ti]-(B[a]+3*N[a][ti])));
+  return !ckKombinace(O.length,k,A=>ckLzeDosahnout(need,A.slice(),NO));
+}
+function ckVenkuZTop(k,ti,B,N){
+  const nT=B.length; if(k>=nT) return false;
+  const O=[]; for(let i=0;i<nT;i++) if(i!==ti) O.push(i);
+  const NO=O.map(a=>O.map(b=>N[a][b])); const zb=N[ti].reduce((x,y)=>x+y,0);
+  const cap=O.map(a=>B[ti]+3*zb-B[a]); const kand=[]; cap.forEach((c,q)=>{ if(c>=0) kand.push(q); });
+  const cs=nT-k; if(kand.length<cs) return true;
+  return !ckKombinace(kand.length,cs,cc=>{ const C=cc.map(q=>kand[q]); return ckVejdeSe(C.map(q=>cap[q]),C.map(a=>C.map(b=>NO[a][b]))); });
+}
+
+/* ══ (28. 10.) 🎮 CO KDYBY — karta ══════════════════════════════════════════
+   Data: cokdyby.json z build.R — týmy (body, zápasy, Elo), zbývající zápasy se šancí domácích
+   podle simulace a bloky = kola v pořadí, jak přijdou (stejný výběr příštího kola jako Predikce).
+   Zobrazená šance = šance z tabulky výš (playoff.json, 20 000 simulací) + změna, kterou zadané
+   výsledky udělají v simulaci se STEJNÝMI náhodnými čísly (dnešek i tvůj scénář po 10 000 bězích),
+   takže změna je dopad tvých výsledků, ne šum. 100 % a 0 % jen při matematické jistotě
+   (ckJisteTop / ckVenkuZTop = stejný výpočet jako jiste_top / venku_z_top v build.R).
+   Bez cokdyby.json, nebo když nesedí body či zápasy s playoff.json, zůstane karta skrytá. */
+let CK=null, CKfix=[], CKbase=null, CKsc=null, CKmod='kola', CKbloku=1, CKtym='', CKtymN=10, CKtimer=null;
+const CKix={}, CKidx={};
+const ckN=()=>Math.max(1000,Math.min(20000,Math.round(+CK.n_sim)||10000));
+const ckPl=(n,a,b,c)=>n===1?a:(n>=2&&n<=4?b:c);
+const ckDen=s=>{const d=den(s);return d?`${DNY[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}.`:esc(s||'');};
+const ckZnam=x=>(x>0?'+':'−')+pc(Math.abs(x));
+const tisice=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const ckSpoj=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' a '+a[a.length-1];
+
+function ckPlatne(C){
+  if(!C||!Array.isArray(C.tymy)||!Array.isArray(C.zapasy)||!Array.isArray(C.bloky)){console.warn('Co kdyby: cokdyby.json nemá očekávaný tvar — karta skrytá.');return false;}
+  if(!C.zapasy.length){console.warn('Co kdyby: žádné zbývající zápasy — karta skrytá.');return false;}
+  const pub={}; PL.sim.forEach(r=>pub[r.Tym]=r);
+  const nesedi=C.tymy.filter(t=>!pub[t.Tym]||+pub[t.Tym].Body!==+t.B||+pub[t.Tym].Zapasy!==+t.Z);
+  if(nesedi.length||C.tymy.length!==PL.sim.length){console.warn('Co kdyby: cokdyby.json nesedí s playoff.json (jiný build?) — karta skrytá.',nesedi.map(t=>t.Tym).join(', '));return false;}
+  const jm=new Set(C.tymy.map(t=>t.Tym));
+  if(!C.zapasy.every(z=>jm.has(z.D)&&jm.has(z.H))){console.warn('Co kdyby: zápas s neznámým týmem — karta skrytá.');return false;}
+  return true;
+}
+
+async function ckInit(){
+  const card=document.getElementById('cokdyby');
+  try{
+    const C=await loadJSON('cokdyby.json').catch(()=>null);
+    if(!C){console.warn('cokdyby.json chybí — karta Co kdyby zůstane skrytá (starší build.R).');return;}
+    if(!ckPlatne(C)) return;
+    CK=C; CKfix=C.zapasy.map(()=> '');
+    C.tymy.forEach((t,i)=>CKix[t.Tym]=i); C.zapasy.forEach((z,g)=>CKidx[String(z.ID)]=g);
+    // výchozí tým pro "Zápasy týmu": ten, jehož šance na playoff je nejvíc otevřená
+    const ot=[...SIM].filter(r=>!jeTrue(r.Jiste_playoff)&&!jeTrue(r.Venku_playoff)).sort((a,b)=>Math.abs(a.Playoff_pct-50)-Math.abs(b.Playoff_pct-50));
+    CKtym=(ot[0]||SIM[0]).Tym;
+    const elo=C.model&&C.model.sila==='elo';
+    document.getElementById('ck-sub').innerHTML='Klepni, jak zápas dopadne: <b>jméno týmu</b> = výhra v základní hrací době, <b>prodl.</b> = v prodloužení nebo na nájezdy, <b>🎲</b> = nechat na simulaci. '+
+      'Tabulka hned přepočítá šance stejným modelem jako grafy výš; zápasy, které nezadáš, dál losuje simulace.';
+    document.getElementById('ck-pozn').innerHTML='Šance v %, pod číslem změna proti dnešku (v procentních bodech). <b>✓</b> = s tvými výsledky matematicky jisté, <b>✗</b> = matematicky ztracené. '+
+      '<b>Odhad</b> = průměrný počet bodů na konci základní části, pod týmem body teď (+ z tvých výsledků). '+
+      `Čísla u zápasu = šance domácích : hostů podle simulace (${elo?'Elo a domácí led':'dosavadní body'}); Predikce na Zápasech počítá s víc faktory, proto se může lišit. `+
+      `Dnešek i tvůj scénář počítá ${tisice(ckN())} simulací se stejnými náhodnými čísly, takže změna ukazuje dopad tvých výsledků, ne náhodu.`;
+    card.addEventListener('click',ckKlik);
+    card.addEventListener('change',e=>{ if(e.target&&e.target.id==='ck-tym'){ CKtym=e.target.value; CKtymN=10; ckRender(); ckVysledky(); } });
+    card.style.display=''; document.getElementById('ck-odkaz').style.display='inline-block';
+    ckRender(); ckVysledky(); ckZHashe();
+    // dnešní stav (výchozí simulace) se spočítá dopředu, když je karta vidět a prohlížeč nic nedělá,
+    //   aby první klepnutí nečekalo na dva výpočty
+    const predem=()=>{ if(!CKbase){ try{ CKbase=ckSim(CK,null,ckN()); }catch(_){} } };
+    const vKlidu=f=>window.requestIdleCallback?requestIdleCallback(f,{timeout:2000}):setTimeout(f,600);
+    if('IntersectionObserver' in window){ const io=new IntersectionObserver(en=>{ if(en.some(x=>x.isIntersecting)){ io.disconnect(); vKlidu(predem); } }); io.observe(card); }
+    else vKlidu(predem);
+  }catch(e){console.error('Co kdyby:',e); card.style.display='none'; document.getElementById('ck-odkaz').style.display='none';}
+}
+// playoff.html#cokdyby → sjet na kartu; #cokdyby=Tým → navíc otevřít zápasy toho týmu
+function ckZHashe(){
+  let h=''; try{ h=decodeURIComponent(location.hash||''); }catch(_){ h=location.hash||''; }
+  if(!/^#cokdyby(=|$)/.test(h)) return;
+  const t=h.slice('#cokdyby='.length);
+  if(t&&CKix[t]!=null){ CKmod='tym'; CKtym=t; CKtymN=10; ckRender(); ckVysledky(); }
+  setTimeout(()=>document.getElementById('cokdyby').scrollIntoView({block:'start'}),80);
+}
+window.addEventListener('hashchange',()=>{ if(CK) ckZHashe(); });
+
+function ckKlik(e){
+  const b=e.target.closest('button'); if(!b) return;
+  const d=b.dataset;
+  if(d.g!=null){ const g=+d.g, v=d.v||''; CKfix[g]=(v===''||CKfix[g]===v)?'':v; ckRender(); ckPrepocti(); return; }
+  if(d.m){ if(d.m!==CKmod){ CKmod=d.m; ckRender(); ckVysledky(); } return; }
+  const q=d.q;
+  if(q==='K'){ CKbloku=Math.min(CK.bloky.length,CKbloku+1); ckRender(); return; }
+  if(q==='N'){ CKtymN+=10; ckRender(); return; }
+  if(q==='X'){ CKfix=CKfix.map(()=> ''); ckRender(); ckPrepocti(); return; }
+  if(q==='W'||q==='L'||q==='R'){
+    CK.zapasy.forEach((z,g)=>{ if(z.D!==CKtym&&z.H!==CKtym) return; CKfix[g]=q==='R'?'':((q==='W')===(z.D===CKtym)?'D':'H'); });
+    ckRender(); ckPrepocti();
+  }
+}
+
+function ckRender(){
+  const n=CKfix.filter(Boolean).length;
+  document.getElementById('ck-mod').innerHTML=[['kola','📅 Podle kol'],['tym','🏒 Zápasy týmu']].map(([k,l])=>`<button class="chip${CKmod===k?' active':''}" data-m="${k}" type="button">${l}</button>`).join('')+
+    (CKmod==='tym'?`<select id="ck-tym" aria-label="Tým">${SIM.map(r=>`<option value="${esc(r.Tym)}"${r.Tym===CKtym?' selected':''}>${esc(r.Tym)}</option>`).join('')}</select>`:'');
+  document.getElementById('ck-stav').innerHTML=n?`<span>Zadáno: <b>${n}</b> ${ckPl(n,'výsledek','výsledky','výsledků')}</span><button class="ck-reset" type="button" data-q="X">Vynulovat vše</button>`:'<span>Zatím nic nezadáno</span>';
+  document.getElementById('ck-zapasy').innerHTML=CKmod==='tym'?ckHtmlTym():ckHtmlKola();
+}
+
+function ckHtmlKola(){
+  let h=CK.bloky.slice(0,CKbloku).map(b=>{
+    const gs=[].concat(b.id==null?[]:b.id).map(id=>CKidx[String(id)]).filter(g=>g!=null).sort((x,y)=>x-y);
+    if(!gs.length) return '';
+    const dny=[...new Set(gs.map(g=>CK.zapasy[g].Datum))];
+    const roz=dny.length===1?ckDen(dny[0]):`${dKratce(dny[0])} – ${dKratce(dny[dny.length-1])}`;
+    return `<div class="ck-blok"><div class="ck-blok-h"><span>${esc(b.popis)}</span><small>${roz}</small></div>${gs.map(g=>ckRadek(g,false)).join('')}</div>`;
+  }).join('');
+  if(CKbloku<CK.bloky.length) h+=`<button class="ck-dalsi" type="button" data-q="K">+ další kolo <small>${esc(CK.bloky[CKbloku].popis)}</small></button>`;
+  return h;
+}
+
+function ckHtmlTym(){
+  const t=CKtym, gs=CK.zapasy.map((z,g)=>g).filter(g=>CK.zapasy[g].D===t||CK.zapasy[g].H===t);
+  if(!gs.length) return `<div class="empty">${esc(t)}: žádný zbývající zápas.</div>`;
+  const n=gs.length, doma=gs.filter(g=>CK.zapasy[g].D===t).length, zad=gs.filter(g=>CKfix[g]).length;
+  const vse=co=>n===1?co+' zbývající zápas':(n<=4?`${co} všechny ${n}`:`${co} všech ${n}`);
+  let h=`<div class="ck-tym-h">${esc(t)}: zbývá ${n} ${ckPl(n,'zápas','zápasy','zápasů')} <small>${doma} doma, ${n-doma} venku${zad?` · zadáno ${zad}`:''}</small></div>`+
+    `<div class="ck-rychle"><button type="button" data-q="W">✔ ${vse('Vyhraje')}</button><button type="button" data-q="L">✘ ${vse('Prohraje')}</button><button type="button" data-q="R">🎲 Nechat na simulaci</button></div>`;
+  h+=gs.slice(0,CKtymN).map(g=>ckRadek(g,true)).join('');
+  const zbyva=n-CKtymN;
+  if(zbyva>0){ const k=Math.min(10,zbyva); h+=`<button class="ck-dalsi" type="button" data-q="N">+ dalších ${k} ${ckPl(k,'zápas','zápasy','zápasů')} <small>(zbývá ${zbyva})</small></button>`; }
+  return h;
+}
+
+function ckRadek(g,tymMod){
+  const z=CK.zapasy[g], f=CKfix[g]||'', p=z.P_dom!=null&&isFinite(+z.P_dom)?Math.round(+z.P_dom):null;
+  const vyhD=f==='D'||f==='DP', vyhH=f==='H'||f==='HP';
+  const B=(v,cls,txt,tit)=>`<button type="button" class="ck-b ${cls}${f===v?' on':''}" data-g="${g}" data-v="${v}" title="${esc(tit)}" aria-pressed="${f===v}">${txt}</button>`;
+  const tm=(v,ot,prohra,jm)=>B(v,'tm'+(f===ot?' cast':'')+(prohra?' prohra':'')+(tymMod&&jm===CKtym?' muj':''),esc(jm),jm+' vyhraje v základní hrací době');
+  const meta=[ckDen(z.Datum), tymMod&&z.Kolo!=null?z.Kolo+'. kolo':'', z.Skupina?esc(z.Skupina):''].filter(Boolean).join(' · ');
+  return `<div class="ck-z"><div class="ck-meta"><span>${meta}</span>${p!=null?`<span title="Šance na výhru (i v prodloužení) podle simulace: domácí : hosté">${p} : ${100-p}</span>`:''}</div>`+
+    `<div class="ck-btns">${tm('D','DP',vyhH,z.D)}${B('DP','pr','prodl.',z.D+' vyhraje v prodloužení nebo na nájezdy')}`+
+    `${B('','md','🎲','Nechat na simulaci'+(p!=null?` (${p} : ${100-p})`:''))}`+
+    `${B('HP','pr','prodl.',z.H+' vyhraje v prodloužení nebo na nájezdy')}${tm('H','HP',vyhD,z.H)}</div></div>`;
+}
+
+function ckPrepocti(){
+  const vys=document.getElementById('ck-vys'); vys.classList.add('pocita');
+  document.getElementById('ck-shrnuti').innerHTML='<span class="ck-pocitam"><span class="spinner"></span> Počítám…</span>';
+  clearTimeout(CKtimer);
+  CKtimer=setTimeout(()=>{
+    try{
+      const N=ckN();
+      if(CKfix.some(Boolean)){ if(!CKbase) CKbase=ckSim(CK,null,N); CKsc=ckSim(CK,CKfix,N); CKsc.fix=CKfix.slice(); }
+      else CKsc=null;
+      ckVysledky();
+    }catch(e){ console.error('Co kdyby:',e); document.getElementById('ck-shrnuti').textContent='Výpočet se nepovedl.'; }
+    vys.classList.remove('pocita');
+  },50);
+}
+
+function ckVysledky(){
+  const N=ckN(), sc=CKsc, base=CKbase, st=sc?ckStav(CK,sc.fix):null;
+  const omez=v=>Math.min(99.9,Math.max(0.1,v));
+  const R=SIM.map((r,pubIx)=>{
+    const i=CKix[r.Tym], d=k=>sc?(sc[k][i]-base[k][i])/N:0;
+    // jistota: zveřejněná platí dál (zadané výsledky jen ubírají možnosti); nová jen když to simulace
+    // ukazuje ve všech bězích A potvrdí to výpočet přes všechny možné výsledky
+    const jt=(k,c,pub)=>pub||(!!sc&&sc[c][i]===N&&ckJisteTop(k,i,st.B,st.N));
+    const vt=(k,c,pub)=>pub||(!!sc&&sc[c][i]===0&&ckVenkuZTop(k,i,st.B,st.N));
+    const j4=jt(4,'c4',jeTrue(r.Jiste_top4)), v4=!j4&&vt(4,'c4',jeTrue(r.Venku_top4));
+    const j12=j4||jt(12,'c12',jeTrue(r.Jiste_playoff)), v12=!j12&&vt(12,'c12',jeTrue(r.Venku_playoff));
+    const bez=j12||jt(13,'c13',jeTrue(r.Bez_baraze)), jista=!bez&&vt(13,'c13',jeTrue(r.Jista_baraz));
+    const pl=j12?100:v12?0:omez(+r.Playoff_pct+100*d('c12'));
+    const t4=j4?100:v4?0:omez(+r.Top4_pct+100*d('c4'));
+    const br=r.Baraz_pct==null?null:(jista?100:bez?0:omez(+r.Baraz_pct-100*d('c13')));
+    const ab=r.Avg_body!=null?+r.Avg_body:NaN;
+    return {r,i,pubIx,pl,t4,br,j4,v4,j12,v12,bez,jista,
+      dpl:pl-(+r.Playoff_pct), dt4:t4-(+r.Top4_pct), dbr:br==null?0:br-(+r.Baraz_pct),
+      b:ab+d('sP'), db:isNaN(ab)?0:Math.round(ab+d('sP'))-Math.round(ab),
+      misto:(r.Prum_misto!=null?+r.Prum_misto:pubIx+1)+d('sR'),
+      body:st?st.B[i]:+r.Body};
+  }).sort((a,b)=>(a.misto-b.misto)||(a.pubIx-b.pubIx));
+
+  const zm=(dv,dobre)=>Math.abs(dv)>=0.05?`<small class="${dv*dobre>0?'ck-up':'ck-dn'}">${ckZnam(dv)}</small>`:'';
+  const cel=(v,dv,jiste,venku)=>(jiste?'<span class="jiste" title="matematicky jisté">✓</span>':venku?'<span class="venku" title="matematicky ztracené">✗</span>':pc(v))+zm(dv,1);
+  document.getElementById('ck-tab').innerHTML=R.map((x,k)=>{
+    const r=x.r, mv=x.pubIx-k, plus=x.body-(+r.Body);
+    const cls=[k<4?'z4':k<12?'z12':k===13?'z14':'', CKmod==='tym'&&r.Tym===CKtym?'ck-moje':''].filter(Boolean).join(' ');
+    const brz=x.br==null?'—':(x.jista?'<span class="ck-br" title="matematicky jistá">jistá</span>':x.bez?'<span class="venku">0</span>':pc(x.br))+zm(x.dbr,-1);
+    return `<tr class="${cls}"><td>${k+1}${mv?`<small class="${mv>0?'ck-up':'ck-dn'}">${mv>0?'▲':'▼'}${Math.abs(mv)}</small>`:''}</td>`+
+      `<td>${esc(r.Tym)}<small>${x.body} b.${plus?` <b class="ck-up">(+${plus})</b>`:''}</small></td>`+
+      `<td>${cel(x.pl,x.dpl,x.j12,x.v12)}</td><td>${cel(x.t4,x.dt4,x.j4,x.v4)}</td><td>${brz}</td>`+
+      `<td>${isNaN(x.b)?'—':'~'+Math.round(x.b)}${x.db?`<small class="${x.db>0?'ck-up':'ck-dn'}">${x.db>0?'+':'−'}${Math.abs(x.db)}</small>`:''}</td></tr>`;
+  }).join('');
+
+  // shrnutí nad tabulkou: kdo nejvíc získá a ztratí + nově jisté / ztracené
+  const sh=document.getElementById('ck-shrnuti');
+  if(!sc){ sh.innerHTML='<span class="ck-nic">Zatím nic nezadáno — tabulka ukazuje dnešní šance (stejné jako výš). Klepni na výsledek u kteréhokoli zápasu.</span>'; return; }
+  const Z=R.map(x=>{const p=Math.abs(x.dpl)>=Math.abs(x.dt4);
+    return {t:x.r.Tym, co:p?'playoff':'Top 4', d:p?x.dpl:x.dt4, z:p?+x.r.Playoff_pct:+x.r.Top4_pct, na:p?x.pl:x.t4};});
+  const up=[...Z].sort((a,b)=>b.d-a.d)[0], dn=[...Z].sort((a,b)=>a.d-b.d)[0], vet=[];
+  if(up.d>=0.5) vet.push(`📈 Nejvíc si polepší <b class="ck-up">${esc(up.t)}</b>: šance na ${up.co} ${pc(up.z)} → ${pc(up.na)} %.`);
+  if(dn.d<=-0.5) vet.push(`📉 Nejvíc ztratí <b class="ck-dn">${esc(dn.t)}</b>: ${up.d>=0.5&&up.co===dn.co?'':'šance na '+dn.co+' '}${pc(dn.z)} → ${pc(dn.na)} %.`);
+  // nově jisté / ztracené proti dnešku; kdo má nově jisté Top 4, nevypisuje se znovu u playoff
+  const nove=(f,pub)=>R.filter(x=>x[f]&&!jeTrue(x.r[pub])).map(x=>x.r.Tym);
+  const n4=nove('j4','Jiste_top4'), n12=nove('j12','Jiste_playoff').filter(t=>!n4.includes(t)), nv=nove('v12','Venku_playoff'), nb=nove('jista','Jista_baraz');
+  const jm=a=>ckSpoj(a.map(t=>`<b>${esc(t)}</b>`));
+  if(n4.length) vet.push(`✓ Top 4 jisté: ${jm(n4)}.`);
+  if(n12.length) vet.push(`✓ Playoff jisté: ${jm(n12)}.`);
+  if(nv.length) vet.push(`✗ Playoff už nejde: ${jm(nv)}.`);
+  if(nb.length) vet.push(`⚠️ Baráž jistá: ${jm(nb)}.`);
+  if(!vet.length){ const mx=Math.max(...R.map(x=>Math.max(Math.abs(x.dpl),Math.abs(x.dt4),Math.abs(x.dbr))));
+    vet.push(`Tvoje výsledky šance skoro nemění — nejvýš o ${pc(Math.max(0.1,mx))} procentního bodu.`); }
+  sh.innerHTML=vet.map(v=>`<div>${v}</div>`).join('');
 }
 
 // při změně šířky (otočení telefonu) překreslit grafy s okraji pro mobil — jen když se šířka opravdu změní

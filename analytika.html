@@ -258,8 +258,8 @@
 
     <div class="card" id="stesti-card" style="display:none">
       <div class="card-title gold">🍀 Štěstí, nebo forma?</div>
-      <div class="card-sub"><b>Elo ±</b> = body proti tomu, co by tým čekal podle síly svojí i soupeřů (Elo před každým zápasem, s domácím ledem). <b>PDO</b> = úspěšnost střelby + úspěšnost brankářů, průměr ligy kolem 100 — vysoké PDO se během sezóny obvykle vrací dolů, nízké nahoru. <b>Prodl.</b> = výhry–prohry v prodloužení a na nájezdech. Věta říká, co body navíc nosí (nebo bere). Třetí pohled — body proti brankovému rozdílu — je v kartě <a href="#regrese-card" style="color:var(--teal-light)">Regrese: body vs zasloužené</a> níž.</div>
-      <div class="tbl-wrap"><table class="osl-tab str-tab"><thead><tr><th>Tým</th><th title="body proti očekávání podle Elo">Elo ±</th><th title="úspěšnost střelby + úspěšnost brankářů">PDO</th><th title="výhry–prohry v prodloužení a na nájezdech">Prodl.</th></tr></thead><tbody id="stesti-body"></tbody></table></div>
+      <div class="card-sub"><b>Elo ±</b> = body proti tomu, co by tým čekal podle síly svojí i soupeřů (Elo před každým zápasem, s domácím ledem). <b>PDO</b> = úspěšnost střelby + úspěšnost brankářů, průměr ligy kolem 100 — vysoké PDO se během sezóny obvykle vrací dolů, nízké nahoru. <b>Prodl.</b> = výhry–prohry v prodloužení a na nájezdech.<span id="stesti-sub-sf"> <b>Stř. %</b> = podíl střel na branku ve vlastních zápasech (50 % = vyrovnané) — kdo soupeře přestřílí, má body spíš zasloužené.</span> Věta říká, co body navíc nosí (nebo bere). Další pohled — body proti brankovému rozdílu — je v kartě <a href="#regrese-card" style="color:var(--teal-light)">Regrese: body vs zasloužené</a> níž.</div>
+      <div class="tbl-wrap"><table class="osl-tab str-tab"><thead id="stesti-head"><tr><th>Tým</th><th title="body proti očekávání podle Elo">Elo ±</th><th title="úspěšnost střelby + úspěšnost brankářů">PDO</th><th title="výhry–prohry v prodloužení a na nájezdech">Prodl.</th></tr></thead><tbody id="stesti-body"></tbody></table></div>
       <div id="stesti-pozn" style="font-size:11.5px;color:var(--text-dim);margin-top:10px;line-height:1.5"></div>
     </div>
 
@@ -326,6 +326,7 @@
       <div class="card-title">Návštěvnost a body doma</div>
       <div class="card-sub">Průměrná domácí návštěvnost vs bodová úspěšnost doma (kolik % možných bodů tým doma získal). Týmy mají za sebou různý počet domácích zápasů, proto procenta, ne počet výher. Funguje domácí atmosféra?</div>
       <div class="chart-wrap-tall" id="c-navst"></div>
+      <div id="navst-pozn" style="font-size:11.5px;color:var(--text-dim);margin-top:8px;line-height:1.5;display:none"></div>
     </div>
 
     <div class="intro" style="margin-top:28px">
@@ -975,30 +976,45 @@ function stesti(){
   if(!T.length){ card.style.display='none'; return; }
   card.style.display='';
   const c=x=>(Math.round(Math.abs(x)*10)/10).toFixed(1).replace('.',','), zn=x=>(x>0?'+':x<0?'−':'')+c(x);
+  // (26. 10.) třetí pohled: podíl střel na branku ve vlastních zápasech (Strely_pct; starší JSON ho nemá → věty jako dřív)
+  const maSf=T.some(r=>r.Strely_pct!=null);
   const veta=r=>{ const n=+r.Nad, gs=+r.G_strelba, gb=+r.G_brankari, ot=+r.OT, pdo=+r.PDO, MIN=0.15;
+    const sf=r.Strely_pct==null?NaN:+r.Strely_pct, sfHi=sf>=52, sfLo=sf<=48;
     let v;
     if(n>=2){
-      if(Math.max(gs,gb)>=MIN) v = gs>=gb ? `Body navíc nosí hlavně proměňování (${c(r.Usp)} %) — to se obvykle neudrží.`
-                                          : `Body navíc nosí hlavně brankáři (${c(r.Sv)} % zákroků) — dobrý gólman to umí držet déle, ale ne celé.`;
+      if(Math.max(gs,gb)>=MIN){ v = gs>=gb ? `Body navíc nosí hlavně proměňování (${c(r.Usp)} %) — to se obvykle neudrží.`
+                                           : `Body navíc nosí hlavně brankáři (${c(r.Sv)} % zákroků) — dobrý gólman to umí držet déle, ale ne celé.`;
+        if(sfLo) v += ` Na střely ho přitom soupeři přehrávají (jen ${c(sf)} % střel) — o to víc je to štěstí.`;
+        else if(sfHi) v += ` Na střely ale soupeře přehrává (${c(sf)} % střel), část bodů je tedy zasloužená.`; }
+      else if(sfHi) v = `PDO kolem průměru a na střely soupeře přehrává (${c(sf)} % střel) — tým je nejspíš opravdu lepší, než si Elo myslí.`;
+      else if(sfLo) v = `PDO kolem průměru, na střely ale soupeře nepřehrává (${c(sf)} % střel) — body navíc nejsou podložené ani střelbou, ani střelami.`;
       else v = 'PDO kolem průměru — tým je možná prostě lepší, než si Elo myslí.';
       if(ot>=2) v += ` Pomáhá i bilance prodloužení (+${ot}).`;
     } else if(n<=-2){
-      if(Math.min(gs,gb)<=-MIN) v = gs<=gb ? `Body bere hlavně proměňování (${c(r.Usp)} %) — tady se dá čekat zlepšení.`
-                                           : `Body bere hlavně úspěšnost brankářů (${c(r.Sv)} % zákroků) — když se gólman zvedne, body přijdou.`;
+      if(Math.min(gs,gb)<=-MIN){ v = gs<=gb ? `Body bere hlavně proměňování (${c(r.Usp)} %) — tady se dá čekat zlepšení.`
+                                            : `Body bere hlavně úspěšnost brankářů (${c(r.Sv)} % zákroků) — když se gólman zvedne, body přijdou.`;
+        if(sfHi) v += ` Na střely přitom soupeře přehrává (${c(sf)} % střel) — body by měly přijít.`;
+        else if(sfLo) v += ` Soupeři ho ale i přestřílí (jen ${c(sf)} % střel), takže nejde jen o smůlu.`; }
+      else if(sfLo) v = `PDO kolem průměru a soupeři ho přestřílí (jen ${c(sf)} % střel) — tým je asi opravdu slabší, než si Elo myslí.`;
+      else if(sfHi) v = `PDO kolem průměru a na střely soupeře přehrává (${c(sf)} % střel) — body by měly přijít.`;
       else v = 'PDO kolem průměru — tým je možná slabší, než si Elo myslí.';
       if(ot<=-2) v += ` Ubírá i smůla v prodloužení (−${-ot}).`;
     } else {
       v = 'Body zhruba odpovídají síle podle Elo.';
-      if(pdo>=102) v += ` PDO ${c(pdo)} ale napovídá, že pomáhá i střelba a brankáři.`;
-      else if(pdo<=98) v += ` S PDO ${c(pdo)} je tu spíš prostor ke zlepšení.`;
+      if(pdo>=102) v += ` PDO ${c(pdo)} ale napovídá, že pomáhá i střelba a brankáři${sfLo?` — a na střely soupeře nepřehrává (${c(sf)} %)`:''}.`;
+      else if(pdo<=98) v += ` S PDO ${c(pdo)} je tu spíš prostor ke zlepšení${sfHi?` — na střely soupeře přehrává (${c(sf)} %)`:''}.`;
     }
     return v; };
-  const kN=x=>Math.abs(x)<1?'':(x>0?'p':'m'), kP=x=>x>=102?'hi':x<=98?'lo':'';
+  const kN=x=>Math.abs(x)<1?'':(x>0?'p':'m'), kP=x=>x>=102?'hi':x<=98?'lo':'', kS=x=>x>=52?'p':x<=48?'m':'';
+  document.getElementById('stesti-head').innerHTML=`<tr><th>Tým</th><th title="body proti očekávání podle Elo">Elo ±</th><th title="úspěšnost střelby + úspěšnost brankářů">PDO</th>`+
+    (maSf?'<th title="podíl střel na branku ve vlastních zápasech" style="white-space:nowrap">Stř.%</th>':'')+`<th title="výhry–prohry v prodloužení a na nájezdech">Prodl.</th></tr>`;
+  { const ss=document.getElementById('stesti-sub-sf'); if(ss) ss.style.display=maSf?'':'none'; }
   document.getElementById('stesti-body').innerHTML=T.map(r=>`<tr><td><span class="jm">${oslEsc(r.Tym)}</span><span class="vt">${veta(r)}</span></td>`+
     `<td class="${kN(+r.Nad)}">${zn(+r.Nad)}</td><td class="${kP(+r.PDO)}" title="střelba ${c(r.Usp)} % + brankáři ${c(r.Sv)} %">${c(r.PDO)}</td>`+
+    (maSf?(r.Strely_pct==null?'<td>—</td>':`<td class="${kS(+r.Strely_pct)}" title="střely na branku ${c(r.Sf_z)} : ${c(r.Sa_z)} na zápas">${c(r.Strely_pct)}</td>`):'')+
     `<td>${r.VP}–${r.PP}</td></tr>`).join('');
   const L=S.liga||{};
-  document.getElementById('stesti-pozn').textContent=`Průměr ligy: střelba ${c(L.usp)} %, brankáři ${c(L.sv)} %, PDO ${c(L.pdo)}. Zeleně / červeně = body nad / pod očekáváním; zlatě / modře = PDO nad 102 / pod 98 (stejné barvy jako na Přehledu). Body nad očekáváním nemusí být jen štěstí — na začátku sezóny může tým být i lepší, než si Elo (start z minulé sezóny) myslí.`;
+  document.getElementById('stesti-pozn').textContent=`Průměr ligy: střelba ${c(L.usp)} %, brankáři ${c(L.sv)} %, PDO ${c(L.pdo)}. Zeleně / červeně = body nad / pod očekáváním${maSf?' a podíl střel nad 52 / pod 48 %':''}; zlatě / modře = PDO nad 102 / pod 98 (stejné barvy jako na Přehledu). Body nad očekáváním nemusí být jen štěstí — na začátku sezóny může tým být i lepší, než si Elo (start z minulé sezóny) myslí.`;
 }
 function odpoved(){const all=LIGA.odpoved||[];
   if(all.length && all[0].Pct===undefined){   // starší build: jen průměrný čas odpovědi
@@ -1042,8 +1058,15 @@ function disciplina(){const d=(LIGA.disciplina||[]).filter(r=>r.PIM_gp!=null&&r.
 function navst(){const d=(LIGA.navstevnost||[]).filter(r=>r.Prum_doma!=null);
   if(d.length && d[0].Bpct_doma!==undefined)
     scatterLogo('c-navst',d.filter(r=>r.Bpct_doma!=null),'Prum_doma','Bpct_doma','Ø domácí návštěvnost →','Body doma (% možných) →',
-      {fx:tis,fy:v=>f1(v)+' %',hoverExtra:r=>`<br>Doma: ${r.Z_doma} ${sk(r.Z_doma,'zápas','zápasy','zápasů')}, ${r.V_doma} ${sk(r.V_doma,'výhra','výhry','výher')}`});
-  else scatterLogo('c-navst',d,'Prum_doma','V_doma','Ø domácí návštěvnost →','Domácí výhry →',{fx:tis});}
+      {fx:tis,fy:v=>f1(v)+' %',hoverExtra:r=>`<br>Doma: ${r.Z_doma} ${sk(r.Z_doma,'zápas','zápasy','zápasů')}, ${r.V_doma} ${sk(r.V_doma,'výhra','výhry','výher')}`+
+        (r.Zapl_pct!=null?`<br>Hala zaplněná v průměru na ${f1(r.Zapl_pct).replace('.',',')} %`+(r.Vyprodano>0?`, vyprodáno ${r.Vyprodano}×`:''):'')});
+  else scatterLogo('c-navst',d,'Prum_doma','V_doma','Ø domácí návštěvnost →','Domácí výhry →',{fx:tis});
+  // (26. 10.) ze statistik zápasů: vyprodané zápasy a nejnavštěvovanější zápas sezóny
+  const I=LIGA.navst_info, el=document.getElementById('navst-pozn');
+  if(el && I && I.nej){ const vy=(LIGA.navstevnost||[]).filter(r=>r.Vyprodano>0).sort((a,b)=>b.Vyprodano-a.Vyprodano||a.Tym.localeCompare(b.Tym,'cs'));
+    el.innerHTML=`Vyprodáno zatím <b>${I.vyprodano}×</b> ${I.zapasu?`z ${I.zapasu} zápasů`:''}${vy.length?` (${vy.map(r=>`${oslEsc(r.Tym)} ${r.Vyprodano}×`).join(', ')})`:''}. `+
+      `Nejvíc diváků: <b>${oslEsc(I.nej.zapas)}</b> — ${tis(I.nej.divaci)} (${oslEsc(String(I.nej.datum||'').replace(/^0?(\d+)\.0?(\d+)\.\d+$/,'$1. $2.'))}).`;
+    el.style.display=''; } else if(el) el.style.display='none'; }
 function tlak(){const d=LIGA.tlak||[];if(!d.length){emptyBox('c-tlak','Zatím bez dat.');return;}
   const dd=[...d].sort((a,b)=>b.PP_pct-a.PP_pct);const cats=dd.map(r=>r.Tym);
   Plotly.newPlot('c-tlak',[

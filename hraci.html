@@ -149,6 +149,27 @@
     .expandbtn{display:block;margin:14px auto 4px;background:transparent;border:1px solid var(--border);color:var(--gold);font-family:var(--font-main);font-size:13px;font-weight:600;padding:8px 16px;border-radius:7px;cursor:pointer;}
     .expandbtn:hover{border-color:var(--gold);}
     td.delta-up{color:var(--win);font-weight:600;}
+    /* (26. 10.) rozklik hráče / brankáře v tabulce */
+    .players tr.rk{cursor:pointer;} .players tr.rk.otv{background:rgba(42,139,139,0.10);}
+    .rk-sip{color:var(--text-faint);font-size:10px;margin-left:5px;}
+    .players tr.hd-row:hover{background:none;}
+    .players tr.hd-row > td{padding:0;text-align:left;border-bottom:1px solid var(--teal-dim);background:var(--slate);white-space:normal;font-family:var(--font-main);}
+    .hd{position:sticky;left:0;box-sizing:border-box;padding:10px 10px 12px;}
+    .hd-pozn{font-size:12.5px;color:var(--text-faint);}
+    .d-zaj{background:rgba(42,139,139,.08);border-left:3px solid var(--teal);border-radius:0 6px 6px 0;padding:7px 10px 6px;margin-bottom:10px;}
+    .d-zaj-h{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin-bottom:3px;font-family:var(--font-main);}
+    .d-zaj-r{display:flex;gap:7px;align-items:baseline;margin:3px 0;font-size:12.5px;line-height:1.45;color:var(--text);font-family:var(--font-main);}
+    .d-zaj-r .i{flex:0 0 auto;width:18px;text-align:center;}
+    .hd-h{font-size:11.5px;font-weight:600;color:var(--text-dim);margin:2px 0 5px;font-family:var(--font-main);} .hd-h small{font-weight:400;color:var(--text-faint);}
+    .hd-tw{overflow-x:auto;}
+    table.hd-t{border-collapse:collapse;width:100%;font-size:11.5px;}
+    .hd-t th{font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);font-weight:600;text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .hd-t td{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right;padding:4px 4px;border-bottom:1px solid rgba(42,139,139,0.06);white-space:nowrap;}
+    .hd-t th:first-child,.hd-t td:first-child{text-align:left;color:var(--text-faint);}
+    .hd-t .l{text-align:left;font-family:var(--font-main);color:var(--text);white-space:normal;line-height:1.2;} .hd-t .l small{display:block;color:var(--text-faint);font-size:9.5px;}
+    .hd-t td.ga{color:var(--text);font-weight:700;} .hd-t td.ga0{color:var(--text-faint);font-weight:400;}
+    .hd-vse{display:block;width:100%;margin-top:7px;padding:7px;background:none;border:1px dashed var(--teal-dim);border-radius:6px;color:var(--teal-light);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-main);}
+    .hd-t tr.nh td{color:var(--text-faint);} .hd-t tr.nh td.l:last-child{font-style:italic;font-family:var(--font-main);}
     td.delta-down{color:var(--loss);font-weight:600;}
     td.delta-zero{color:var(--text-faint);}
     .gpi-bar{font-weight:600;background-repeat:no-repeat;background-position:left center;border-radius:3px;}
@@ -202,12 +223,8 @@
   <!-- INTRO + FILTRY -->
   <div class="intro">
     <h1>Kompletní hráčská analytika</h1>
-    <p>Kanadské bodování, čas na ledě (EV/PP/SH), hity/bloky, vhazování. Filtrujte podle pozice, týmu a počtu zápasů.</p>
+    <p>Kanadské bodování, čas na ledě (EV/PP/SH), hity/bloky, vhazování. Filtrujte podle pozice a týmu, kliknutím na hráče v tabulce otevřete jeho posledních 10 zápasů. Tabulka ukazuje všechny hráče; grafy níž počítají jen s hráči, kteří odehráli aspoň <span id="gp-graf">pár</span> zápasů (z jednoho dvou zápasů jsou čísla na 60 minut náhoda).</p>
     <div class="filters">
-      <div class="filter-group">
-        <label>Minimální počet zápasů (GP): <span class="val" id="gp-val">1</span> <span id="gp-pocet" style="color:var(--text-faint);font-weight:400"></span></label>
-        <input type="range" id="f-gp" min="1" max="52" value="15" step="1">
-      </div>
       <div class="filter-group">
         <label>Pozice</label>
         <select id="f-pozice">
@@ -226,7 +243,7 @@
   <!-- 1. COMPLETE PLAYER INDEX -->
   <div class="card">
     <div class="card-title gold">Complete Player Index</div>
-    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). S = střely na branku, Ú% = úspěšnost střelby. Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole, kteří projdou filtrem. Hledání najde hráče v celém výběru.</div>
+    <div class="card-sub">Klasická produktivita i kompozitní skóre CPI: P/60 (30 %) + G/60 (15 %) + Body/z (15 %) + Hity+Bloky/z (15 %) + +/− (10 %) + PP+SH TOI (15 %). S = střely na branku, Ú% = úspěšnost střelby. Ve výchozím pohledu top 50, tlačítkem pod tabulkou rozbalíš všechny hráče do pole. Hledání najde hráče v celém výběru. <b>Klikni na hráče</b> — ukáže se jeho posledních 10 zápasů a zajímavosti.<span id="cpi-prah"></span></div>
     <input type="search" id="cpi-hledat" class="hledat" placeholder="🔍 Hledat hráče podle jména…" autocomplete="off">
     <div class="sort-toggle" id="cpi-sort">
       <button data-sort="body" class="active">Řadit dle: Body</button>
@@ -368,7 +385,7 @@
     <!-- MASTER TABULKA -->
     <div class="card">
       <div class="card-title gold">Hodnocení brankářů</div>
-      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Pro GPI se k zásahům brankáře přičte 300 střel s průměrnou úspěšností ligy: po dvou zápasech tak jeho procenta skoro nic neznamenají, po dvaceti už skoro všechno. Min. <span class="prah" data-cil="3">3</span> zápasy. Kategorie podle GPI: Elitní 70+ · Spolehlivý 55+ · Průměr 40+ · Podprůměr · Málo dat (pod 3 zápasy).</div>
+      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Pro GPI se k zásahům brankáře přičte 300 střel s průměrnou úspěšností ligy: po dvou zápasech tak jeho procenta skoro nic neznamenají, po dvaceti už skoro všechno. Min. <span class="prah" data-cil="3">3</span> zápasy. Kategorie podle GPI: Elitní 70+ · Spolehlivý 55+ · Průměr 40+ · Podprůměr · Málo dat (pod 3 zápasy). <b>Klikni na brankáře</b> — ukážou se jeho poslední zápasy a zajímavosti.</div>
       <div class="sort-toggle" id="goalie-sort">
         <button data-sort="sv" class="active">Řadit dle: Úspěšnost %</button>
         <button data-sort="gpi">GPI</button>
@@ -585,9 +602,10 @@ const PRAH_PP     = () => Math.max(5, ODEHRANO);
 const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body', cpiExpanded:false, hledat:''};
 const rendered = {pole:true, skryti:false, brankari:false};  // pole se renderuje hned
 
-function filtered(){
+function filtered(minGp){
+  const m = minGp==null ? state.gp : minGp;
   return HRACI.filter(p =>
-    (p.GP>=state.gp) &&
+    (p.GP>=m) &&
     (state.pozice==='all' || p.Pozice===state.pozice) &&
     (state.tym==='all'   || p.Tym_clean===state.tym)
   );
@@ -615,10 +633,10 @@ async function init(){
     // klouzavé prahy: kolik kol už je odehráno (meta.json, jinak max GP z dat)
     ODEHRANO = (meta.prahy && meta.prahy.odehrano) ||
                Math.max(1, ...HRACI.map(p=>p.GP||0).filter(Number.isFinite));
+    // (26. 10.) filtr „minimální počet zápasů“ zmizel: tabulka ukazuje všechny hráče, grafy a pořadí
+    //   podle CPI si dál drží klouzavý práh (procenta a „na 60 minut“ z pár zápasů jsou náhoda)
     state.gp = (meta.prahy && meta.prahy.hraci) || prah(10);
-    { const gp = document.getElementById('f-gp');
-      gp.max = Math.max(1, ODEHRANO); gp.value = state.gp;
-      document.getElementById('gp-val').textContent = state.gp; }
+    { const el=document.getElementById('gp-graf'); if(el) el.textContent = state.gp; }
 
     // Poradi (rank dle bodů) pro "bonus za skrytost"
     [...HRACI].sort((a,b)=>(b.Body||0)-(a.Body||0)).forEach((p,i)=>{ p.Poradi = i+1; });
@@ -696,24 +714,24 @@ function showSub(name){
   window.scrollTo(0,0);
 }
 
+// (26. 10.) tabulka: v pořadí podle bodů všichni hráči, v pořadí podle CPI jen s klouzavým prahem zápasů
+const tabData = () => filtered(state.hraciSort==='cpi' ? state.gp : 1);
 function bindControls(){
-  const gp = document.getElementById('f-gp');
-  gp.addEventListener('input', ()=>{ state.gp=+gp.value; document.getElementById('gp-val').textContent=gp.value; renderFiltered(); });
   document.getElementById('f-pozice').addEventListener('change', e=>{ state.pozice=e.target.value; renderFiltered(); });
   document.getElementById('f-tym').addEventListener('change', e=>{ state.tym=e.target.value; renderFiltered(); });
   ['radar1','radar2','radar3'].forEach(id=>document.getElementById(id).addEventListener('change', renderRadar));
   // (8. 10.) hledání hráče podle jména (bez ohledu na háčky a čárky) — jen v tabulce
   const hl=document.getElementById('cpi-hledat');
-  if(hl) hl.addEventListener('input', ()=>{ state.hledat=bezDiakritiky(hl.value.trim()); renderTable(filtered()); });
+  if(hl) hl.addEventListener('input', ()=>{ state.hledat=bezDiakritiky(hl.value.trim()); renderTable(tabData()); });
   document.querySelectorAll('#cpi-sort button').forEach(b=>b.addEventListener('click',()=>{
     state.hraciSort=b.dataset.sort;
     document.querySelectorAll('#cpi-sort button').forEach(x=>x.classList.toggle('active',x.dataset.sort===state.hraciSort));
-    renderTable(filtered());
+    renderTable(tabData());
   }));
   const exp=document.getElementById('cpi-expand');
   if(exp) exp.addEventListener('click',()=>{
     state.cpiExpanded=!state.cpiExpanded;
-    renderTable(filtered());
+    renderTable(tabData());
     // po sbalení se ať uživatel neocitne někde uprostřed prázdna
     if(!state.cpiExpanded) exp.scrollIntoView({block:'center'});
   });
@@ -722,11 +740,7 @@ function bindControls(){
 // re-render všech bloků závislých na filtru (1,2,4,5,6,7,8); radar je nezávislý
 function renderFiltered(){
   const d = filtered();
-  // Vedle posuvníku je vidět, kolik hráčů filtrem projde — "GP: 2" se dá snadno
-  // splést s tím, že jsou na webu data jen po 2. kole.
-  { const el=document.getElementById('gp-pocet');
-    if(el) el.textContent = `· prochází ${d.length} z ${HRACI.length} hráčů`; }
-  renderTable(d);
+  renderTable(tabData());
   renderWorkload(d);
   renderShooting(d);
   renderIceTime(d);
@@ -735,6 +749,79 @@ function renderFiltered(){
   renderGrit(d);
   renderFaceoff();
 }
+
+/* ── (26. 10.) ROZKLIK HRÁČE / BRANKÁŘE ───────────────────────────
+   hraci_zapasy.json (build.R ze zapasy_hraci.csv): u hráče posledních 10 zápasů jeho týmu
+   ([datum, soupeř, doma, výsledek, …], vynechaný zápas = jen první čtyři položky) a nejvýš 3 zajímavosti.
+   Načítá se až při prvním kliknutí. Klíč "Jméno|Tým", jinak jediný hráč toho jména (přestup). */
+let HZ = null, HZ_nacitani = null;
+const HD_ZAKLAD = 10, VSE_Z = new Set();   // (26. 10. večer) u kterých hráčů jsou rozbalené všechny zápasy
+const OTV_H = new Set(), OTV_B = new Set();
+const escH = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function nactiHZ(){
+  if(!HZ_nacitani) HZ_nacitani = loadJSON('hraci_zapasy.json')
+    .then(j=>{ HZ = (j&&j.h) ? j : {h:{}, chybi:true}; })
+    .catch(()=>{ HZ = {h:{}, chybi:true}; });
+  return HZ_nacitani;
+}
+function hzHrac(jm,tym){
+  if(!HZ||!HZ.h) return null;
+  if(HZ.h[jm+'|'+tym]) return HZ.h[jm+'|'+tym];
+  const k=Object.keys(HZ.h).filter(x=>x.slice(0,x.lastIndexOf('|'))===jm);
+  return k.length===1 ? HZ.h[k[0]] : null;
+}
+const mmssH = s => s==null||isNaN(s) ? '—' : `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`;
+// šířka detailu = viditelná šířka tabulky (na mobilu je tabulka širší než displej, detail zůstane na očích)
+const sirkaDetailu = el => { const w=el.closest('.tbl-wrap'); return Math.max(260,(w?w.clientWidth:320)-2); };
+function detailRadek(ncol, W, jm, tym){
+  return `<tr class="hd-row"><td colspan="${ncol}"><div class="hd" style="width:${W}px">${hracDetailHtml(jm,tym)}</div></td></tr>`;
+}
+function hracDetailHtml(jm,tym){
+  if(!HZ) return '<div class="hd-pozn">Načítám zápasy…</div>';
+  const x=hzHrac(jm,tym);
+  if(!x) return `<div class="hd-pozn">${HZ.chybi?'Detail hráčů zatím na webu není.':'K tomuhle hráči zatím nemáme zápasy.'}</div>`;
+  let h='';
+  if(Array.isArray(x.zaj)&&x.zaj.length)
+    h+=`<div class="d-zaj"><div class="d-zaj-h">Zajímavosti</div>${x.zaj.map(o=>`<div class="d-zaj-r"><span class="i">${escH(o.ic)}</span><span>${escH(o.t)}</span></div>`).join('')}</div>`;
+  const z=Array.isArray(x.z)?x.z:[];
+  if(!z.length) return h||'<div class="hd-pozn">Zatím bez zápasů.</div>';
+  const barva=v=>{const t=String(v).split(' ')[0]; return t==='V'?'var(--win)':t==='VP'?'#9AD6B5':t==='PP'?'var(--gold)':'var(--loss)';};
+  const hlava=x.b?'<th>Datum</th><th class="l">Soupeř</th><th>Výsl.</th><th title="zákroky">Zákr.</th><th title="úspěšnost zákroků v %">Úsp.%</th><th>Čas</th>'
+                 :'<th>Datum</th><th class="l">Soupeř</th><th>Výsl.</th><th title="góly + asistence">G+A</th><th title="střely na branku">S</th><th>Čas</th><th>+/−</th>';
+  const ncol=x.b?6:7;
+  // (26. 10. večer) všechny zápasy týmu: nejdřív posledních 10, zbytek tlačítkem
+  const klic=jm+'|'+tym, vse=VSE_Z.has(klic), zv=vse?z:z.slice(0,HD_ZAKLAD);
+  h+=`<div class="hd-h">${vse||z.length<=HD_ZAKLAD?(z.length===1?'Zápas týmu':`Všech ${z.length} zápasů týmu`):`Posledních ${HD_ZAKLAD} zápasů týmu`} <small>(nejnovější nahoře · výsledek z pohledu týmu)</small></div><div class="hd-tw"><table class="hd-t"><thead><tr>${hlava}</tr></thead><tbody>`+zv.map(r=>{
+    const zak=`<td>${escH(String(r[0]).replace(/ /g,''))}</td><td class="l">${escH(r[1])}<small>${r[2]?'doma':'venku'}</small></td><td style="color:${barva(r[3])}">${escH(r[3])}</td>`;
+    if(r.length<=4) return `<tr class="nh">${zak}<td colspan="${ncol-3}" class="l">nehrál</td></tr>`;
+    if(x.b){ const sa=(+r[4])+(+r[5]); return `<tr>${zak}<td>${r[4]??'—'}</td><td>${sa>0?(r[4]===sa?'100':c1(r[4]/sa*100)):'—'}</td><td>${mmssH(r[6])}</td></tr>`; }
+    const pm=r[8];
+    const bd=(+r[4]||0)+(+r[5]||0);   // (26. 10. večer) zápas s bodem výrazně, bez bodu tlumeně — jen kontrastem, barvy patří výsledku
+    return `<tr>${zak}<td class="${bd>0?'ga':'ga0'}">${r[4]??0}+${r[5]??0}</td><td>${r[6]??'—'}</td><td>${mmssH(r[7])}</td><td style="color:${pm>0?'var(--win)':pm<0?'var(--loss)':'inherit'}">${pm==null?'—':(pm>0?'+':'')+pm}</td></tr>`;
+  }).join('')+'</tbody></table></div>';
+  if(z.length>HD_ZAKLAD)
+    h+=`<button class="hd-vse" data-k="${escH(klic)}">${vse?`▲ Jen posledních ${HD_ZAKLAD} zápasů`:`▼ Všech ${z.length} zápasů týmu`}</button>`;
+  return h;
+}
+function napojRozklik(body, otevrene, prekresli){
+  body.querySelectorAll('button.hd-vse').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation(); const k=b.dataset.k;
+    if(VSE_Z.has(k)) VSE_Z.delete(k); else VSE_Z.add(k);
+    prekresli();
+  }));
+  body.querySelectorAll('tr.rk').forEach(tr=>{
+    const prepni=()=>{ const k=tr.dataset.k;
+      if(otevrene.has(k)) otevrene.delete(k); else otevrene.add(k);
+      prekresli();
+      if(!HZ) nactiHZ().then(prekresli); };
+    tr.addEventListener('click',prepni);
+    tr.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); prepni(); } });
+  });
+}
+// otočení telefonu / změna okna: detail se přizpůsobí nové šířce
+let _hdResize=null;
+window.addEventListener('resize',()=>{ if(!OTV_H.size&&!OTV_B.size) return; clearTimeout(_hdResize);
+  _hdResize=setTimeout(()=>{ if(OTV_H.size) renderTable(tabData()); if(OTV_B.size&&rendered.brankari) renderGoalieTable(); },200); });
 
 /* ── 1. COMPLETE PLAYER INDEX — tabulka ──────────────────────── */
 const CPI_ZAKLAD = 50;      // kolik hráčů je vidět před rozbalením
@@ -765,7 +852,10 @@ function renderTable(d){
   }
   // (8. 10.) hlavní čísla (body, CPI) hned za jménem — na telefonu jsou vidět bez posouvání
   head.innerHTML = `<th>#</th>${cpiMode?'<th>Δ</th>':''}<th class="l">Hráč</th><th>B</th><th>CPI</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>G</th><th>A</th><th title="střely na branku">S</th><th title="úspěšnost střelby (%)">Ú%</th><th>B/z</th><th>P/60</th><th>G/60</th><th>+/−</th><th>H</th><th>AB</th>`;
+  { const pr=document.getElementById('cpi-prah');
+    if(pr) pr.textContent = cpiMode ? ` V pořadí podle CPI jen hráči s aspoň ${state.gp} ${state.gp===1?'zápasem':'zápasy'} — z pár zápasů CPI moc neznamená.` : ''; }
   if(!rows.length){ body.innerHTML=`<tr><td colspan="18"><div class="empty">${hledam?'Žádný hráč s tímhle jménem neodpovídá filtru.':'Žádní hráči neodpovídají filtru.'}</div></td></tr>`; return; }
+  const ncol = head.children.length, W = sirkaDetailu(body);
   const pmCol = v => v==null ? 'var(--text-dim)' : v<0 ? 'var(--loss)' : v>0 ? 'var(--win)' : 'var(--text-dim)';
   body.innerHTML = rows.map(p=>{
     const bz = (p.Body!=null && p.GP) ? p.Body/p.GP : null;
@@ -775,9 +865,10 @@ function renderTable(d){
     let delta='';
     if(cpiMode){ const dd=p._rBody-p._rCpi;
       delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
-    return `<tr>
+    const kl = `${p.Jmeno}|${p.Tym_clean}`, otv = OTV_H.has(kl);
+    return `<tr class="rk${otv?' otv':''}" data-k="${escH(kl)}" tabindex="0" aria-expanded="${otv}">
       <td>${cpiMode?p._rCpi:p._rBody}</td>${delta}
-      <td class="nm">${p.Jmeno}</td>
+      <td class="nm">${p.Jmeno}<span class="rk-sip">${otv?'▴':'▾'}</span></td>
       <td style="color:var(--gold);font-weight:600">${p.Body ?? '—'}</td>
       <td class="cpi" style="background-image:${bar}">${f1(p.CPI)}</td>
       <td class="l" style="color:var(--text-dim)">${p.Tym_clean}</td>
@@ -793,8 +884,9 @@ function renderTable(d){
       <td style="color:${pmCol(p.Plus_minus)};font-weight:600">${p.Plus_minus>0?'+':''}${p.Plus_minus ?? '—'}</td>
       <td>${p.Hity ?? '—'}</td>
       <td>${p.Bloky ?? '—'}</td>
-    </tr>`;
+    </tr>`+(otv?detailRadek(ncol, W, p.Jmeno, p.Tym_clean):'');
   }).join('');
+  napojRozklik(body, OTV_H, ()=>renderTable(tabData()));
 }
 
 /* ── 2. WORKLOAD VS OUTPUT — (8. 10.) bodový graf minuty na zápas × body na 60 minut ───
@@ -1162,7 +1254,9 @@ function renderGoalieTable(){
   [...set].sort((a,b)=>b.GPI-a.GPI).forEach((g,i)=>g._rGpi=i+1);
   const gpiMode = state.goalieSort==='gpi';
   const ordered = [...set].sort((a,b)=> gpiMode ? b.GPI-a.GPI : b.SavePct-a.SavePct);
+  const W = sirkaDetailu(body);
   // (8. 10.) úspěšnost a GPI hned za jménem — na telefonu vidět bez posouvání
+  const ncol = gpiMode ? 14 : 13;
   head.innerHTML = `<th>#</th>${gpiMode?'<th>Δ</th>':''}<th class="l">Brankář</th><th>Sv%</th><th>GPI</th><th class="l">Kat</th><th class="l">Tým</th><th>GP</th><th>W</th><th>L</th><th>GAA</th><th>SO</th><th>GSAA</th><th>GBS</th>`;
   body.innerHTML = ordered.map((g,i)=>{
     const v=Math.max(0,Math.min(100,g.GPI||0));
@@ -1172,15 +1266,17 @@ function renderGoalieTable(){
       delta = dd>0?`<td class="delta-up">▲${dd}</td>`:dd<0?`<td class="delta-down">▼${-dd}</td>`:`<td class="delta-zero">–</td>`; }
     const gsaaCol=(g.GSAA||0)>=0?'var(--win)':'var(--loss)';
     const kat = GKAT_TXT[g.Kategorie] || g.Kategorie;
-    return `<tr><td>${i+1}</td>${delta}<td class="nm">${g.Jmeno}</td>
+    const kl = `${g.Jmeno}|${g.Tym_clean}`, otv = OTV_B.has(kl);
+    return `<tr class="rk${otv?' otv':''}" data-k="${escH(kl)}" tabindex="0" aria-expanded="${otv}"><td>${i+1}</td>${delta}<td class="nm">${g.Jmeno}<span class="rk-sip">${otv?'▴':'▾'}</span></td>
       <td style="color:var(--text);font-weight:600">${f1(g.SavePct)}</td>
       <td class="gpi-bar" style="background-image:${bar}"${g.GPI_kvalita!=null?` title="kvalita ${c1(g.GPI_kvalita)} (upravená úspěšnost ${c2(g.Sv_upr)} %) · odchytal ${c1(g.Podil_minut)} % minut týmu"`:''}>${f1(g.GPI)}</td>
       <td class="l"><span class="cat-pill ${GKAT[g.Kategorie]||'cat-tahoun'}">${kat}</span></td>
       <td class="l" style="color:var(--text-dim)">${g.Tym_clean}</td>
       <td>${g.GP}</td><td>${g.W}</td><td>${g.L}</td><td>${f2(g.GAA)}</td><td>${g.SO}</td>
       <td style="color:${gsaaCol};font-weight:600">${(g.GSAA>0?'+':'')+f1(g.GSAA)}</td>
-      <td>${f1(g.GBS)}</td></tr>`;
+      <td>${f1(g.GBS)}</td></tr>`+(otv?detailRadek(ncol, W, g.Jmeno, g.Tym_clean):'');
   }).join('');
+  napojRozklik(body, OTV_B, renderGoalieTable);
 }
 
 function renderGBS(){
