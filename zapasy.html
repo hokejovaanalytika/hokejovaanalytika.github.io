@@ -211,6 +211,16 @@
     .g-b{font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;}
     .g-b.pp{background:rgba(76,175,130,.18);color:#7FE0AC;} .g-b.sh{background:rgba(212,168,67,.18);color:var(--gold);}
     .g-b.ts,.g-b.sn{background:rgba(91,155,213,.18);color:#9CC3EA;}
+    /* (29. 10.) šance na výhru v průběhu zápasu (sance_zapasu.json) + hodnota gólu u každého gólu */
+    .g-x{display:flex;align-items:center;gap:6px;justify-content:flex-end;}
+    .g-v{font-family:var(--font-mono);font-size:10.5px;font-weight:700;color:var(--text-faint);min-width:26px;text-align:right;white-space:nowrap;}
+    .g-v.stred{color:var(--text-dim);} .g-v.velky{color:var(--gold);}
+    .d-wp{margin:4px 0 10px;}
+    .d-wp-h{font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px;}
+    svg.wp{width:100%;height:auto;display:block;}
+    .d-wp-t{font-size:12.5px;color:var(--text);line-height:1.5;margin-top:4px;}
+    .d-wp-p{font-size:11px;color:var(--text-faint);line-height:1.45;margin-top:3px;}
+    .d-wp-wait{font-size:11.5px;color:var(--text-faint);margin:4px 0 8px;}
     .d-h2h{margin-top:10px;color:var(--text-dim);font-size:12.5px;line-height:1.55;}
     .d-h2h b{color:var(--text);font-family:var(--font-mono);}
     .d-pozn{color:var(--text-faint);font-size:12.5px;margin:4px 0;}
@@ -362,7 +372,7 @@
   </div>
     <div class="intro">
       <h1>Predikce — Model 2.0</h1>
-      <p id="pred-intro">Elo — síla týmu z výsledků. Start sezóny vychází z minulých ročníků (70 % loňské síly nad průměrem nebo pod ním), po každém zápase se síla posune podle výsledku a domácí led přidá zhruba 45 bodů. Ve zpětném testu na 4 sezónách Extraligy (2022/23–2025/26, 1 456 zápasů) trefilo 60–61 % zápasů (tip „vždy domácí“ 58 %, předchozí model s 10 faktory 56 %). Přepočítává se každou aktualizací dat.</p>
+      <p id="pred-intro">Elo — síla týmu z výsledků. Start sezóny vychází z minulých ročníků (70 % loňské síly nad průměrem nebo pod ním), po každém zápase se síla posune podle výsledku a domácí led přidá zhruba 55 bodů. Ve zpětném testu na 4 sezónách Extraligy (2022/23–2025/26, 1 456 zápasů) trefilo 60 % zápasů, z jasnějších tipů (aspoň 53 %) skoro 63 % (tip „vždy domácí“ 58 %, předchozí model s 10 faktory 56 %). Přepočítává se každou aktualizací dat.</p>
       <div id="pred-elo-info"></div>
     </div>
 
@@ -493,6 +503,68 @@ const detailZ=z=>DETAIL?(DETAIL[klicZ(z)]||null):null;
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const minut=m=>{const p=/^(\d+):(\d{2})/.exec(String(m||''));return p?(+p[1])+(+p[2])/60:NaN;};
 let jenZajimave=false; const otevrene=new Set();
+/* (29. 10.) ŠANCE NA VÝHRU V PRŮBĚHU ZÁPASU — sance_zapasu.json (build.R): u zápasu p0 = šance domácích podle Elo
+   před zápasem (‰), c = šance domácích po minutách 0–60 (‰, stav po gólech do té minuty), g = góly (m čas, s stav,
+   k D/H, a / b = šance domácích těsně před a po gólu v ‰, v = o kolik procentních bodů gól zvedl šanci svého týmu),
+   ot = prodloužení (p šance domácích, t konec, k vítěz, so nájezdy), nej = index nejcennějšího gólu.
+   Načte se až při prvním rozkliku zápasu; bez souboru rozklik zůstane jako dřív. */
+let SANCE=null, SANCE_P=null, wpN=0;
+function nactiSance(){
+  if(SANCE_P) return SANCE_P;
+  SANCE_P=loadJSON('sance_zapasu.json')
+    .then(d=>{ SANCE={}; (d&&Array.isArray(d.zapasy)?d.zapasy:[]).forEach(x=>{ if(x.kr)SANCE[x.kr]=x; if(x.k&&!SANCE[x.k])SANCE[x.k]=x; }); })
+    .catch(()=>{ SANCE={}; console.warn('sance_zapasu.json chybí — rozklik zápasu bez šance na výhru.'); })
+    .then(()=>{ if(otevrene.size) renderVysledky(); });
+  return SANCE_P;
+}
+const sanceZ=z=>SANCE?(SANCE[klicZ(z)]||null):null;
+// předložky před číslem podle výslovnosti (jako vve / zze v build.R): "ve 2:30", "v 58:40", "ze 47", "z 5"
+const vVe=x=>{const k=Math.floor(Math.abs(x)); return ([2,3,4,12,13,14].includes(k)||(k>=20&&k<50)||(k>=100&&k<500))?'ve':'v';};
+const zZe=x=>{const k=Math.floor(Math.abs(x)); return ([2,3,4,6,7,12,13,14,16,17].includes(k)||(k>=20&&k<50)||(k>=60&&k<80)||(k>=100&&k<500))?'ze':'z';};
+const sanceGolu=(s,o)=>s&&Array.isArray(s.g)?s.g.find(q=>q.m===o.m&&q.s===o.s)||null:null;
+function sanceSvg(z,s,g){
+  const ot=s.ot&&s.ot.t!=null&&s.ot.p!=null?s.ot:null, L=ot?65:60, W=340, H=146, X0=6, X1=334, Y0=10, Y1=134, id='wp'+(++wpN);
+  const xp=t=>X0+(Math.min(Math.max(t,0),L)/L)*(X1-X0), yp=p=>Y0+(1-Math.min(Math.max(p,0),1000)/1000)*(Y1-Y0), y50=yp(500);
+  // body křivky: minuty + skok u každého gólu (před / po), prodloužení až do gólu nebo nájezdů
+  const P=[]; (s.c||[]).forEach((p,m)=>P.push({t:m,p:+p,o:1}));
+  (s.g||[]).forEach(o=>{ const t=minut(o.m); if(isNaN(t)||t>=60) return; P.push({t,p:+o.a,o:0}); P.push({t,p:+o.b,o:2}); });
+  P.sort((a,b)=>a.t-b.t||a.o-b.o);
+  if(ot){ P.push({t:+ot.t,p:+ot.p}); P.push({t:+ot.t,p:ot.k==='D'?1000:0}); }
+  const d=P.map((q,i)=>`${i?'L':'M'}${xp(q.t).toFixed(1)},${yp(q.p).toFixed(1)}`).join(' ');
+  const plocha=`M${xp(P[0].t).toFixed(1)},${y50.toFixed(1)} ${d.replace(/^M/,'L')} L${xp(P[P.length-1].t).toFixed(1)},${y50.toFixed(1)} Z`;
+  let v=`<svg class="wp" viewBox="0 0 ${W} ${H}" role="img" aria-label="Šance na výhru v průběhu zápasu">`+
+    `<defs><clipPath id="${id}t"><rect x="0" y="0" width="${W}" height="${y50}"/></clipPath><clipPath id="${id}b"><rect x="0" y="${y50}" width="${W}" height="${H-y50}"/></clipPath></defs>`;
+  [250,750].forEach(p=>{v+=`<line x1="${X0}" y1="${yp(p)}" x2="${X1}" y2="${yp(p)}" stroke="#4A6070" stroke-width="0.6" stroke-dasharray="2,3"/>`;});
+  [20,40].concat(ot?[60]:[]).forEach(m=>{v+=`<line x1="${xp(m)}" y1="${Y0}" x2="${xp(m)}" y2="${Y1}" stroke="#4A6070" stroke-width="0.8" stroke-dasharray="2,2"/>`;});
+  v+=`<path d="${plocha}" fill="#3AADAD" fill-opacity="0.30" clip-path="url(#${id}t)"/><path d="${plocha}" fill="#5B9BD5" fill-opacity="0.30" clip-path="url(#${id}b)"/>`;
+  v+=`<line x1="${X0}" y1="${y50}" x2="${X1}" y2="${y50}" stroke="#8FA3B0" stroke-width="0.8"/>`;
+  v+=`<path d="${d}" fill="none" stroke="#E8EFF4" stroke-width="1.6" stroke-linejoin="round"/>`;
+  v+=`<text x="${X0+2}" y="${Y0+9}" font-size="9" fill="#3AADAD">${esc(z.Domaci)} vyhraje</text><text x="${X0+2}" y="${Y1-3}" font-size="9" fill="#5B9BD5">${esc(z.Hoste)} vyhraje</text>`;
+  v+=`<text x="${X1-2}" y="${y50-3}" font-size="8" fill="#8FA3B0" text-anchor="end">50 %</text>`;
+  [['1.',10],['2.',30],['3.',50]].forEach(([t,m])=>{v+=`<text x="${xp(m)}" y="${H-1}" text-anchor="middle" font-size="9" fill="#4A6070">${t}</text>`;});
+  if(ot) v+=`<text x="${xp(62.5)}" y="${H-1}" text-anchor="middle" font-size="9" fill="#D4A843">${ot.so?'nájezdy':'prodl.'}</text>`;
+  // góly: tečka na šanci po gólu, nejcennější gól se zlatým okrajem
+  (s.g||[]).forEach((o,i)=>{ const t=minut(o.m); if(isNaN(t)) return;
+    const gd=g.find(q=>q.m===o.m&&q.s===o.s), tym=o.k==='D'?z.Domaci:z.Hoste;
+    const pr=o.k==='D'?o.a/10:100-o.a/10, po=o.k==='D'?o.b/10:100-o.b/10, nej=i===s.nej;
+    const tit=`${o.m} ${o.s} ${gd?gd.st:''} (${tym}) · šance na výhru ${Math.round(pr)} → ${Math.round(po)} % (+${c1(o.v).replace(/,0$/,'')} p. b.)`;
+    v+=`<circle cx="${xp(t).toFixed(1)}" cy="${yp(o.b).toFixed(1)}" r="${nej?5:3.4}" fill="${o.k==='D'?'#3AADAD':'#5B9BD5'}"${nej?' stroke="#D4A843" stroke-width="2"':' stroke="#243545" stroke-width="1"'}><title>${esc(tit)}</title></circle>`; });
+  return v+'</svg>';
+}
+function sanceHtml(z,s,g){
+  if(SANCE===null){ nactiSance(); return '<div class="d-wp-wait">Načítám šanci na výhru…</div>'; }
+  if(!s||!Array.isArray(s.c)||s.c.length<61) return '';
+  let h=`<div class="d-wp"><div class="d-wp-h">📈 Šance na výhru v průběhu zápasu</div>${sanceSvg(z,s,g)}`;
+  const o=s.nej>=0&&Array.isArray(s.g)?s.g[s.nej]:null;
+  if(o&&+o.v>=1){
+    const gd=g.find(q=>q.m===o.m&&q.s===o.s), tym=o.k==='D'?z.Domaci:z.Hoste, t=minut(o.m);
+    const pr=Math.round(o.k==='D'?o.a/10:100-o.a/10), po=Math.round(o.k==='D'?o.b/10:100-o.b/10);
+    h+=`<div class="d-wp-t">⭐ Nejcennější gól: <b>${esc(gd?gd.st:'')}</b> (${esc(tym)}) ${t>=60?'v prodloužení':vVe(t)+' '+esc(o.m)} na ${esc(o.s)} — šance na výhru ${zZe(pr)} ${pr} na ${po}&nbsp;%</div>`;
+  }
+  const p0=+s.p0/10;
+  h+=`<div class="d-wp-p">Křivka začíná na šanci podle Elo před zápasem (${esc(z.Domaci)} ${Math.round(p0)}&nbsp;%, ${esc(z.Hoste)} ${Math.round(100-p0)}&nbsp;%), dál počítá s časem, stavem a tempem gólů v Extralize. Číslo u gólu = o kolik procentních bodů zvedl šanci svého týmu na výhru.</div>`;
+  return h+'</div>';
+}
 
 function buildFilters(){
   const kola=[...new Set(VYS.map(z=>+z.Kolo))].sort((a,b)=>a-b);
@@ -575,7 +647,7 @@ function renderVysledky(){
       </div>${otv?`<div class="m-det">${detailHtml(z,x)}</div>`:''}`;
   }).join('');
   list.querySelectorAll('.m-row').forEach(el=>{
-    const prepni=()=>{const k=el.dataset.k; if(otevrene.has(k))otevrene.delete(k); else otevrene.add(k); renderVysledky();};
+    const prepni=()=>{const k=el.dataset.k; if(otevrene.has(k))otevrene.delete(k); else { otevrene.add(k); nactiSance(); } renderVysledky();};
     el.addEventListener('click',prepni);
     el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();prepni();}});
   });
@@ -727,6 +799,7 @@ function detailHtml(z,x){
   if(g.length) h+=tretinyHtml(z,g);
   if(g.length){
     h+=osaSvg(g,z)+`<div class="d-leg"><span style="color:#3AADAD">●</span> ${esc(z.Domaci)} nahoře · <span style="color:#5B9BD5">●</span> ${esc(z.Hoste)} dole · barva čáry = kdo zrovna vedl</div>`+casHtml(z,x&&x.cas);
+    const sz=sanceZ(z); h+=sanceHtml(z,sz,g);   // (29. 10.)
     // nájezdy: "rozhodl" jen u posledního proměněného (kdyby jich v datech bylo víc)
     const posledniSN=g.map(o=>o.sit).lastIndexOf('SN');
     h+='<div class="g-list">'+g.map((o,i)=>{
@@ -734,7 +807,10 @@ function detailHtml(z,x){
       // (8. 10.) gól v prodloužení "64:36 prodl." — "PP" vedle štítku přesilovky znamenal dvě různé věci
       const kdy=o.sit==='SN'?'nájezdy':(minut(o.m)>=60?o.m+' prodl.':o.m);
       const jm=o.sit==='SN'?(i===posledniSN?`rozhodl ${esc(o.st)}`:esc(o.st)):`${esc(o.st)}${as.length?` <small>(${as.map(esc).join(', ')})</small>`:''}`;
-      return `<div class="g-row ${o.k==='D'?'gd':'gh'}"><span class="g-t">${esc(kdy)}</span><span class="g-s">${esc(o.s)}</span><span class="g-n">${jm}</span>${sitLabel(o)}</div>`;}).join('')+'</div>';
+      // (29. 10.) hodnota gólu: o kolik procentních bodů zvedl šanci svého týmu na výhru (nájezd ne)
+      const hv=o.sit==='SN'?null:sanceGolu(sz,o);
+      const hodn=hv&&hv.v!=null?`<span class="g-v ${+hv.v>=25?'velky':+hv.v>=10?'stred':''}" title="${esc(`šance ${o.k==='D'?z.Domaci:z.Hoste} na výhru ${Math.round(o.k==='D'?hv.a/10:100-hv.a/10)} → ${Math.round(o.k==='D'?hv.b/10:100-hv.b/10)} %`)}">+${Math.round(+hv.v)}</span>`:'';
+      return `<div class="g-row ${o.k==='D'?'gd':'gh'}"><span class="g-t">${esc(kdy)}</span><span class="g-s">${esc(o.s)}</span><span class="g-n">${jm}</span><span class="g-x">${sitLabel(o)}${hodn}</span></div>`;}).join('')+'</div>';
   } else h+=`<div class="d-pozn">Gólový detail k tomuhle zápasu zatím není.</div>`;
   h+=statHtml(z,x&&x.st);   // (25. 10.)
   // letošní vzájemné zápasy
@@ -960,7 +1036,7 @@ function renderVersus(zapsat=true){
   h+=jeElo
     ? `<div class="vs-h">Proč — síla podle Elo</div>`+radek({l:'Elo', s:`start sezóny ${Math.round(A.Elo_start)} / ${Math.round(B.Elo_start)} · letos ${zn0(A.Elo-A.Elo_start)} / ${zn0(B.Elo-B.Elo_start)}`,
         a:A.Elo, b:B.Elo, f:v=>v==null||isNaN(v)?'—':String(Math.round(v)), arr:T.map(x=>x.Elo)})+
-      `<div class="vs-det-sub" style="text-align:center">Elo stojí jen na výsledcích: start z minulých sezón, pak posun po každém zápase. 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě, domácí led přidá ${VS.info&&VS.info.elo_doma||45} bodů.</div>`+
+      `<div class="vs-det-sub" style="text-align:center">Elo stojí jen na výsledcích: start z minulých sezón, pak posun po každém zápase. 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě, domácí led přidá ${VS.info&&VS.info.elo_doma||55} bodů.</div>`+
       `<div class="vs-h">Pro srovnání — letošní čísla <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-faint)">(model z nich přímo nepočítá)</small></div>`
     : `<div class="vs-h">Proč — čísla, ze kterých model počítá</div>`;
   h+=radky.map(radek).join('')+`<div class="vs-det-sub" style="text-align:center">Délka pruhu = kde tým stojí v lize (delší = lepší). Výrazněji ten lepší z dvojice.</div>`;
@@ -1082,12 +1158,12 @@ function drawH2H(){
 }
 
 /* (19. 10.) Vysvětlivka „Co je Elo?“ — stejný text na Zápasech (Predikce, Souboj), Playoff a v GM módu.
-   Čísla odpovídají build.R sekci 11b (K 12, domácí led 45, přenos 70 %, prodloužení 0,75). */
+   Čísla odpovídají build.R sekci 11b (K 12, domácí led 55, v playoff 20, přenos 70 %, prodloužení 0,75; domácí led přeladěný 29. 10.). */
 function eloInfoHTML(){
   return `<details class="elo-info"><summary>Co je Elo?</summary><div class="elo-info-tx">`+
     `<div class="elo-r"><b>Jedno číslo síly týmu, spočítané jen z výsledků.</b> Průměr ligy je 1500 — nejsilnější týmy bývají kolem 1600, nejslabší kolem 1430.</div>`+
     `<div class="elo-r"><b>Po každém zápase si vítěz vezme body od poraženého.</b> Kolik, záleží na tom, jak moc se výhra čekala: favorit za čekanou výhru dostane pár bodů, outsider za překvapení víc (nejvýš 12 za zápas). Výhra v prodloužení nebo na nájezdy se počítá jako tři čtvrtiny výhry — prodloužení je skoro loterie.</div>`+
-    `<div class="elo-r"><b>Z rozdílu Elo vychází šance.</b> 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě. Domácí led přidá 45 bodů, takže proti stejně silnému soupeři mají domácí asi 56 %.</div>`+
+    `<div class="elo-r"><b>Z rozdílu Elo vychází šance.</b> 100 bodů rozdílu ≈ 64 : 36 na neutrálním ledě. Domácí led přidá 55 bodů, takže proti stejně silnému soupeři mají domácí asi 58 % — tolik zápasů v posledních sezónách opravdu vyhrávají. V playoff je domácí výhoda menší (20 bodů, asi 53 %).</div>`+
     `<div class="elo-r"><b>Nová sezóna nezačíná od nuly.</b> Tým si přenese 70 % loňského odstupu od průměru (kdo skončil na 1600, začne na 1570), takže Elo ví, kdo je silný, hned od prvního kola. Letošní výsledky ho pak posouvají.</div>`+
     `<div class="elo-r elo-pozn">Systém vymyslel fyzik Arpad Elo pro šachy — proto Elo, ne ELO: je to jméno, ne zkratka. Elo nezná sestavy, zranění ani brankáře, jen výsledky.</div>`+
     `</div></details>`;

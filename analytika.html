@@ -115,6 +115,25 @@
     .hl-souhra-txt b{color:var(--text);}
     .toggle button{background:transparent;border:none;color:var(--text-dim);font-family:var(--font-main);font-size:12px;font-weight:600;padding:6px 12px;border-radius:6px;cursor:pointer;}
     .toggle button.active{background:var(--teal);color:#fff;}
+    /* (29. 10.) ⚖️ Hodnota gólu (Clutch) */
+    .hg-tym{display:block;font-size:11px;color:var(--text-faint);font-weight:400;}
+    .tbl td.hg-nej{text-align:left;font-family:var(--font-main);font-size:12px;white-space:normal;min-width:190px;}
+    .tbl td.hg-nej small{display:block;color:var(--text-faint);font-size:11px;}
+    .tbl .hg-v{color:var(--gold);font-weight:700;}
+    .hg-vic{margin-top:10px;background:none;border:1px solid var(--border);border-radius:14px;color:var(--teal-light);font-family:var(--font-main);font-size:12px;font-weight:600;padding:5px 12px;cursor:pointer;}
+    .hg-jak{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.5;}
+    .hg-jak summary{cursor:pointer;color:var(--teal-light);font-weight:600;}
+    .hg-jak p{margin:6px 0 0;}
+    .tbl td.hg-jm{white-space:normal;}
+    .hg-mob{display:none;font-size:11px;color:var(--text-dim);font-weight:400;margin-top:2px;line-height:1.35;}
+    .hg-mob b{color:var(--gold);font-weight:700;}
+    @media (max-width:600px){
+      table.tbl#hg-tbl{min-width:0;}
+      #hg-tbl .hg-nejcol{display:none;}
+      .hg-mob{display:block;}
+      #hg-tbl th,#hg-tbl td{padding:7px 5px;}
+      .tbl td.hg-nej{min-width:0;}
+    }
     .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
     .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
@@ -538,6 +557,20 @@
     <div class="intro">
       <h1>Clutch — kdo rozhoduje zápasy</h1>
       <p>Dvacet gólů není jako dvacet gólů. Tady je vidět, kdo skóruje za vyrovnaného stavu, a kdo si statistiku vylepšuje, když už je o zápase rozhodnuto.</p>
+    </div>
+
+    <!-- (29. 10.) ⚖️ HODNOTA GÓLU — hodnota_golu.json z build.R (sekce Šance na výhru v průběhu zápasu); bez něj karta skrytá -->
+    <div class="card" id="hg-card" style="display:none">
+      <div class="card-title">⚖️ Hodnota gólu — kolik výher góly přinesly</div>
+      <div class="card-sub">Každý gól dostane hodnotu podle toho, o kolik zvedl šanci svého týmu na výhru: vyrovnání v poslední minutě skoro +50 procentních bodů, šestý gól do sítě poraženého soupeře skoro nic. Součet za sezónu = kolik výher hráč svými góly přidal. Šanci počítá stejný model jako graf v rozkliku zápasu na <a href="zapasy.html" style="color:var(--teal-light)">Zápasech</a>. Rozhodující nájezdy se nepočítají.</div>
+      <div class="toggle" id="hg-toggle"><button data-hg="hraci" class="active">Hráči</button><button data-hg="prumer">Na gól</button><button data-hg="goly">Nejcennější góly</button></div>
+      <div class="tbl-wrap"><table class="tbl" id="hg-tbl"><thead id="hg-head"></thead><tbody id="hg-body"></tbody></table></div>
+      <div id="hg-vic"></div>
+      <details class="hg-jak"><summary>Jak to počítáme</summary>
+        <p><b>Šance na výhru</b> v každé chvíli zápasu: model ví, kolik zbývá času, jaký je stav a jak rychle v Extralize padají góly (doma víc než venku, v 1. třetině méně než ve 2. a 3.). Začíná na šanci podle Elo před zápasem — stejné číslo, jaké ukazuje Predikce. Za nerozhodného stavu po 60 minutách je to skoro loterie: prodloužení a nájezdy vyhrávají domácí zhruba v polovině případů.</p>
+        <p><b>Tempo gólů</b> je spočítané z letošních a loňských zápasů. Ověřené na sezóně, kterou model při učení neviděl: předpovídá výsledek mnohem líp než samotná šance před zápasem a když říká „90 %“, tým opravdu vyhraje zhruba 9 z 10 takových zápasů.</p>
+        <p><b>Co model neví:</b> přesilovky, odvolaného brankáře ani formu v daném zápase — gól dvě minuty před koncem má stejnou hodnotu, ať se hrálo 5 na 5, nebo 6 na 5.</p>
+      </details>
     </div>
 
     <div class="card">
@@ -1496,7 +1529,57 @@ function renderClutch(){
   const em=document.getElementById('cl-med');
   if(em) em.textContent = L.srovnani && L.median_podil!=null ? ` (teď ${f1(L.median_podil)} % gólů za těsného stavu)` : '';
   clutchStav(C.stav); clutchPodil(C); clutchRozhod(C.rozhoduji);
+  renderHodnota();   // (29. 10.)
 }
+
+/* (29. 10.) ⚖️ HODNOTA GÓLU — hodnota_golu.json (build.R): hraci (G, H = výhry přidané góly, Prum = průměr
+   procentních bodů na gól, Nej_* = nejcennější gól), goly = 15 nejcennějších gólů sezóny.
+   Načte se až při otevření záložky Clutch; bez souboru (starší build) karta zůstane skrytá. */
+let HG=null, hgMod='hraci', hgVse=false;
+const hgEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const HG_MIN_PRUM=4;                       // průměr na gól jen u hráčů s aspoň tolika góly
+const hgC=x=>x==null||isNaN(x)?'—':String(Math.round(x*10)/10).replace('.',',');
+const hgV2=x=>x==null||isNaN(x)?'—':(Math.round(x*100)/100).toFixed(2).replace('.',',');
+const hgSk=(n,a,b,c)=>n===1?a:(n>=2&&n<=4?b:c);
+async function renderHodnota(){
+  const card=document.getElementById('hg-card'); if(!card) return;
+  card.style.display='none';               // panelOdemkni ukazuje všechny karty — tahle jen s daty
+  if(!HG){ try{ HG=await loadJSON('hodnota_golu.json'); }catch(e){ HG=false; } }
+  if(!HG||!Array.isArray(HG.hraci)||!HG.hraci.length){ console.warn('hodnota_golu.json chybí nebo je prázdný — karta Hodnota gólu skrytá.'); return; }
+  card.style.display='';
+  document.querySelectorAll('#hg-toggle button').forEach(b=>b.onclick=()=>{ hgMod=b.dataset.hg; hgVse=false;
+    document.querySelectorAll('#hg-toggle button').forEach(x=>x.classList.toggle('active',x===b)); hgRender(); });
+  hgRender();
+}
+function hgRender(){
+  const head=document.getElementById('hg-head'), body=document.getElementById('hg-body'), vic=document.getElementById('hg-vic');
+  const nejG=r=>`<span class="hg-v">+${hgC(r.Nej_v)}</span> ${hgEsc(r.Nej_m)} na ${hgEsc(r.Nej_s)}<small>${hgEsc(r.Nej_z)}${r.Nej_d?' · '+hgEsc(r.Nej_d):''} · šance ${r.Nej_pr} → ${r.Nej_po}&nbsp;%</small>`;
+  if(hgMod==='goly'){
+    const q=Array.isArray(HG.goly)?HG.goly:[];
+    head.innerHTML='<tr><th>#</th><th>Gól</th><th>+ p. b.</th><th class="hg-nejcol">Šance</th><th style="text-align:left">Zápas</th></tr>';
+    body.innerHTML=q.length?q.map((g,i)=>`<tr><td>${i+1}</td><td class="hg-jm">${hgEsc(g.Jmeno)}<span class="hg-tym">${hgEsc(g.Tym)}</span><span class="hg-mob">šance ${g.pr} → ${g.po}&nbsp;%</span></td>`+
+      `<td class="hg-v">+${hgC(g.v)}</td><td class="hg-nejcol">${g.pr} → ${g.po}&nbsp;%</td>`+
+      `<td class="hg-nej">${hgEsc(g.m)}${minNum(g.m)>=60?' prodl.':''} na ${hgEsc(g.s)}<small>${hgEsc(g.Zapas)}${g.D?' · '+hgEsc(g.D):''}</small></td></tr>`).join('')
+      :'<tr><td colspan="5"><div class="empty">Zatím bez dat.</div></td></tr>';
+    vic.innerHTML=''; return;
+  }
+  let q=[...HG.hraci];
+  if(hgMod==='prumer') q=q.filter(r=>r.G>=HG_MIN_PRUM).sort((a,b)=>b.Prum-a.Prum||b.G-a.G);
+  const n=q.length, ukaz=hgVse?q:q.slice(0,20);
+  head.innerHTML=`<tr><th>#</th><th>Hráč</th><th>G</th><th>${hgMod==='prumer'?'Ø na gól':'Výhry'}</th><th>${hgMod==='prumer'?'Výhry':'Ø na gól'}</th><th class="hg-nejcol" style="text-align:left">Nejcennější gól</th></tr>`;
+  // na telefonu je nejcennější gól malým řádkem pod jménem (sloupec se schová)
+  const nejMob=r=>`<span class="hg-mob">nejcennější: <b>+${hgC(r.Nej_v)}</b> · ${hgEsc(r.Nej_m)}${minNum(r.Nej_m)>=60?' prodl.':''} · ${hgEsc(r.Nej_z)}</span>`;
+  body.innerHTML=ukaz.length?ukaz.map((r,i)=>{
+    const a=`<td class="hg-v">${hgV2(r.H)}</td>`, b=`<td>+${hgC(r.Prum)}</td>`;
+    return `<tr><td>${i+1}</td><td class="hg-jm">${hgEsc(r.Jmeno)}<span class="hg-tym">${hgEsc(r.Tym)}</span>${nejMob(r)}</td><td>${r.G}</td>`+
+      (hgMod==='prumer'?`<td class="hg-v">+${hgC(r.Prum)}</td><td>${hgV2(r.H)}</td>`:a+b)+`<td class="hg-nej hg-nejcol">${nejG(r)}</td></tr>`;}).join('')
+    :`<tr><td colspan="6"><div class="empty">Zatím žádný hráč s aspoň ${HG_MIN_PRUM} ${hgSk(HG_MIN_PRUM,'gólem','góly','góly')}.</div></td></tr>`;
+  vic.innerHTML=n>20?`<button class="hg-vic" type="button">${hgVse?'Ukázat jen 20':`Ukázat všech ${n}`}</button>`:'';
+  const bt=vic.querySelector('button'); if(bt) bt.onclick=()=>{ hgVse=!hgVse; hgRender(); };
+  const pozn=hgMod==='prumer'?`Jen hráči s aspoň ${HG_MIN_PRUM} ${hgSk(HG_MIN_PRUM,'gólem','góly','góly')}. `:'';
+  if(pozn) vic.insertAdjacentHTML('afterbegin',`<div style="font-size:11.5px;color:var(--text-faint);margin-top:8px">${pozn}Ligový průměr: +${hgC(HG.info&&HG.info.prumer)} procentního bodu na gól.</div>`);
+}
+const minNum=m=>{const p=/^(\d+):(\d{2})/.exec(String(m||''));return p?(+p[1])+(+p[2])/60:NaN;};
 
 function clutchStav(d){
   const q=(d||[]).slice().sort((a,b)=>a.G_tesne-b.G_tesne);
