@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zápasy — Hokejová Analytika</title>
   <!-- (10. 10.) ikonka stránky v prohlížeči (favicon) a na ploše telefonu -->
-  <link rel="icon" type="image/png" href="logos/profilovka.png">
-  <link rel="apple-touch-icon" href="logos/profilovka.png">
+  <link rel="icon" type="image/png" href="logos/mini/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/mini/profilovka.png">
   <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
   <meta property="og:type" content="website">
@@ -178,7 +178,7 @@
     .nh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:10px;}
     .nh-z{background:var(--slate);border:1px solid var(--border);border-left:3px solid var(--gold-dim);border-radius:0 8px 8px 0;padding:9px 11px 8px;min-width:0;}
     .nh-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;margin-bottom:5px;}
-    .nh-t{flex:1 0 100%;font-size:14px;font-weight:700;color:var(--text);}
+    .nh-t{flex:1 0 100%;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--text);}
     .nh-m{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);white-space:nowrap;}
     .nh-vs{margin-left:auto;font-size:12px;font-weight:600;color:var(--teal-light);text-decoration:none;white-space:nowrap;}
     .nh-vs:hover{text-decoration:underline;}
@@ -197,6 +197,12 @@
     .m-d,.m-h{color:var(--text-dim);font-weight:500;font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .m-d{text-align:right;} .m-h{text-align:left;}
     .m-w{color:var(--text);font-weight:700;}
+    /* (2. 11.) loga týmů u výsledků a v 👀 Na co se dívat (malé kopie v logos/mini) */
+    .m-d,.m-h{display:flex;align-items:center;gap:6px;} .m-d{justify-content:flex-end;}
+    .m-d .nm,.m-h .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;}
+    .lg{width:20px;height:20px;object-fit:contain;flex-shrink:0;}
+    @media (max-width:400px){ .m-main{gap:6px;} .m-d,.m-h{gap:4px;font-size:13px;} .m-main .lg{width:16px;height:16px;} }
+    @media (max-width:340px){ .m-main .lg{display:none;} }   /* nejužší telefony: radši celé jméno než logo */
     .m-s{font-family:var(--font-mono);font-weight:700;font-size:15px;color:var(--text);min-width:54px;text-align:center;}
     .m-s .ot{font-size:9px;color:var(--gold);margin-left:3px;}
     .m-det{background:var(--slate);border:1px solid var(--teal);border-top:1px dashed var(--teal-dim);border-radius:0 0 8px 8px;margin-top:-7px;padding:10px 12px 12px;font-size:13px;}
@@ -290,7 +296,7 @@
 
 <header>
   <div class="header-inner">
-    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo"><div class="site-title">Hokejová<span>Analytika</span></div></a>
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/mini/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36" onerror="this.onerror=null;this.src='logos/profilovka.png'"><div class="site-title">Hokejová<span>Analytika</span></div></a>
     <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
   </div>
 </header>
@@ -662,6 +668,11 @@ function renderForma(t){
       doma ${body(doma)} b. za ${zap(doma.length)} · venku ${body(venku)} b. za ${zap(venku.length)} · posledních ${posl.length}: <b>${body(posl)} b.</b></div>${pristiHtml(t)}`;
   box.style.display='';
 }
+/* (2. 11.) logo týmu: malá kopie z logos/mini (128 px, všech 15 dohromady ~70 kB — originály 3 MB).
+   loading="lazy" = stáhne se, až když je řádek blízko obrazovky; pevná velikost = seznam neposkakuje.
+   Když logos/mini na webu ještě není, zkusí originál, a když chybí i ten, logo se schová. */
+const LOGO_ZPET="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.display='none'";
+const lgo=t=>`<img class="lg" src="logos/mini/${encodeURIComponent(t)}.png" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="${LOGO_ZPET}">`;
 function renderVysledky(){
   const fk=document.getElementById('f-kolo').value, ft=document.getElementById('f-tym').value;
   renderForma(ft);
@@ -679,7 +690,7 @@ function renderVysledky(){
     const otv=otevrene.has(k);
     return `<div class="m-row${otv?' open':''}" data-k="${esc(k)}" role="button" tabindex="0" aria-expanded="${otv}">
         <div class="m-meta"><span>${+z.Kolo}. kolo · ${esc(fmtDen(z.Datum))}</span>${tagy}</div>
-        <div class="m-main"><span class="m-d${gd>gh?' m-w':''}">${esc(z.Domaci)}</span><span class="m-s">${gd}:${gh}${ot}</span><span class="m-h${gh>gd?' m-w':''}">${esc(z.Hoste)}</span></div>
+        <div class="m-main"><span class="m-d${gd>gh?' m-w':''}"><span class="nm">${esc(z.Domaci)}</span>${lgo(z.Domaci)}</span><span class="m-s">${gd}:${gh}${ot}</span><span class="m-h${gh>gd?' m-w':''}">${lgo(z.Hoste)}<span class="nm">${esc(z.Hoste)}</span></span></div>
       </div>${otv?`<div class="m-det">${detailHtml(z,x)}</div>`:''}`;
   }).join('');
   list.querySelectorAll('.m-row').forEach(el=>{
@@ -1028,7 +1039,7 @@ function renderVersus(zapsat=true){
   const A=vsTym(vsA), B=vsTym(vsB), P=vsPar(vsA,vsB), O=vsPar(vsB,vsA);
   const BAR=pridelBarvy([vsA,vsB]), cA=BAR[vsA], cB=BAR[vsB];
   const opt=sel=>vsTymy().map(t=>`<option value="${esc(t)}"${t===sel?' selected':''}>${esc(t)}</option>`).join('');
-  const logo=t=>`<img class="vs-logo" src="logos/${encodeURIComponent(t)}.png" alt="" onerror="this.style.visibility='hidden'">`;
+  const logo=t=>`<img class="vs-logo" src="logos/mini/${encodeURIComponent(t)}.png" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.visibility='hidden'">`;
   let h=`<div class="vs-top">
     <div class="vs-side">${logo(vsA)}<select id="vs-a" aria-label="Domácí tým">${opt(vsA)}</select><span class="vs-role">doma</span></div>
     <button class="vs-swap" id="vs-swap" type="button" title="Prohodit, kdo hraje doma" aria-label="Prohodit domácí a hosty">⇄</button>
@@ -1239,7 +1250,7 @@ function nactiNahled(){
       const meta=[fmtDen(z.datum), pd!=null?`šance ${pd} : ${100-pd}`:''].filter(Boolean).join(' · ');
       const vety=Array.isArray(z.vety)?z.vety:[];
       const vs=VS&&vsTym(z.d)&&vsTym(z.h)?`<a class="nh-vs" href="#vs=${vsSlug(z.d)}-${vsSlug(z.h)}">🆚 Porovnat</a>`:'';
-      return `<div class="nh-z"><div class="nh-h"><span class="nh-t">${esc(z.d)} – ${esc(z.h)}</span><span class="nh-m">${esc(meta)}</span>${vs}</div>`+
+      return `<div class="nh-z"><div class="nh-h"><span class="nh-t">${esc(z.d)} ${lgo(z.d)} – ${lgo(z.h)} ${esc(z.h)}</span><span class="nh-m">${esc(meta)}</span>${vs}</div>`+
         (vety.length?vety.map(v=>`<div class="nh-r"><span class="i">${esc(v.ic)}</span><span>${esc(v.t)}</span></div>`).join('')
                     :'<div class="nh-nic">Před zápasem nic výjimečného v číslech.</div>')+`</div>`;
     }).join('');

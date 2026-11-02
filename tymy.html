@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Týmy — Hokejová Analytika</title>
   <!-- (10. 10.) ikonka stránky v prohlížeči (favicon) a na ploše telefonu -->
-  <link rel="icon" type="image/png" href="logos/profilovka.png">
-  <link rel="apple-touch-icon" href="logos/profilovka.png">
+  <link rel="icon" type="image/png" href="logos/mini/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/mini/profilovka.png">
   <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
   <meta property="og:type" content="website">
@@ -215,7 +215,7 @@
 <header>
   <div class="header-inner">
     <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku">
-      <img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo">
+      <img class="logo-icon" src="logos/mini/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36" onerror="this.onerror=null;this.src='logos/profilovka.png'">
       <div class="site-title">Hokejová<span>Analytika</span></div>
     </a>
     <div class="meta-badge">
@@ -636,8 +636,9 @@ let PLAYOFF = null, PROTI = null;   // (8. 10.) projekce ze simulace (playoff.js
 let ELO_J = null, eloSel = null;    // (19. 10.) elo.json, vybrané týmy v grafu Vývoj síly
 let radarSel = [], blocksSel = [], dnaSel = [], playoffSel = null, ktState = 'clutch';
 
-/* loga týmů (Plotly layout.images) — soubory ve www/logos/, název = jméno týmu, .png */
-const LOGOS_DIR = 'logos/';
+/* loga týmů (Plotly layout.images) — soubory ve www/logos/, název = jméno týmu, .png
+   (2. 11.) malé kopie v logos/mini (128 px) — originály mají dohromady 3 MB, malé ~70 kB */
+const LOGOS_DIR = 'logos/mini/';
 function logoSrc(team){ return LOGOS_DIR + encodeURIComponent(team) + '.png'; }
 function logoImages(items, xr, yr, frac){
   const fx=(xr[1]-xr[0])*frac, fy=(yr[1]-yr[0])*frac;
@@ -1830,7 +1831,7 @@ function renderGtVyhry(){
   const bunka=(r,p,cls='')=>{ const V=p?r['V'+p]:r.V1+r.V2+r.V3, R=p?r['R'+p]:r.R1+r.R2+r.R3, P=p?r['P'+p]:r.P1+r.P2+r.P3,
       G=p?r['G'+p]:r.G1+r.G2+r.G3, O=p?r['O'+p]:r.O1+r.O2+r.O3;
     return `<td class="trc${cls}" style="background:${trvBg(r,p)}" title="${p?p+'. třetina':'všechny třetiny'}: ${V} vyhraných, ${R} remíz, ${P} prohraných · ${trvRez==='s'?'střely':'skóre'} ${G}:${O}"><b>${V}–${R}–${P}</b><small>${G}:${O}</small></td>`; };
-  body.innerHTML=d.map(r=>`<tr class="trr${r.Tym===trvTym?' on':''}" data-t="${r.Tym}"><td class="trn" title="${r.Z} ${r.Z<5?'zápasy':'zápasů'} ${TRV_TXT[trvRez].zap}"><img src="${logoSrc(r.Tym)}" alt="" onerror="this.remove()">${r.Tym}<small>${r.Z} z.</small></td>${[1,2,3].map(p=>bunka(r,p)).join('')}${bunka(r,0,' trcel')}</tr>`).join('');
+  body.innerHTML=d.map(r=>`<tr class="trr${r.Tym===trvTym?' on':''}" data-t="${r.Tym}"><td class="trn" title="${r.Z} ${r.Z<5?'zápasy':'zápasů'} ${TRV_TXT[trvRez].zap}"><img src="${logoSrc(r.Tym)}" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.remove()">${r.Tym}<small>${r.Z} z.</small></td>${[1,2,3].map(p=>bunka(r,p)).join('')}${bunka(r,0,' trcel')}</tr>`).join('');
   head.querySelectorAll('th.trs').forEach(h=>h.addEventListener('click',()=>{ trvSort=+h.dataset.p; renderGtVyhry(); }));
   body.querySelectorAll('tr.trr').forEach(tr=>tr.addEventListener('click',()=>{ trvTym=tr.dataset.t; renderGtVyhry();
     const r=det.getBoundingClientRect(); if(r.top>window.innerHeight*0.6) window.scrollBy({top:r.top-120,behavior:'smooth'}); }));

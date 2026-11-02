@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hokejová Analytika — Tipsport Extraliga</title>
   <!-- (10. 10.) ikonka stránky v prohlížeči (favicon) a na ploše telefonu -->
-  <link rel="icon" type="image/png" href="logos/profilovka.png">
-  <link rel="apple-touch-icon" href="logos/profilovka.png">
+  <link rel="icon" type="image/png" href="logos/mini/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/mini/profilovka.png">
   <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
   <meta property="og:type" content="website">
@@ -182,7 +182,7 @@
 <header>
   <div class="header-inner">
     <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku">
-      <img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo">
+      <img class="logo-icon" src="logos/mini/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36" onerror="this.onerror=null;this.src='logos/profilovka.png'">
       <div class="site-title">Hokejová<span>Analytika</span></div>
     </a>
     <div class="meta-badge">
@@ -323,7 +323,8 @@ const BASE_LAYOUT = {
   separators:', ',                                 // desetinná čárka, mezera jako oddělovač tisíců
   hoverlabel:{bgcolor:'#243545',bordercolor:'#2A8B8B',font:{family:'DM Sans',size:12,color:'#E8EFF4'}}
 };
-const logoSrc = t => 'logos/' + encodeURIComponent(t) + '.png';
+// (2. 11.) malé kopie log (128 px) — originály mají dohromady 3 MB, malé ~70 kB
+const logoSrc = t => 'logos/mini/' + encodeURIComponent(t) + '.png';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const cz1 = x => (x==null || isNaN(x)) ? '—' : (Math.round(x*10)/10).toFixed(1).replace('.', ',');
 const ODEMKNE = 'Tahle karta se odemkne, až bude odehráno víc zápasů.';
@@ -542,7 +543,7 @@ function renderKola(K){
     console.warn('prehled_kola.json chybí nebo je prázdný — build.R ho zapisuje od 7. 10. 2026.');
     el.innerHTML = '<div class="empty">Karta se ukáže po dalším spuštění build.R.</div>'; return;
   }
-  const tym = (t, dom, vit) => `<div class="zap-t ${dom?'dom':''} ${vit?'vit':''}">${dom?`<span class="nm">${esc(t)}</span><img src="${logoSrc(t)}" alt="" onerror="this.style.display='none'">`:`<img src="${logoSrc(t)}" alt="" onerror="this.style.display='none'"><span class="nm">${esc(t)}</span>`}</div>`;
+  const tym = (t, dom, vit) => `<div class="zap-t ${dom?'dom':''} ${vit?'vit':''}">${dom?`<span class="nm">${esc(t)}</span><img src="${logoSrc(t)}" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.display='none'">`:`<img src="${logoSrc(t)}" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.display='none'"><span class="nm">${esc(t)}</span>`}</div>`;
   // (7. 10.) štítek zápasu, který nepatří do kola: "Dohrávka 6. kola" (build.R → skupina)
   const sk = z => { const t = un(z.skupina); return t ? `<div class="zap-sk">${esc(t)}</div>` : ''; };
   // dny jako mezititulky, jen když se kolo hraje víc dní
