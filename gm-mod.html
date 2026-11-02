@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GM Mód — Hokejová Analytika</title>
   <!-- (10. 10.) ikonka stránky v prohlížeči (favicon) a na ploše telefonu -->
-  <link rel="icon" type="image/png" href="logos/mini/profilovka.png">
-  <link rel="apple-touch-icon" href="logos/mini/profilovka.png">
+  <link rel="icon" type="image/png" href="logos/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/profilovka.png">
   <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="GM Mód — Hokejová Analytika">
   <meta property="og:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <meta property="og:url" content="https://hokejovaanalytika.cz/gm-mod.html">
-  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@hokejanalytika">
   <meta name="twitter:title" content="GM Mód — Hokejová Analytika">
   <meta name="twitter:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
-  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -323,7 +323,7 @@
 
 <header>
   <div class="header-inner">
-    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/mini/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36" onerror="this.onerror=null;this.src='logos/profilovka.png'"><div class="site-title">Hokejová<span>Analytika</span></div></a>
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36"><div class="site-title">Hokejová<span>Analytika</span></div></a>
     <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
   </div>
 </header>
@@ -2100,7 +2100,7 @@ function vymKresli(zapsat=true){
   const BAR=pridelBarvy([R.TA,R.TB]), cA=BAR[R.TA], cB=BAR[R.TB];
   sA.innerHTML=`<i style="background:${cA}"></i>${vymEsc(R.TA)} → ${vymEsc(R.TB)}`;
   sB.innerHTML=`<i style="background:${cB}"></i>${vymEsc(R.TB)} → ${vymEsc(R.TA)}`;
-  const logo=t=>`<img class="vym-logo" src="logos/mini/${encodeURIComponent(t)}.png" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.display='none'">`;
+  const logo=t=>`<img class="vym-logo" src="logos/${encodeURIComponent(t)}.png" alt="" onerror="this.style.display='none'">`;
   // "líp z ní vychází" (ne "získá") — vítěz bilance si nemusí polepšit, stačí, že druhý tým tratí víc
   const kat=R.kat==='vyrovnana'?'Vyrovnaná výměna':`${R.kat==='jasne'?'Výrazně':'O něco'} líp z ní ${vymVf(R.podilA>50?R.TA:R.TB,'vychází','vycházejí')} ${vymEsc(R.podilA>50?R.TA:R.TB)}`;
   const jist={nizka:'nízká',stredni:'střední',dobra:'dobrá'}[R.jistota];

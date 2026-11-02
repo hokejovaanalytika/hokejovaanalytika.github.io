@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Zápasy — Hokejová Analytika</title>
   <!-- (10. 10.) ikonka stránky v prohlížeči (favicon) a na ploše telefonu -->
-  <link rel="icon" type="image/png" href="logos/mini/profilovka.png">
-  <link rel="apple-touch-icon" href="logos/mini/profilovka.png">
+  <link rel="icon" type="image/png" href="logos/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/profilovka.png">
   <meta name="description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <!-- Náhledová karta při sdílení na Twitteru/X (aktivní po nasazení na doménu) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Zápasy — Hokejová Analytika">
   <meta property="og:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
   <meta property="og:url" content="https://hokejovaanalytika.cz/zapasy.html">
-  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:site" content="@hokejanalytika">
   <meta name="twitter:title" content="Zápasy — Hokejová Analytika">
   <meta name="twitter:description" content="Statistiky a analýza Tipsport extraligy — týmy, hráči, zápasy a trendy.">
-  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka.png">
+  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -197,7 +197,7 @@
     .m-d,.m-h{color:var(--text-dim);font-weight:500;font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .m-d{text-align:right;} .m-h{text-align:left;}
     .m-w{color:var(--text);font-weight:700;}
-    /* (2. 11.) loga týmů u výsledků a v 👀 Na co se dívat (malé kopie v logos/mini) */
+    /* (2. 11.) loga týmů u výsledků a v 👀 Na co se dívat (malé verze v logos/) */
     .m-d,.m-h{display:flex;align-items:center;gap:6px;} .m-d{justify-content:flex-end;}
     .m-d .nm,.m-h .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;}
     .lg{width:20px;height:20px;object-fit:contain;flex-shrink:0;}
@@ -296,7 +296,7 @@
 
 <header>
   <div class="header-inner">
-    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/mini/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36" onerror="this.onerror=null;this.src='logos/profilovka.png'"><div class="site-title">Hokejová<span>Analytika</span></div></a>
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku"><img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36"><div class="site-title">Hokejová<span>Analytika</span></div></a>
     <div class="meta-badge"><div>Tipsport Extraliga</div><div>Aktualizováno: <strong id="meta-datum">—</strong></div></div>
   </div>
 </header>
@@ -668,11 +668,11 @@ function renderForma(t){
       doma ${body(doma)} b. za ${zap(doma.length)} · venku ${body(venku)} b. za ${zap(venku.length)} · posledních ${posl.length}: <b>${body(posl)} b.</b></div>${pristiHtml(t)}`;
   box.style.display='';
 }
-/* (2. 11.) logo týmu: malá kopie z logos/mini (128 px, všech 15 dohromady ~70 kB — originály 3 MB).
+/* (2. 11.) logo týmu z logos/ (malé verze 128 px, všech 15 dohromady ~65 kB — dřív originály 3 MB).
    loading="lazy" = stáhne se, až když je řádek blízko obrazovky; pevná velikost = seznam neposkakuje.
-   Když logos/mini na webu ještě není, zkusí originál, a když chybí i ten, logo se schová. */
-const LOGO_ZPET="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.display='none'";
-const lgo=t=>`<img class="lg" src="logos/mini/${encodeURIComponent(t)}.png" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="${LOGO_ZPET}">`;
+   Když logo chybí, schová se. */
+const LOGO_ZPET="this.style.display='none'";
+const lgo=t=>`<img class="lg" src="logos/${encodeURIComponent(t)}.png" alt="" width="20" height="20" loading="lazy" decoding="async" onerror="${LOGO_ZPET}">`;
 function renderVysledky(){
   const fk=document.getElementById('f-kolo').value, ft=document.getElementById('f-tym').value;
   renderForma(ft);
@@ -1039,7 +1039,7 @@ function renderVersus(zapsat=true){
   const A=vsTym(vsA), B=vsTym(vsB), P=vsPar(vsA,vsB), O=vsPar(vsB,vsA);
   const BAR=pridelBarvy([vsA,vsB]), cA=BAR[vsA], cB=BAR[vsB];
   const opt=sel=>vsTymy().map(t=>`<option value="${esc(t)}"${t===sel?' selected':''}>${esc(t)}</option>`).join('');
-  const logo=t=>`<img class="vs-logo" src="logos/mini/${encodeURIComponent(t)}.png" alt="" onerror="if(this.src.indexOf('/mini/')>-1)this.src=this.src.replace('/mini/','/');else this.style.visibility='hidden'">`;
+  const logo=t=>`<img class="vs-logo" src="logos/${encodeURIComponent(t)}.png" alt="" onerror="this.style.visibility='hidden'">`;
   let h=`<div class="vs-top">
     <div class="vs-side">${logo(vsA)}<select id="vs-a" aria-label="Domácí tým">${opt(vsA)}</select><span class="vs-role">doma</span></div>
     <button class="vs-swap" id="vs-swap" type="button" title="Prohodit, kdo hraje doma" aria-label="Prohodit domácí a hosty">⇄</button>
