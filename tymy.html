@@ -591,6 +591,11 @@
     <div class="card">
       <div class="card-title">Důležitost prvního gólu</div>
       <div class="card-sub" id="prvni-sub">% výher v zápasech, ve kterých tým vstřelil první gól. Čára = ligový průměr.</div>
+      <!-- (3. 11.) přepínač: zápasy, kde tým první gól dal / inkasoval (starší goal_timing.json bez Inkasoval → skrytý) -->
+      <div class="subnav" id="gt-pr-toggle" style="margin-bottom:12px;display:none">
+        <button data-gtpr="dal" class="active">Dal první gól</button>
+        <button data-gtpr="ink">Inkasoval první</button>
+      </div>
       <div class="chart-wrap-tall" id="chart-gt-prvni"></div>
     </div>
 
@@ -1905,19 +1910,31 @@ function renderGtKiller(){
   }), LOCK_CONFIG);
 }
 
+// (3. 11.) „Dal první gól“ / „Inkasoval první“ — druhá strana mince: kolik zápasů tým otočí, když první gól dostane
+let gtPrMode='dal';
+document.querySelectorAll('[data-gtpr]').forEach(b=>b.addEventListener('click',()=>{ gtPrMode=b.dataset.gtpr;
+  document.querySelectorAll('[data-gtpr]').forEach(x=>x.classList.toggle('active',x.dataset.gtpr===gtPrMode)); renderGtPrvni(); }));
 function renderGtPrvni(){
-  const d=[...(GT.prvni||[])].sort((a,b)=>b.Uspesnost-a.Uspesnost);
+  const ma_ink=(GT.prvni||[]).some(t=>t.Inkasoval!=null);
+  const tg=document.getElementById('gt-pr-toggle'); if(tg) tg.style.display=ma_ink?'':'none';
+  const ink = ma_ink && gtPrMode==='ink';
+  const pct=t=>ink?t.Uspesnost_inkas:t.Uspesnost, n=t=>ink?t.Inkasoval:t.Celkem, v=t=>ink?t.Otocil:t.Vyhrane;
+  const d=(GT.prvni||[]).filter(t=>n(t)>0 && pct(t)!=null).sort((a,b)=>pct(b)-pct(a)||n(b)-n(a));
   if(!d.length){ emptyBox('chart-gt-prvni','Zatím bez dat.'); return; }
   // (8. 10.) čára = skutečný ligový podíl (zápasy vyhrané tím, kdo skóroval první), dřív natvrdo 50 %
-  const pl=GT.prvni_liga, lig = pl && pl.zapasu>0 ? pl.vyhral_prvni/pl.zapasu*100 : null;
+  const pl=GT.prvni_liga, lig0 = pl && pl.zapasu>0 ? pl.vyhral_prvni/pl.zapasu*100 : null;
+  const lig = lig0==null ? null : (ink ? 100-lig0 : lig0);
   const sub=document.getElementById('prvni-sub');
-  if(sub && lig!=null) sub.textContent=`% výher v zápasech, ve kterých tým vstřelil první gól. Čára = celá liga: kdo skóroval první, vyhrál ${c1(lig)} % zápasů (${pl.vyhral_prvni} z ${pl.zapasu}).`;
+  if(sub && lig!=null) sub.textContent = ink
+    ? `% výher v zápasech, ve kterých tým první gól inkasoval — kolik zápasů dokázal otočit. Čára = celá liga: kdo inkasoval první, vyhrál ${c1(lig)} % zápasů (${pl.zapasu-pl.vyhral_prvni} z ${pl.zapasu}).`
+    : `% výher v zápasech, ve kterých tým vstřelil první gól. Čára = celá liga: kdo skóroval první, vyhrál ${c1(lig)} % zápasů (${pl.vyhral_prvni} z ${pl.zapasu}).`;
   Plotly.newPlot('chart-gt-prvni', [{
-    type:'bar', x:d.map(t=>t.Tym), y:d.map(t=>t.Uspesnost),
-    text:d.map(t=>t.Vyhrane+'/'+t.Celkem), textposition:'outside', cliponaxis:false,
+    type:'bar', x:d.map(t=>t.Tym), y:d.map(pct),
+    text:d.map(t=>v(t)+'/'+n(t)), textposition:'outside', cliponaxis:false,
     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
-    marker:{color:d.map(t=>t.Uspesnost), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], cmin:0, cmax:100, showscale:false},
-    hoverinfo:'text', hovertext:d.map(t=>`${t.Tym}<br>% výher po vlastním 1. gólu: ${c1(t.Uspesnost)} %<br>Výher: ${t.Vyhrane} z ${t.Celkem}`)
+    marker:{color:d.map(pct), colorscale:[[0,'#E05555'],[0.5,'#D4A843'],[1,'#4CAF82']], cmin:0, cmax:ink?60:100, showscale:false},
+    hoverinfo:'text', hovertext:d.map(t=>ink?`${t.Tym}<br>% výher po inkasovaném 1. gólu: ${c1(t.Uspesnost_inkas)} %<br>Otočil ${t.Otocil} z ${t.Inkasoval}`
+                                           :`${t.Tym}<br>% výher po vlastním 1. gólu: ${c1(t.Uspesnost)} %<br>Výher: ${t.Vyhrane} z ${t.Celkem}`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:45,r:15,t:15,b:90},
     xaxis:{...AX_LOCK, categoryorder:'array', categoryarray:d.map(t=>t.Tym), tickangle:-45, color:'#4A6070', tickfont:{family:'DM Sans',size:9}},

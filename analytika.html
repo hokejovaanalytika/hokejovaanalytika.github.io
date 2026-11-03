@@ -68,6 +68,15 @@
     .card-title.gold::before{background:var(--gold);}
     .card-title .new{background:var(--gold);color:#1B2B34;font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;letter-spacing:.5px;margin-left:auto;}
     .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    /* (3. 11.) Koncovky: legenda prodloužení / nájezdy a vyrovnání v závěru */
+    .k-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:var(--text-dim);margin:-4px 0 6px;}
+    .k-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px;}
+    .kz-t{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;padding:8px 0 3px;border-top:1px solid rgba(42,139,139,.12);}
+    .kz-t:first-child{border-top:none;padding-top:0;}
+    .kz-n{font-weight:700;color:var(--text);font-size:14px;}
+    .kz-s{font-family:var(--font-mono);font-size:12px;color:var(--teal-light);}
+    .kz-z{font-size:12px;color:var(--text-dim);line-height:1.5;padding-left:2px;}
+    .kz-z b{color:var(--text);font-weight:600;}
     .card-sub a{color:var(--teal-light);text-decoration:none;border-bottom:1px dotted var(--teal-light);}
     .nhl-details{font-size:12px;color:var(--text-dim);}
     .nhl-details summary{cursor:pointer;color:var(--teal-light);}
@@ -522,9 +531,17 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Nájezdová bilance týmů</div>
-      <div class="card-sub">Kolik nájezdových sérií tým hrál a jak dopadly. Zelená = vyhrané, červená = prohrané.</div>
+      <div class="card-title" id="k-ot-title">Nájezdová bilance týmů</div>
+      <div class="card-sub" id="k-ot-sub">Kolik nájezdových sérií tým hrál a jak dopadly. Zelená = vyhrané, červená = prohrané.</div>
+      <div class="k-leg" id="k-ot-leg" style="display:none"><span><i style="background:#4CAF82"></i>výhra v prodloužení</span><span><i style="background:#9ED9B8"></i>výhra na nájezdech</span><span><i style="background:#E05555"></i>prohra v prodloužení</span><span><i style="background:#F0A8A8"></i>prohra na nájezdech</span></div>
       <div class="chart-wrap-tall" id="c-so-tymy"></div>
+    </div>
+
+    <!-- (3. 11.) vyrovnání v posledních minutách základní doby → body z prodloužení / nájezdů (starší koncovky.json bez zaver → skrytá) -->
+    <div class="card" id="k-zaver-card" style="display:none">
+      <div class="card-title">Vyrovnání v závěru — zachráněné body</div>
+      <div class="card-sub" id="k-zaver-sub"></div>
+      <div id="k-zaver"></div>
     </div>
 
     <div class="card">
@@ -1349,7 +1366,7 @@ function renderKoncovky(){
   renderInsights('insight-koncovky', INS_KONC, koncovkyNames());
   const K = KONC||{};
   // po prvních kolech nejsou nájezdy ani góly do prázdné — nemá co kreslit
-  const prazdno = !((K.tymy||[]).some(t=>t.SOA>0 || t.ENG>0 || t.ENGA>0))
+  const prazdno = !((K.tymy||[]).some(t=>t.SOA>0 || t.ENG>0 || t.ENGA>0 || (t.OT_V||0)+(t.OT_P||0)>0)) && !((K.zaver||[]).length)
                && !((K.strelci||[]).length) && !((K.brankari||[]).length);
   if(prazdno){
     console.warn('Koncovky: žádné nájezdy ani góly do prázdné branky v datech.');
@@ -1361,7 +1378,60 @@ function renderKoncovky(){
     const a=document.getElementById('k-min-h'), b=document.getElementById('k-min-b');
     if(a) a.textContent=K.limity.min_so_hrac; if(b) b.textContent=K.limity.min_so_brankar;
   }
-  soTymy(K.tymy); soStrelci(K.strelci); soBrankari(K.brankari); engChart(K.tymy);
+  if((K.tymy||[]).some(t=>t.OT_V!=null)) otTymy(K.tymy, K.historie); else soTymy(K.tymy);
+  zaverKarta(K.zaver, K.limity); soStrelci(K.strelci); soBrankari(K.brankari); engChart(K.tymy);
+}
+
+/* (3. 11.) PRODLOUŽENÍ A NÁJEZDY ze zápasů (build.R: výsledky + gólový detail): vpravo výhry, vlevo prohry,
+   tmavší prodloužení, světlejší nájezdy. Starší koncovky.json (jen SOA/SOW z hokej.cz) → původní graf soTymy. */
+function otTymy(d, hist){
+  const q=(d||[]).map(t=>({...t, V:(t.OT_V||0)+(t.SO_V||0), P:(t.OT_P||0)+(t.SO_P||0)})).filter(t=>t.V+t.P>0)
+    .sort((a,b)=>(a.V-a.P)-(b.V-b.P)||a.V-b.V);
+  document.getElementById('k-ot-title').textContent='Prodloužení a nájezdy';
+  const vve=k=>([2,3,4,12,13,14].includes(k)||(k>=20&&k<50))?'ve':'v';   // „ve 43 %“, „v 55 %“
+  const of=hist?Math.round(hist.ot_fav):0, sf=hist?Math.round(hist.so_fav):0;
+  const h=hist&&hist.ot_n>=30?` Prodloužení je skoro loterie: ${vve(hist.sezon)} ${hist.sezon} sezónách vyhrál prodloužení favorit podle Elo jen ${vve(of)} ${of} % zápasů${hist.so_n>=30?`, nájezdy ${vve(sf)} ${sf} %`:''}.`:'';
+  document.getElementById('k-ot-sub').textContent='Zápasy rozhodnuté po 60 minutách — vpravo výhry, vlevo prohry.'+h;
+  document.getElementById('k-ot-leg').style.display='';
+  if(!q.length){ emptyBox('c-so-tymy','Zatím žádný zápas nešel do prodloužení.'); return; }
+  const y=q.map(t=>t.Tym_clean), m=Math.max(1,...q.map(t=>Math.max(t.V,t.P)));
+  const hov=t=>`${t.Tym_clean}<br>Prodloužení ${t.OT_V}–${t.OT_P} · nájezdy ${t.SO_V}–${t.SO_P}<br>Celkem ${t.V}–${t.P}${t.Nezarazeno?`<br>(${t.Nezarazeno} bez gólového detailu)`:''}`;
+  const tr=(x,c)=>({type:'bar',orientation:'h',y,x,marker:{color:c},hoverinfo:'text',hovertext:q.map(hov),showlegend:false});
+  Plotly.newPlot('c-so-tymy',[
+    tr(q.map(t=>t.OT_V),'#4CAF82'), tr(q.map(t=>t.SO_V),'#9ED9B8'), tr(q.map(t=>-t.OT_P),'#E05555'), tr(q.map(t=>-t.SO_P),'#F0A8A8'),
+    {type:'scatter',mode:'text',y,x:q.map(t=>t.V+0.15),text:q.map(t=>`${t.V}–${t.P}`),textposition:'middle right',cliponaxis:false,
+     textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'},hoverinfo:'skip',showlegend:false}
+  ],Object.assign({},BASE_LAYOUT,{
+    barmode:'relative',margin:{l:110,r:20,t:8,b:40},
+    xaxis:{...AX_LOCK,range:[-m-0.6,m+1.4],tickvals:[...Array(2*m+1).keys()].map(i=>i-m),ticktext:[...Array(2*m+1).keys()].map(i=>String(Math.abs(i-m))),
+      title:{text:'← prohry · výhry →',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},
+      zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
+    yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:y,tickfont:{family:'DM Sans',size:10,color:'#8FA3B0'}},
+    showlegend:false
+  }),LOCK_CONFIG);
+}
+
+/* (3. 11.) VYROVNÁNÍ V ZÁVĚRU: gól na vyrovnání v posledních minutách základní doby, po kterém už do 60. minuty
+   nepadl gól → místo prohry bod (2 za výhru v prodloužení / na nájezdech). Jeden řádek JSONu = jeden gól. */
+function zaverKarta(z, lim){
+  const card=document.getElementById('k-zaver-card');
+  if(!Array.isArray(z)){ card.style.display='none'; return; }
+  card.style.display='';
+  const min=(lim&&lim.zaver_min)||3;
+  document.getElementById('k-zaver-sub').textContent=`Gól na vyrovnání v posledních ${min} minutách základní doby, po kterém už do konce nepadl gól — místo prohry bod, a po výhře v prodloužení nebo na nájezdech dva. Často se hraje s odvolaným brankářem, to ale data z hokej.cz u gólu neříkají.`;
+  if(!z.length){ document.getElementById('k-zaver').innerHTML='<div class="empty">Zatím žádný tým v závěru nevyrovnal.</div>'; return; }
+  const den=s=>{const m=/^(\d{1,2})\.(\d{1,2})\./.exec(String(s||''));return m?`${+m[1]}. ${+m[2]}.`:s;};
+  const T={}; z.forEach(r=>{(T[r.Tym]=T[r.Tym]||[]).push(r);});
+  const poradi=Object.keys(T).sort((a,b)=>T[b].reduce((x,r)=>x+r.Body,0)-T[a].reduce((x,r)=>x+r.Body,0)||T[b].length-T[a].length||a.localeCompare(b,'cs'));
+  const blok=t=>{ const rr=T[t], b=rr.reduce((x,r)=>x+r.Body,0);
+    return `<div class="kz-t"><span class="kz-n">${hgEsc(t)}</span><span class="kz-s">${rr.length}× vyrovnání · +${b} ${b===1?'bod':b<5?'body':'bodů'}</span></div>`+
+      rr.map(r=>`<div class="kz-z">${den(r.Datum)} ${hgEsc(r.Domaci)} – ${hgEsc(r.Hoste)} <b>${r.Gd}:${r.Gh}</b> ${r.Konec==='nájezdy'?'po nájezdech':'po prodloužení'} · vyrovnání v ${hgEsc(r.Cas)} · ${r.Vyhra?'výhra':'prohra'}, +${r.Body}</div>`).join(''); };
+  // během sezóny seznam roste (konec sezóny ~40 gólů) → prvních 5 týmů, zbytek pod tlačítkem
+  const el=document.getElementById('k-zaver'), N=5;
+  const kresli=vse=>{ el.innerHTML=(vse?poradi:poradi.slice(0,N)).map(blok).join('')+
+    (poradi.length>N&&!vse?`<button class="hg-vse" id="kz-vse" style="margin-top:10px;background:none;border:1px solid var(--border);border-radius:7px;color:var(--teal-light);font-family:var(--font-main);font-size:12.5px;font-weight:600;padding:6px 12px;cursor:pointer">Všechny týmy (${poradi.length})</button>`:'');
+    const bt=document.getElementById('kz-vse'); if(bt) bt.onclick=()=>kresli(true); };
+  kresli(false);
 }
 
 function soTymy(d){
