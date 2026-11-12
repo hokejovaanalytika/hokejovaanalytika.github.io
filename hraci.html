@@ -337,7 +337,7 @@
     <!-- MONEYBALL (8. 10.: Moneyball Stars a Moneyball Index spojené — ukazovaly stejné pořadí) -->
     <div class="card">
       <div class="card-title gold">Moneyball Index — kdo si zaslouží víc pozornosti?</div>
-      <div class="card-sub">Body na 60 min (30 %) + defenzivní hodnota na zápas (25 %) + +/− proti týmu (20 %) + hity a bloky na zápas (15 %) + minuty v oslabení na zápas (10 %). Každá složka je pořadí mezi hráči na stejném postu mimo top 30 bodování — útočníci se srovnávají s útočníky, obránci s obránci (80 = v té věci lepší než 80 % z nich). Kategorie podle toho, v čem hráč vyčnívá — top 30.</div>
+      <div class="card-sub">Body na 60 min (40 %) + defenzivní hodnota na zápas (30 % — bloky, hity a minuty v oslabení, každá věc jen jednou) + +/− proti týmu (30 %). Každá složka je pořadí mezi hráči na stejném postu mimo top 30 bodování — útočníci se srovnávají s útočníky, obránci s obránci (80 = v té věci lepší než 80 % z nich). Kategorie podle toho, v čem hráč vyčnívá — top 30.</div>
       <div class="tbl-wrap">
         <table class="players">
           <thead><tr><th>#</th><th class="l">Hráč</th><th>MI</th><th class="l">Kategorie</th><th class="l">Tým</th><th>Poz</th><th>GP</th><th>Body</th><th>P/60</th><th>+/−&nbsp;tým</th><th>Def/z</th><th>H</th><th>AB</th><th>SH/z</th></tr></thead>
@@ -349,7 +349,7 @@
     <!-- 2. HIDDEN GEMS -->
     <div class="card">
       <div class="card-title">Hidden Gems — +/− proti týmu</div>
-      <div class="card-sub">O kolik má hráč lepší +/− než průměrný spoluhráč za stejný počet zápasů. Holé +/− kopíruje sílu týmu (u lídra má plus skoro každý), tohle ukazuje, s kým na ledě je tým lepší než bez něj — top 25 mimo top 30 bodování.</div>
+      <div class="card-sub">O kolik má hráč lepší +/− než průměrný spoluhráč za stejný čas na ledě při hře 5 na 5 (kdo hraje víc minut, nasbírá víc plusů i minusů, proto čas, ne počet zápasů). Holé +/− kopíruje sílu týmu (u lídra má plus skoro každý), tohle ukazuje, s kým na ledě je tým lepší než bez něj — top 25 mimo top 30 bodování.</div>
       <div class="chart-wrap-xl" id="chart-hidden-gems"></div>
     </div>
 
@@ -377,7 +377,7 @@
         <dt>Sv%</dt><dd>úspěšnost — kolik procent střel chytil.</dd>
         <dt>GAA</dt><dd>obdržené góly na zápas (60 minut). Záleží i na obraně: na koho letí víc střel, má GAA horší, i když chytá stejně dobře.</dd>
         <dt>GSAA</dt><dd>kolik gólů ušetřil proti průměrnému brankáři ligy, který by čelil stejným střelám (+ lepší, − horší).</dd>
-        <dt>GBS</dt><dd>0–100, jak moc mu pomáhá tým — z úspěšnosti týmu v oslabení a z počtu střel na bránu. Nízké číslo = brankář je víc na ráně.</dd>
+        <dt>GBS</dt><dd>0–100, jak moc ho chrání tým: pořadí podle toho, kolik střel na něj letí za 60 minut (100 = nejméně v lize). Nízké číslo = brankář je víc na ráně.</dd>
         <dt>GPI</dt><dd>0–100, celkové hodnocení: ze 70 % úspěšnost, u které se krátký vzorek bere opatrně, a z 30 % to, kolik minut svého týmu odchytal. Dva skvělé zápasy na první místo nestačí a kdo dlouho nechytá (třeba po zranění), postupně klesá.</dd>
       </dl>
     </div>
@@ -385,7 +385,7 @@
     <!-- MASTER TABULKA -->
     <div class="card">
       <div class="card-title gold">Hodnocení brankářů</div>
-      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Pro GPI se k zásahům brankáře přičte 300 střel s průměrnou úspěšností ligy: po dvou zápasech tak jeho procenta skoro nic neznamenají, po dvaceti už skoro všechno. Min. <span class="prah" data-cil="3">3</span> zápasy. Kategorie podle GPI: Elitní 70+ · Spolehlivý 55+ · Průměr 40+ · Podprůměr · Málo dat (pod 3 zápasy). <b>Klikni na brankáře</b> — ukážou se jeho poslední zápasy a zajímavosti.</div>
+      <div class="card-sub">Klasická tabulka podle úspěšnosti — přepni na GPI a uvidíš, jak se pořadí změní (▲/▼ = posun oproti pořadí dle Sv%). Pro GPI se k zásahům brankáře přičte 1&nbsp;000 střel s průměrnou úspěšností ligy, protože rozdíly mezi brankáři jsou z velké části náhoda: po deseti zápasech tak jeho vlastní procenta váží zhruba pětinou, po celé sezóně asi z poloviny. Min. <span class="prah" data-cil="3">3</span> zápasy. Kategorie podle GPI: Elitní 70+ · Spolehlivý 55+ · Průměr 40+ · Podprůměr · Málo dat (pod 3 zápasy). <b>Klikni na brankáře</b> — ukážou se jeho poslední zápasy a zajímavosti.</div>
       <div class="sort-toggle" id="goalie-sort">
         <button data-sort="sv" class="active">Řadit dle: Úspěšnost %</button>
         <button data-sort="gpi">GPI</button>
@@ -401,7 +401,7 @@
     <!-- GBS LOLLIPOP -->
     <div class="card">
       <div class="card-title">Goalie Behind Score — kdo to táhne sám?</div>
-      <div class="card-sub">Nízké GBS = slabý tým před brankářem = brankář musí víc zachraňovat. Počítá se z úspěšnosti týmu v oslabení a z počtu střel, které na brankáře letí za 60 minut. Min. <span class="prah" data-cil="5">5</span> zápasů.</div>
+      <div class="card-sub">Nízké GBS = na brankáře letí hodně střel = tým ho chrání málo. Je to pořadí podle počtu střel na 60 minut mezi brankáři (100 = nejméně střel v lize), barvy po třetinách: silný tým · průměrný · slabý. Úspěšnost týmu v oslabení se nepočítá — tu dělá z velké části sám brankář. Min. <span class="prah" data-cil="5">5</span> zápasů.</div>
       <div class="chart-wrap-tall" id="chart-gbs"></div>
     </div>
 
@@ -1177,7 +1177,7 @@ function renderMBIndex(){
       <td class="l" style="color:var(--text-dim)">${p.Tym_clean}</td>
       <td><span class="pos-pill">${p.Pozice||'—'}</span></td><td>${p.GP}</td><td>${p.Body}</td>
       <td>${f2(p.P60)}</td>
-      <td style="color:${cf(p.PM_rel)};font-weight:600" title="+/− ${p.Plus_minus>0?'+':''}${p.Plus_minus??'—'}, průměrný spoluhráč by měl ${p.PM_tym??'—'}">${rel}</td>
+      <td style="color:${cf(p.PM_rel)};font-weight:600" title="+/− ${p.Plus_minus>0?'+':''}${p.Plus_minus??'—'}, průměrný spoluhráč by ${p.EV_min!=null?'za stejný čas při hře 5 na 5 ('+p.EV_min+' min)':'za stejný počet zápasů'} měl ${p.PM_tym??'—'}">${rel}</td>
       <td>${f2(p.Def_Value)}</td><td>${p.Hity??'—'}</td><td>${p.Bloky??'—'}</td>
       <td>${f1(p.SH_TOI_GP)}</td></tr>`;
   }).join('');
@@ -1195,7 +1195,7 @@ function renderHiddenGems(){
     marker:{color:d.map(o=>o.u>=0?'#4CAF82':'#E05555')},
     text:d.map(o=>zn(o.u)+c1(Math.abs(o.u))), textposition:'outside', cliponaxis:false, textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:d.map(o=>`${label(o.p)}<br>+/−: ${o.p.Plus_minus>0?'+':''}${o.p.Plus_minus}<br>Průměrný spoluhráč za ${o.p.GP} z: ${zn(o.p.PM_tym)}${c1(Math.abs(o.p.PM_tym||0))}<br>Proti týmu: ${zn(o.u)}${c1(Math.abs(o.u))}<br>Body: ${o.p.Body} (#${o.p.Poradi})`)
+    hovertext:d.map(o=>`${label(o.p)}<br>+/−: ${o.p.Plus_minus>0?'+':''}${o.p.Plus_minus}<br>Průměrný spoluhráč za ${o.p.EV_min!=null?o.p.EV_min+' min při hře 5 na 5':o.p.GP+' z'}: ${zn(o.p.PM_tym)}${c1(Math.abs(o.p.PM_tym||0))}<br>Proti týmu: ${zn(o.u)}${c1(Math.abs(o.u))}<br>Body: ${o.p.Body} (#${o.p.Poradi})`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:okraj(),r:20,t:10,b:40},
     xaxis:{...AX_LOCK, range:rozsahPM(vals), title:{text:'+/− proti průměrnému spoluhráči',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},zeroline:true,zerolinewidth:2,zerolinecolor:'rgba(232,239,244,0.6)'},
@@ -1287,11 +1287,11 @@ function renderGBS(){
   Plotly.newPlot('chart-gbs', [{
     type:'bar', orientation:'h',
     y:d.map(labelAx), x:d.map(g=>g.GBS),
-    marker:{color:d.map(g=> g.GBS>=70?'#4CAF82':g.GBS>=45?'#FF8A3D':'#E05555')},
+    marker:{color:d.map(g=> g.GBS>=67?'#4CAF82':g.GBS>=33?'#FF8A3D':'#E05555')},   // (12. 11.) třetiny pořadí
     text:d.map(g=>c1(g.GBS)), textposition:'outside', cliponaxis:false,
     textfont:{family:'JetBrains Mono',size:9,color:'#8FA3B0'},
     hoverinfo:'text',
-    hovertext:d.map(g=>`${label(g)}<br>GBS: ${c1(g.GBS)}<br>Úspěšnost: ${c1(g.SavePct)} %<br>Oslabení týmu: ${c1(g.PK_pct)} %<br>${g.Strely_60!=null?'Střel na něj za 60 minut: '+c1(g.Strely_60):'Střel na něj za zápas: '+c1(g.Workload_factor)}`)
+    hovertext:d.map(g=>`${label(g)}<br>GBS: ${c1(g.GBS)}<br>${g.Strely_60!=null?'Střel na něj za 60 minut: '+c1(g.Strely_60):'Střel na něj za zápas: '+c1(g.Workload_factor)}<br>Úspěšnost: ${c1(g.SavePct)} %`)
   }], Object.assign({}, BASE_LAYOUT, {
     margin:{l:okraj(),r:30,t:25,b:40},
     xaxis:{...AX_LOCK, title:{text:'GBS (vyšší = silnější tým před brankářem)',font:{size:11,color:'#4A6070'}},

@@ -267,7 +267,7 @@
 
     <div class="intro">
       <h1>Forma a trendy</h1>
-      <p>Forma za posledních 5 zápasů (vážený index), Bounce Back Factor — reakce na prohru, a Forma vs brankový rozdíl: je současná forma podložená sezónním výkonem?</p>
+      <p>Forma za posledních 5 zápasů (vážený index), zápasy po prohře a Forma vs brankový rozdíl: je současná forma podložená sezónním výkonem?</p>
     </div>
 
     <div class="insight" id="insight-forma" style="display:none">
@@ -287,8 +287,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Bounce Back Factor — reakce na prohru</div>
-      <div class="card-sub">% výher v zápase hned po prohře v základní době (týmy aspoň se 2 takovými zápasy). Čára = ligový průměr.</div>
+      <div class="card-title">Zápas po prohře</div>
+      <div class="card-sub">% výher v zápase hned po prohře v základní době (týmy aspoň se 2 takovými zápasy). Čára = ligový průměr. V minulých pěti sezónách se tohle číslo opakovalo jen tolik, kolik odpovídá síle týmu — silný tým vyhrává po prohře stejně často jako jindy. Ukazuje, co se stalo, ne zvláštní schopnost zvednout se po porážce.</div>
       <div class="chart-wrap" id="chart-bounce"></div>
     </div>
 
@@ -491,7 +491,7 @@
 
     <div class="intro">
       <h1>Comeback Kings</h1>
-      <p>Mentální síla týmů: kdo otáčí prohrané zápasy a kdo si neudrží vedení. Klíčoví hráči koncovky. <strong>Reálná data sezóny</strong> z detailu gólů.</p>
+      <p>Kdo otáčí prohrané zápasy a kdo si neudrží vedení. Klíčoví hráči koncovky. <strong>Reálná data sezóny</strong> z detailu gólů.</p>
     </div>
 
     <div class="card">
@@ -506,8 +506,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Comeback Clutch — mentální síla</div>
-      <div class="card-sub">Vpravo nahoře = mentálně silní (hodně obratů a vedení dotáhnou). Vlevo dole = mentálně slabší.</div>
+      <div class="card-title">Obraty a udržená vedení</div>
+      <div class="card-sub">Vpravo nahoře = často otáčí a vedení dotáhne k výhře. Vlevo dole = otáčí málokdy a vedení ztrácí. Loni se obraty i ztracená vedení mezi polovinami sezóny opakovaly jen tolik, kolik odpovídá síle týmu — silný tým otáčí i udrží vedení častěji. Ukazuje, co se stalo, ne zvláštní „mentální sílu“.</div>
       <div class="chart-wrap-tall" id="chart-cb-clutch"></div>
     </div>
 
@@ -583,8 +583,8 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Killer Instinct — koncovka</div>
-      <div class="card-sub">Góly vstřelené a obdržené v posledních 10 minutách a v prodloužení, když byl stav vyrovnaný nebo o gól. Kdo zavírá zápasy.</div>
+      <div class="card-title">Koncovky těsných zápasů</div>
+      <div class="card-sub">Góly vstřelené a obdržené v posledních 10 minutách a v prodloužení, když byl stav vyrovnaný nebo o gól. Popisuje, jak koncovky dopadly — loni se to mezi polovinami sezóny vůbec neopakovalo (kdo měl dobrou první půlku, neměl o nic lepší druhou).</div>
       <div class="chart-wrap-tall" id="chart-gt-killer"></div>
     </div>
 
@@ -1161,7 +1161,7 @@ function renderSustain(){
   d.sort((x,y)=>x.Navic-y.Navic);                      // nejvíc navíc nahoře
   const sub=document.getElementById('sustain-sub');
   if(sub) sub.textContent=`Kolik bodů má tým navíc (zeleně) nebo mu chybí (červeně) oproti tomu, co by odpovídalo jeho rozdílu skóre. `+
-    `Podle letošních zápasů platí: každý gól rozdílu na zápas ≈ ${c2(b)} bodu na zápas navíc. Velký plus často znamená štěstí v těsných zápasech a obvykle nevydrží.`;
+    `Podle letošních zápasů platí: každý gól rozdílu na zápas ≈ ${c2(b)} bodu na zápas navíc${b>0?` (1 bod ≈ ${c2(1/b)} gólu; GM mód počítá s číslem přitaženým k dlouhodobým 2,2, aby se jeho rady mezi koly neházely)`:''}. Velký plus často znamená štěstí v těsných zápasech a obvykle nevydrží.`;
   const vals=d.map(t=>t.Navic);
   Plotly.newPlot('chart-sustain', [{
     type:'bar', orientation:'h', y:d.map(t=>t.Tym_clean), x:vals,
@@ -1216,7 +1216,9 @@ function renderMomentum(){
     return;
   }
   if(MOM.info && MOM.summary && MOM.summary.length) document.getElementById('mom-form-sub').textContent =
-    `Momentum = (body/zápas posledních ${MOM.info.X_kol} zápasů − předchozích ${MOM.info.X_kol}) × 10`;
+    `Momentum = (body/zápas posledních ${MOM.info.X_kol} zápasů − předchozích ${MOM.info.X_kol}) × 10`+
+    (MOM.info.prah_silny!=null?`. Vzestup / pokles = aspoň o ${String(MOM.info.prah_trend/10).replace('.',',')} bodu na zápas víc / míň než předtím`+
+      (+MOM.info.X_kol===5?' (za 5 zápasů o 3 body)':'')+`. Takový rozdíl ale často vznikne i náhodou, i u týmu, který hraje pořád stejně. „Silný“ až od ±${String(MOM.info.prah_silny).replace('.',',')} — tak velký rozdíl vznikne náhodou jen zhruba u jednoho týmu z osmi.`:'');   // (12. 11.)
   renderFormIndex(); renderStreak(); buildDriversSelect(); renderDrivers();
   buildBlocksChips(); renderBlocks(); buildPlayoffChips(); renderPlayoff();
 }
@@ -1684,8 +1686,8 @@ function renderCbClutch(){
       {type:'line',x0:xr[0],x1:xr[1],y0:avgY,y1:avgY,line:{dash:'dash',color:'rgba(143,163,176,0.3)',width:1}}
     ],
     annotations:[
-      {x:0.97,y:0.97,xref:'paper',yref:'paper',text:'Mentálně silní',showarrow:false,font:{size:10,color:'#4CAF82'}},
-      {x:0.03,y:0.03,xref:'paper',yref:'paper',text:'Mentálně slabší',showarrow:false,font:{size:10,color:'#E05555'}}
+      {x:0.97,y:0.97,xref:'paper',yref:'paper',text:'Otáčí i udrží',showarrow:false,font:{size:10,color:'#4CAF82'}},
+      {x:0.03,y:0.03,xref:'paper',yref:'paper',text:'Otáčí málo, ztrácí vedení',showarrow:false,font:{size:10,color:'#E05555'}}
     ],
     images: logoImages(d.map(t=>({t:t.Tym_clean, x:t.Pocet_comebacku, y:t.Uspesnost_udrzeni})), xr, yr, 0.11),
     showlegend:false

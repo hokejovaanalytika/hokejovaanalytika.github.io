@@ -147,6 +147,10 @@
     .zap-s{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--text);text-align:center;min-width:52px;}
     .zap-s small{display:block;font-size:9px;font-weight:400;color:var(--gold);line-height:1;margin-top:1px;}
     .zap-tag{font-size:11px;color:var(--text-dim);text-align:center;margin-top:3px;line-height:1.4;}
+    /* (11. 11.) 🍿 Zápas kola — nejdivočejší zápas kola podle průběhu šance (build.R → prehled_kola.json → zk) */
+    .zap.zk{background:rgba(212,168,67,.07);border-left:2px solid var(--gold);padding-left:6px;margin-left:-8px;border-radius:0 6px 6px 0;}
+    .zap-zk{font-size:11px;color:var(--gold);text-align:center;margin-top:3px;line-height:1.4;}
+    .zap-zk a{color:var(--gold);}
     /* (7. 10.) zápas mimo kolo: dohrávka / předehrávka / zbytek rozehraného kola */
     .zap-sk{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);text-align:center;margin-bottom:3px;}
     .tip-bar{display:flex;height:16px;min-width:92px;border-radius:4px;overflow:hidden;font-family:var(--font-mono);font-size:9.5px;font-weight:600;line-height:16px;}
@@ -249,6 +253,7 @@
         </tbody>
       </table>
     </div>
+    <a class="kola-link" href="analytika.html#tj-card">🧮 Jak by vypadala tabulka jen při hře 5 na 5 nebo bez prodloužení →</a>
   </div>
 
   <!-- 4. POSLEDNÍ A PŘÍŠTÍ KOLO -->
@@ -558,14 +563,17 @@ function renderKola(K){
   };
 
   let html = '';
+  // (11. 11.) 🍿 Zápas kola (build.R → posledni.zapas_kola: {t, kr}); starší JSON pole nemá
+  const ZK = P && P.zapas_kola && typeof un(P.zapas_kola.p)==='string' ? {p:un(P.zapas_kola.p), kr:un(P.zapas_kola.kr)} : null;
   if(P){
     const kolo = un(P.kolo), odeh = un(P.odehrano), celk = un(P.celkem);
     const r = poDnech(P.zapasy, z=>{
       const gd = un(z.gd), gh = un(z.gh);
       const tagy = (Array.isArray(z.tagy) ? z.tagy : []).slice(0,2).map(t=>`${un(t.ic)} ${esc(un(t.t))}`).join(' · ');
-      return `<div class="zap">${sk(z)}<div class="zap-r">${tym(un(z.d), true, gd>gh)}
+      const zk = un(z.zk)===true && ZK;   // (11. 11.) 🍿 Zápas kola
+      return `<div class="zap${zk?' zk':''}">${sk(z)}<div class="zap-r">${tym(un(z.d), true, gd>gh)}
         <div class="zap-s">${gd}:${gh}${un(z.pp)===true?'<small>pp</small>':''}</div>${tym(un(z.h), false, gh>gd)}</div>
-        ${tagy?`<div class="zap-tag">${tagy}</div>`:''}</div>`;
+        ${tagy?`<div class="zap-tag">${tagy}</div>`:''}${zk?`<div class="zap-zk">🍿 <a href="zapasy.html#zapas=${encodeURIComponent(un(ZK.kr)||'')}">Zápas kola</a>: ${esc(ZK.p)}</div>`:''}</div>`;
     });
     const stav = (celk && odeh < celk) ? `odehráno ${odeh} z ${celk}` : (r.den || '');
     html += `<div><div class="kola-h">${kolo}. kolo · výsledky <span>${esc(stav)}</span></div>${r.html}
