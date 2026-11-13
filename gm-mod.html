@@ -141,6 +141,8 @@
     @keyframes spin{to{transform:rotate(360deg);}}
     .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
     .casc-text{font-size:13px;color:var(--text-dim);margin:2px 0 12px;line-height:1.55;}
+    /* (12. 11. večer) pruh v Cíli: kde tým podle simulace skončí proti hranicím Top 4 / Top 12 */
+    .pruh{margin:4px 0 14px;} .pruh svg{display:block;width:100%;overflow:visible;} .pruh-leg{font-size:11.5px;color:var(--text-dim);margin-top:2px;line-height:1.45;}
     .casc-text b{color:var(--text);}
     .ibox .line small{color:var(--text-faint);font-size:11px;}
     .note-small{font-size:11px;color:var(--text-faint);margin-top:8px;line-height:1.45;}
@@ -380,8 +382,9 @@
   <section class="subpanel active" id="panel-cil">
     <div class="card">
       <div class="card-title">Playoff rovnice — cesta k cíli</div>
-      <div class="card-sub">Kaskáda: kolik bodů bude na cíl asi potřeba → kolik jich chybí oproti tomu, s čím počítá simulace → o kolik gólů lepší brankový rozdíl by to chtělo a ve které části hry. Hranice, očekávání i šance jsou ze simulace zbytku sezóny (stejné jako na stránce Playoff).</div>
+      <div class="card-sub">Kaskáda: kolik bodů bude na cíl asi potřeba → kolik jich chybí oproti tomu, s čím počítá simulace → o kolik gólů lepší brankový rozdíl by to chtělo a ve které části hry. Hranice, očekávání i šance jsou ze simulace zbytku sezóny (stejné jako na stránce Playoff). Pruh ukazuje, kde tým podle simulace skončí; potřebné tempo srovnáváme s týmy z minulých sezón.</div>
       <div id="gm-casc" class="casc"></div>
+      <div id="gm-pruh" class="pruh" style="display:none"></div>
       <div id="gm-casc-text"></div>
       <div class="info2"><div class="ibox" id="gm-rozklad"></div><div class="ibox" id="gm-stav"></div></div>
     </div>
@@ -395,7 +398,7 @@
 
     <div class="card">
       <div class="card-title">Bottleneck Detector — co tě brzdí nejvíc</div>
-      <div class="card-sub">Největší slabina proti úrovni Top 4 — tedy proti 4. nejlepšímu týmu ligy v dané části hry — přepočtená na góly a body do konce sezóny. <span id="gm-bn-odh"></span>Vyloučení = kolikrát za zápas tým hraje v oslabení, vybojované přesilovky = kolikrát za zápas hraje v přesilovce (počet, ne úspěšnost). Oslabení a vyloučení se částečně překrývají se střelami a brankářem, proto se řádky nesčítají přesně.</div>
+      <div class="card-sub">Největší slabina proti úrovni Top 4 — tedy proti 4. nejlepšímu týmu ligy v dané části hry — přepočtená na góly a body do konce sezóny. <span id="gm-bn-odh"></span>Útok a obrana se měří stejně: střely na branku (vlastní / soupeře) a jak často skončí gólem (proměňování / brankář). Vyloučení = kolikrát za zápas tým hraje v oslabení, vybojované přesilovky = kolikrát za zápas hraje v přesilovce (počet, ne úspěšnost).</div>
       <div class="bn-grid">
         <div id="gm-bncard"></div>
         <div class="chart-wrap" id="gm-bnchart"></div>
@@ -619,15 +622,18 @@ const refLab=()=>U4()?'úroveň Top 4':'průměr Top 4';
    v procentech přesilovek, oslabení a brankářů hlavně náhoda, proto k číslům týmu přidáváme kus průměru
    ligy. S odhadem počítá Bottleneck, kaskáda, verdikt, ROI a největší potřeba (Kádr); popisné karty
    (Gap analýza, Srovnání, Plýtvání, What If) ukazují dosavadní čísla. Starší gm_mod.json odhady nemá. */
-const ODH={PP_pct:'PP_odh',PK_pct:'PK_odh',Sv_pct:'Sv_odh',ESGF_z:'ESGF_odh',SA_z:'SA_odh',Os_z:'Os_odh',Pr_z:'Pr_odh'};
+const ODH={PP_pct:'PP_odh',PK_pct:'PK_odh',Sv_pct:'Sv_odh',Sh_pct:'Sh_odh',SF_z:'SF_odh',ESGF_z:'ESGF_odh',SA_z:'SA_odh',Os_z:'Os_odh',Pr_z:'Pr_odh'};
+// (12. 11. odpoledne) útok souměrně s obranou: střely na branku (SF_z) + proměňování (Sh_pct); starší gm_mod.json → góly 5 na 5
+const maSF=()=>!!(GM&&GM.teams&&GM.teams.some(x=>x.SF_z!=null&&!isNaN(x.SF_z)));
 const maOdh=()=>!!(GM&&GM.teams&&GM.teams.length&&GM.teams[0].PP_odh!=null&&REF()&&REF().PP_odh!=null);
 const ov=(o,k,odh)=>{ if(!o) return undefined; const a=odh&&ODH[k]?o[ODH[k]]:null; return a!=null&&!isNaN(a)?+a:o[k]; };
 // věta pro vysvětlivky: o kolik "průměrných" přesilovek / střel / zápasů se čísla týmu doplní
 function odhPozn(){
   const T=GM.tlumeni||{}, n=k=>T[k]!=null?String(T[k]).replace(/\B(?=(\d{3})+(?!\d))/g,' '):null;
-  const c=[n('PP_pct')&&`${n('PP_pct')} přesilovek`, n('PK_pct')&&`${n('PK_pct')} oslabení`, n('Sv_pct')&&`${n('Sv_pct')} střel na brankáře`,
+  const c=[n('PP_pct')&&`${n('PP_pct')} přesilovek`, n('PK_pct')&&`${n('PK_pct')} oslabení`,
+           n('Sv_pct')&&`${n('Sv_pct')} střel u brankářů${n('Sh_pct')?' i u proměňování':''}`,
            n('ESGF_z')&&`${n('ESGF_z')} zápasů u gólů 5 na 5`, n('Os_z')&&`${n('Os_z')} zápasů u vyloučení a přesilovek na zápas`,
-           n('SA_z')&&`${n('SA_z')} zápasů u střel soupeře (ty jsou nejspolehlivější)`].filter(Boolean);
+           n('SA_z')&&`${n('SA_z')} zápasů u střel na branku${n('SF_z')?' (vlastních i soupeře)':' soupeře'} — ty jsou nejspolehlivější`].filter(Boolean);
   return c.length?` — ${spoj(c)}`:'';
 }
 // šance a matematická jistota pro zvolený cíl (jistota z build.R, stejná jako na stránce Playoff)
@@ -670,6 +676,7 @@ function showSub(name){
   document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('panel-'+name).classList.add('active');
+  if(name==='cil') pruhZnovu();
   if(name==='vyhled' && !rendered.vyhled){rendered.vyhled=true; renderVyhled(team());}
   if(name==='opt' && !rendered.opt){rendered.opt=true; renderOpt(true);}
   if(name==='kadr' && !rendered.kadr){rendered.kadr=true; renderKadr();}
@@ -715,10 +722,16 @@ const discZ=o=>{const d=nv(o.Disc_z,NaN);return isNaN(d)?nv(o.Os_z,NaN)-nv(o.Pr_
 //   Stejné vzorce: build.R Trade Help, Výměna (potreby) a Profil → Největší rezerva.
 function slozky(t, ref, odh){
   const O=odh!==false&&maOdh();
-  const la=GM.liga_avg||{}, svL=nv(la.Sv_pct,90)/100, r=k=>nv(ov(ref,k,O),NaN), T=k=>ov(t,k,O);
+  const la=GM.liga_avg||{}, svL=nv(la.Sv_pct,90)/100, shL=nv(la.Sh_pct,9)/100, r=k=>nv(ov(ref,k,O),NaN), T=k=>ov(t,k,O);
   const g=x=>isNaN(x)?0:x;
+  // (12. 11. odpoledne) útok = střely na branku × proměňování ligy + proměňování × vlastní střely (zrcadlo obrany:
+  //   střely soupeře + brankář). Dřív jeden řádek „Útok 5 na 5“ v gólech — ten odhad stáhl skoro k průměru.
+  const utok=maSF()?[
+    {k:'us',l:'Střely na branku',g:g((r('SF_z')-nv(T('SF_z'),r('SF_z')))*shL),                      tv:T('SF_z'),rv:r('SF_z'),sk:t.SF_z,u:'střel na branku/záp.',dec:1},
+    {k:'up',l:'Proměňování',     g:g((r('Sh_pct')-nv(T('Sh_pct'),r('Sh_pct')))/100*nv(T('SF_z'),0)), tv:T('Sh_pct'),rv:r('Sh_pct'),sk:t.Sh_pct,u:'% střel gólem',dec:1}
+  ]:[{k:'ut',l:'Útok 5 na 5',    g:g(r('ESGF_z')-nv(T('ESGF_z'),r('ESGF_z'))),                      tv:T('ESGF_z'),rv:r('ESGF_z'),sk:t.ESGF_z,u:'gólů/záp.',dec:2}];
   return [
-    {k:'ut',l:'Útok 5 na 5',     g:g(r('ESGF_z')-nv(T('ESGF_z'),r('ESGF_z'))),                      tv:T('ESGF_z'),rv:r('ESGF_z'),sk:t.ESGF_z,u:'gólů/záp.',dec:2},
+    ...utok,
     {k:'pp',l:'Přesilovka',      g:g((r('PP_pct')-nv(T('PP_pct'),r('PP_pct')))/100*nv(T('Pr_z'),0)),   tv:T('PP_pct'),rv:r('PP_pct'),sk:t.PP_pct,u:'PP %',dec:1},
     {k:'ob',l:'Bránění střelám', g:g((nv(T('SA_z'),r('SA_z'))-r('SA_z'))*(1-svL)),                    tv:T('SA_z'),  rv:r('SA_z'),  sk:t.SA_z,  u:'střel soupeře/záp.',dec:1},
     {k:'sv',l:'Brankář',         g:g((r('Sv_pct')-nv(T('Sv_pct'),r('Sv_pct')))/100*nv(T('SA_z'),0)),   tv:T('Sv_pct'),rv:r('Sv_pct'),sk:t.Sv_pct,u:'Sv %',dec:1},
@@ -733,6 +746,54 @@ function slozky(t, ref, odh){
 }
 const fmtV=(v,dec)=>dec===2?f2(v):f1(v);
 
+// (12. 11. večer) ROZPĚTÍ ze simulace: v 8 z 10 simulací mezi Body_p10 a Body_p90 (build.R, kvantil typu 1)
+function rozpeti(t){
+  const a=t.Body_p10, b=t.Body_p90;
+  return a!=null&&b!=null&&!isNaN(a)&&!isNaN(b)&&b>a?` (v 8 z 10 simulací ${Math.round(a)}–${Math.round(b)} b.)`:'';
+}
+// (12. 11. večer) JE TEMPO REÁLNÉ? Kolik týmů minulých sezón se stejným formátem získalo za posledních N zápasů základní
+//   části aspoň tolik bodů, kolik tým potřebuje ze zbývajících N (build.R Hist_top4 / Hist_top12, tempo_historie)
+function tempoHist(t,chybi,zb){
+  const TH=GM.tempo_historie, x=gmCil==='top4'?t.Hist_top4:t.Hist_top12;
+  if(!TH||!TH.tymu||x==null||isNaN(x)||!(chybi>0)||!(zb>0)) return '';
+  const N=TH.tymu, posl=zb===1?'poslední zápas':(zb<=4?`poslední ${zb} zápasy`:`posledních ${zb} zápasů`);
+  const kdy=TH.sezon>1?`v sezónách ${TH.od}–${TH.do}`:`v sezóně ${TH.od}`;
+  const kdo=x===0?`nezískal ani jeden z ${N} týmů ${kdy}`:`${x===1?'získal':(x<=4?'získaly':'získalo')} <b>${x} z ${N} týmů</b> ${kdy} (${Math.round(x/N*100)} %)`;
+  return `<br>Je takové tempo reálné? Aspoň ${chybi} b. za ${posl} základní části ${kdo} — bez ohledu na sílu týmu, tu bere v úvahu šance ze simulace.`;
+}
+// (12. 11. večer) PRUH: kde tým skončí (pásmo 8 z 10 simulací + očekávání) proti hranicím Top 4 a Top 12
+function renderPruh(t,zb){
+  const el=document.getElementById('gm-pruh');
+  const a=t.Body_p10, b=t.Body_p90, e=t.Projekce_bodu, h4=GM.prah_top4, h12=GM.prah_top12;
+  if(!(zb>0)||a==null||b==null||e==null||isNaN(a)||isNaN(b)||jisteCil(t)||venkuCil(t)){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='';
+  const W=Math.max(280,el.clientWidth||600), L=14, Rr=14;
+  const hr=[h4,h12].filter(x=>x!=null&&!isNaN(x));
+  let lo=Math.min(a,...hr), hi=Math.max(b,...hr); const pad=Math.max(3,(hi-lo)*0.06); lo-=pad; hi+=pad;
+  const X=v=>L+(v-lo)/(hi-lo)*(W-L-Rr), sel=gmCil==='top4'?h4:h12;
+  const yB=30, hB=16;
+  let v=`<svg viewBox="0 0 ${W} 78" height="78" role="img" aria-label="Kde ${t.Tym} podle simulace skončí">`;
+  v+=`<line x1="${L}" y1="${yB+hB/2}" x2="${W-Rr}" y2="${yB+hB/2}" stroke="#4A6070" stroke-width="1"/>`;
+  v+=`<rect x="${X(a).toFixed(1)}" y="${yB}" width="${Math.max(4,X(b)-X(a)).toFixed(1)}" height="${hB}" rx="8" fill="#2A8B8B" fill-opacity="0.55"/>`;
+  // hranice: vybraný cíl zlatě, druhý šedě
+  [[h12,'Top 12'],[h4,'Top 4']].forEach(([h,n])=>{ if(h==null||isNaN(h)) return; const on=h===sel, x=X(h);
+    v+=`<line x1="${x.toFixed(1)}" y1="${yB-8}" x2="${x.toFixed(1)}" y2="${yB+hB+8}" stroke="${on?'#e9c46a':'#8FA3B0'}" stroke-width="${on?2:1.2}" ${on?'':'stroke-dasharray="3,3"'}/>`;
+    const tx=Math.min(W-4,Math.max(4,x)), anc=x<40?'start':(x>W-40?'end':'middle');
+    v+=`<text x="${tx.toFixed(1)}" y="${yB-12}" text-anchor="${anc}" font-size="11" fill="${on?'#e9c46a':'#8FA3B0'}" font-weight="${on?600:400}">${n} ~${Math.round(h)}</text>`; });
+  v+=`<circle cx="${X(e).toFixed(1)}" cy="${yB+hB/2}" r="6" fill="#E8EFF4" stroke="#1B2A38" stroke-width="2"/>`;
+  // čísla pod pruhem: kraje pásma a očekávání; když je pásmo úzké, jen „a–b b.“
+  const yT=yB+hB+18, K=(x,m)=>Math.min(W-m,Math.max(m,x)).toFixed(1);   // K = nepustit text přes okraj
+  if(X(b)-X(a)>90){
+    v+=`<text x="${K(X(a),12)}" y="${yT}" text-anchor="middle" font-size="11" fill="#8FA3B0" font-family="JetBrains Mono">${Math.round(a)}</text>`;
+    v+=`<text x="${K(X(b),12)}" y="${yT}" text-anchor="middle" font-size="11" fill="#8FA3B0" font-family="JetBrains Mono">${Math.round(b)}</text>`;
+    v+=`<text x="${X(e).toFixed(1)}" y="${yT}" text-anchor="middle" font-size="12" fill="#E8EFF4" font-weight="600" font-family="JetBrains Mono">~${Math.round(e)}</text>`;
+  } else v+=`<text x="${K((X(a)+X(b))/2,50)}" y="${yT}" text-anchor="middle" font-size="12" fill="#E8EFF4" font-family="JetBrains Mono">${Math.round(a)}–${Math.round(b)} (~${Math.round(e)})</text>`;
+  v+='</svg>';
+  el.innerHTML=v+`<div class="pruh-leg">Pruh = kde ${t.Tym} skončí v 8 z 10 simulací, tečka = očekávané body (průměr simulací), čáry = hranice Top 4 a Top 12.</div>`;
+}
+// pruh se kreslí v pixelech šířky karty → po změně šířky okna a po návratu na záložku Cíl znovu
+const pruhZnovu=()=>{ try{ const t=team(); if(t) renderPruh(t,zbyva(t)); }catch(_){ } };
+window.addEventListener('resize',()=>{ clearTimeout(window._pruhT); window._pruhT=setTimeout(pruhZnovu,200); });
 function renderCascade(t,cb){
   const zb=zbyva(t), proj=Math.round(nv(t.Projekce_bodu,t.Body)), cil=cilLabel();
   const chybi=Math.max(0,cb-t.Body), ocek=Math.max(0,proj-t.Body), schodek=cb-proj;
@@ -762,14 +823,16 @@ function renderCascade(t,cb){
     const PH=GM.prah_historie&&GM.prah_historie[gmCil==='top4'?'top4':'top12'];
     const hist=Array.isArray(PH)&&PH.length===2?` (v ${GM.prah_historie.n>1?`sezónách ${GM.prah_historie.od}–${GM.prah_historie.do}`:`sezóně ${GM.prah_historie.od}`} to bylo ${PH[0]===PH[1]?PH[0]:PH[0]+'–'+PH[1]} b.)`:'';
     txt=`Na ${cil} bude ${kde} asi stačit <b>~${cb} b.</b>${hist} ${t.Tym} ${vf(t.Tym,'má','mají')} ${t.Body} b., takže ze zbývajících ${zb} zápasů ${vf(t.Tym,'potřebuje','potřebují')} ${chybi} b. — <b>${f2(need)} b. na zápas</b> (dosud ${f2(cur)}). `+
-      `Simulace čeká ~${ocek} b. (${f2(sT)} na zápas), celkem ~${proj} b.`+(isNaN(p)?'':` — šance na ${cil} <b>${f0(p)} %</b>`)+'.';
+      `Simulace čeká ~${ocek} b. (${f2(sT)} na zápas), celkem ~${proj} b.`+rozpeti(t)+(isNaN(p)?'':` — šance na ${cil} <b>${f0(p)} %</b>`)+'.';
     if(Math.abs(cur-sT)>=0.15) txt+=` Dosavadním tempem by to bylo ~${Math.round(t.Body+cur*zb)} b.; simulace počítá s ${cur>sT?'nižším':'vyšším'}, `+
       (GM.sim_sila==='elo'?`protože sílu bere z Elo (start z minulé sezóny + letošní výsledky) a počítá se soupeři i domácím ledem ve zbývajících zápasech — po pár kolech výsledky hodně ovlivňuje náhoda.`
                           :`protože po pár kolech hodně rozhoduje náhoda a výsledky tlumí k průměru ligy.`);
+    txt+=tempoHist(t,chybi,zb);
     if(schodek>0) txt+=`<br>Jeden bod v tabulce odpovídá v téhle lize zhruba ${f1(GNB())} gólu brankového rozdílu. Na ${chybi} b. by bylo potřeba hrát zbytek sezóny na brankový rozdíl zhruba <b>${sg(gdProTempo(need))} na zápas</b> `+
       `(dnešní Top 4 má ${sg(rozdilZ(GM.benchmark))}, ${t.Tym} zatím ${sg(rozdilZ(t))}, simulace čeká ${sg(gdProTempo(sT))}) — do konce sezóny <b>o ~${golu(golCelk)} víc</b>, než čeká simulace.`;
   }
   document.getElementById('gm-casc-text').innerHTML=`<div class="casc-text">${txt}</div>`;
+  renderPruh(t,zb);
   // odkud vzít góly: dorovnání na úroveň Top 4 v jednotlivých částech hry
   const s=slozky(t,REF()).map(x=>({...x,celk:x.g*zb})).filter(x=>x.celk>=0.5).sort((a,b)=>b.celk-a.celk);
   let h=`<h4>${schodek>0?'Kde by se dal rozdíl zlepšit':'Kde je ještě prostor'}</h4>`;
@@ -1015,7 +1078,8 @@ function renderSrov(){
     ['Vstřelené/záp.',A.GF_na_zapas,B.GF_na_zapas,f2,'hi'],
     ['Obdržené/záp.',A.GA_na_zapas,B.GA_na_zapas,f2,'lo'],
     ['Části hry'],
-    ['Útok 5 na 5 (gólů/záp.)',A.ESGF_z,B.ESGF_z,f2,'hi',null,true],
+    ...(maSF()?[['Střely na branku/záp.',A.SF_z,B.SF_z,f1,'hi',null,true],['Proměňování %',A.Sh_pct,B.Sh_pct,f1,'hi',null,true]]
+              :[['Útok 5 na 5 (gólů/záp.)',A.ESGF_z,B.ESGF_z,f2,'hi',null,true]]),
     ['Přesilovka PP%',A.PP_pct,B.PP_pct,f1,'hi',null,true],
     ['Oslabení PK%',A.PK_pct,B.PK_pct,f1,'hi',null,true],
     ['Brankář Sv%',A.Sv_pct,B.Sv_pct,f1,'hi',null,true],
@@ -1045,7 +1109,7 @@ function renderSrov(){
     <div class="note-small">Vyloučení = kolikrát za zápas tým hraje v oslabení (nižší = lepší), vybojované přesilovky = kolikrát za zápas hraje v přesilovce. Síla programu: vyšší pořadí = lehčí zbytek sezóny; rozdíl pod 0,02 b. na zápas se bere jako nastejno. Podíl trojice jen popisuje, nehodnotí.${HRACI?'':' Podíl trojice se doplní, až se načtou data hráčů.'}</div>`;
   const n=na+nb+nn;
   // skóre jako u zápasu — bez předložek "v/ve 3 z/ze 17", které se špatně skloňují
-  document.getElementById('gm-srov-sum').innerHTML=`<div class="verdict v-neutral" style="margin:0 0 10px">Skóre v částech hry: ${A.Tym} <b>${na} : ${nb}</b> ${B.Tym}${nn?` (${nn}× nastejno)`:''} — v kolika ze 7 částí hry (útok, přesilovka, oslabení, brankář, střely soupeře, vyloučení, vybojované přesilovky) je tým lepší. Řádky Tabulka a Výkon měří totéž jinými čísly, proto se do skóre nepočítají.</div>`;
+  document.getElementById('gm-srov-sum').innerHTML=`<div class="verdict v-neutral" style="margin:0 0 10px">Skóre v částech hry: ${A.Tym} <b>${na} : ${nb}</b> ${B.Tym}${nn?` (${nn}× nastejno)`:''} — v kolika z${maSF()?'e 8 částí hry (střely na branku, proměňování':'e 7 částí hry (útok'}, přesilovka, oslabení, brankář, střely soupeře, vyloučení, vybojované přesilovky) je tým lepší. Řádky Tabulka a Výkon měří totéž jinými čísly, proto se do skóre nepočítají.</div>`;
   // rozdíl v gólech na zápas po částech hry (kladné = lepší A)
   const s=slozky(A,B,false).map(x=>({...x,v:-x.g})).sort((p,q)=>p.v-q.v);   // (12. 11.) dosavadní čísla jako tabulka nad grafem
   const m=Math.max(0.05,...s.map(x=>Math.abs(x.v)))*1.5;   // místo na popisky u krajních sloupců
@@ -1161,7 +1225,9 @@ const RANK_METR=[
   {l:'Body/zápas',k:'B_na_zapas',dec:2},
   {l:'Vstřelené/zápas',k:'GF_na_zapas',dec:2},
   {l:'Obdržené/zápas',k:'GA_na_zapas',dec:2,inv:true},
-  {l:'Útok 5 na 5',k:'ESGF_z',dec:2},
+  {l:'Útok 5 na 5',k:'ESGF_z',dec:2,stare:true},          // (12. 11.) jen ve starším gm_mod.json bez střel týmů
+  {l:'Střely na branku/záp.',k:'SF_z',dec:1,nove:true,pozn:'střely na branku za zápas, všechny situace'},
+  {l:'Proměňování %',k:'Sh_pct',dec:1,nove:true,pozn:'kolik procent střel na branku skončí gólem'},
   {l:'Přesilovka PP%',k:'PP_pct',dec:1},
   {l:'Oslabení PK%',k:'PK_pct',dec:1},
   {l:'Brankář Sv%',k:'Sv_pct',dec:1},
@@ -1198,7 +1264,7 @@ function verdikt(t){
 }
 function renderGap(t){
   const bm=GM.benchmark||{}, la=GM.liga_avg||{}, u4=GM.uroven4||null;
-  const rows=RANK_METR.map(m=>({...m,p:poradiV(t,m),v:t[m.k]})).filter(x=>x.p).reverse();   // první metrika nahoře
+  const rows=RANK_METR.filter(m=>maSF()?!m.stare:!m.nove).map(m=>({...m,p:poradiV(t,m),v:t[m.k]})).filter(x=>x.p).reverse();   // první metrika nahoře
   const n=Math.max(...rows.map(x=>x.p.n),GM.teams.length);
   const hranice=n-3.5;                                       // mezi 4. a 5. místem (skóre = n+1-pořadí)
   const tick=[1,4,8,12,n].filter((x,i,a)=>x<=n&&a.indexOf(x)===i);
@@ -1228,10 +1294,15 @@ function renderBottleneck(t){
   const maly=!O&&GM.odehrano<MALY_VZOREK_DO()?`<div class="note-small">Po ${GM.odehrano} zápasech jsou rozdíly hodně ovlivněné náhodou — nejvíc u brankářů.</div>`:'';
   const refN=U4()?(O?'Úroveň Top 4 (odhad, 4. v lize)':'Úroveň Top 4 (4. v lize)'):'Top 4 průměr';
   const MIN=nv(GM.min_ztrata,0);   // (12. 11.) pod 1 bod do konce sezóny to není bottleneck (build.R GM_MIN_ZTRATA)
+  // (12. 11. odpoledne) celkem proti úrovni Top 4 — ať jde poznat, jestli je největší kus hodně, nebo málo
+  const sum=rows.reduce((a,x)=>a+x.loss,0), ut=rows.filter(x=>x.k==='us'||x.k==='up').reduce((a,x)=>a+x.loss,0);
+  const celk=zb>0&&sum>0?`<div class="note-small" style="margin-top:8px">Všechny části hry dohromady: <b>~${f1(sum)} b.</b> do konce sezóny proti úrovni Top 4`+
+    (ut>=0.5&&rows.some(x=>x.k==='us')?` — z toho útok (střely a proměňování) ~${f1(ut)} b`:'')+
+    `. Části se trochu překrývají (přesilovka a oslabení jsou i ve střelách a proměňování), takže je to spíš horní odhad.</div>`:'';
   if(!bn||bn.loss<=0||bn.loss<MIN){
     const proc=bn&&bn.loss>0?`Nejslabší je ${bn.l.toLowerCase()}, ale dorovnání na úroveň Top 4 by do konce sezóny přineslo jen ~${f1(bn.loss)} b.`
       :`${t.Tym}${vf(t.Tym,' je',' jsou')} ve všech částech hry ${U4()?'mezi 4 nejlepšími v lize':'na úrovni Top 4 nebo lepší'}${O?' (v odhadu dlouhodobé úrovně)':''}.`;
-    card.innerHTML=`<div class="bn-card ok"><h2 style="color:var(--win)">✅ Žádný výrazný bottleneck</h2><p style="font-size:13px;color:var(--text-dim)">${proc}</p>${maly}</div>`;
+    card.innerHTML=`<div class="bn-card ok"><h2 style="color:var(--win)">✅ Žádný výrazný bottleneck</h2><p style="font-size:13px;color:var(--text-dim)">${proc}</p>${celk}${maly}</div>`;
   }else{
     const radkyT=O?`<tr><td>${t.Tym} — zatím <small style="color:var(--text-faint)">(${bn.u})</small></td><td>${fmtV(bn.sk,bn.dec)}</td></tr>
       <tr><td>${t.Tym} — odhad úrovně</td><td style="color:var(--loss)">${fmtV(bn.tv,bn.dec)}</td></tr>`
@@ -1240,7 +1311,7 @@ function renderBottleneck(t){
       <table>${radkyT}
       <tr><td>${refN}</td><td style="color:var(--win)">${fmtV(bn.rv,bn.dec)}</td></tr>
       <tr><td>Ztráta na zápas</td><td>${f2(bn.g)} gólu</td></tr></table>
-      <div class="bn-rec">💡 Úroveň Top 4 v téhle části hry = o ~${golu(bn.goly)} lepší brankový rozdíl do konce sezóny, tedy až <b>+${f1(bn.loss)} b.</b></div>${maly}</div>`;
+      <div class="bn-rec">💡 Úroveň Top 4 v téhle části hry = o ~${golu(bn.goly)} lepší brankový rozdíl do konce sezóny, tedy až <b>+${f1(bn.loss)} b.</b></div>${celk}${maly}</div>`;
   }
   const sorted=[...rows].sort((a,b)=>a.loss-b.loss);
   Plotly.newPlot('gm-bnchart',[{type:'bar',orientation:'h',y:sorted.map(r=>r.l),x:sorted.map(r=>r.loss),
@@ -1273,8 +1344,10 @@ function ppRozklad(t){
 function renderPpBox(t,pp){
   const el=document.getElementById('gm-ppbox'); if(!el) return;
   const r=ppRozklad(t);
-  // jen když přesilovka proti úrovni Top 4 (stejná čára jako Bottleneck) stojí aspoň půl bodu do konce sezóny
-  if(!r||!pp||!(pp.loss>=0.5)){ el.innerHTML=''; return; }
+  // (12. 11. odpoledne) u všech týmů: když přesilovka proti úrovni Top 4 stojí aspoň půl bodu, diagnóza (co chybí);
+  //   jinak jen popis — dřív se box schoval a u týmu s průměrnou přesilovkou nebyl vidět vůbec
+  if(!r||!pp){ el.innerHTML=''; return; }
+  const slaba=pp.loss>=0.5;
   const cl=(v,l)=>v>l?'dobre':(v<l?'spatne':'');
   const T=t.Tym, kd=(a,b)=>vf(T,a,b);
   let v;
@@ -1286,6 +1359,9 @@ function renderPpBox(t,pp){
     (r.zak>=0?`Když už vystřelí, gól padá aspoň jako v průměru ligy. `:`I proměňování je pod průměrem, ale počet střel dělá větší díl. `)+
     `Pomohl by spíš <b>tvůrce hry</b>, který střely připraví — v Trade Help hráči s přihrávkami v přesilovce.`;
   else v=`Střílí i proměňuje zhruba jako průměr ligy — na úroveň Top 4 chybí kousek, ne jedna konkrétní věc.`;
+  if(!slaba){ const vs=(a,b)=>a>b*1.05?'víc než':(a<b*0.95?'méně než':'zhruba jako');
+    v=`Přesilovka proti úrovni Top 4 moc neztrácí (~${f1(Math.max(0,pp.loss))} b. do konce sezóny), slabina to není. `+
+      `Střel si ${T} ${kd('vytváří','vytvářejí')} ${vs(r.s2,r.Ls2)} průměr ligy (${f2(r.s2)} na 2 minuty, ${r.rs2}. v lize) a gólem skončí ${f1(r.usp)} % z nich (${r.rusp}. v lize, průměr ${f1(r.Lu)} %).`; }
   el.innerHTML=`<h4>⚡ Přesilovka pod lupou</h4>`+
     `<div class="pp-cisla"><div class="pp-c"><div class="n ${cl(r.s2,r.Ls2)}">${f2(r.s2)}</div><div class="l">střely na 2 min přesilovky · ${r.rs2}. v lize<br>průměr ${f2(r.Ls2)}</div></div>`+
     `<div class="pp-c"><div class="n ${cl(r.usp,r.Lu)}">${f1(r.usp)} %</div><div class="l">střel skončí gólem · ${r.rusp}. v lize<br>průměr ${f1(r.Lu)} %</div></div></div>`+
@@ -1364,7 +1440,10 @@ function roiRadky(t){
   const M=[
     {k:'sv',l:'Brankář (Sv%)',n:'brankář',key:'Sv_pct',u:' %',dec:1,obj:sa/100,co:' % chycených střel',
       proc:`brankář čelí ~${f1(sa)} střelám za zápas, takže každé procento Sv% je hodně gólů`},
-    {k:'ut',l:'Útok 5 na 5',n:'útok 5 na 5',key:'ESGF_z',u:' gólu/záp.',dec:2,obj:1,co:' gólu na zápas při hře 5 na 5'},
+    ...(maSF()?[{k:'us',l:'Střely na branku',n:'střely na branku',key:'SF_z',u:' střel/záp.',dec:1,obj:nv((GM.liga_avg||{}).Sh_pct,9)/100,co:' střel na branku na zápas'},
+                {k:'up',l:'Proměňování',n:'proměňování',key:'Sh_pct',u:' %',dec:1,obj:nv(V(t,'SF_z'),29)/100,co:' % střel, které skončí gólem',
+                  proc:`tým vystřelí ~${f1(nv(V(t,'SF_z'),29))} střel na branku za zápas`}]
+              :[{k:'ut',l:'Útok 5 na 5',n:'útok 5 na 5',key:'ESGF_z',u:' gólu/záp.',dec:2,obj:1,co:' gólu na zápas při hře 5 na 5'}]),
     {k:'ob',l:'Bránění střelám',n:'bránění střelám',key:'SA_z',u:' střel/záp.',dec:1,inv:true,obj:1-svL,co:' střel soupeře na zápas'},
     {k:'pp',l:'Přesilovka (PP%)',n:'přesilovka',key:'PP_pct',u:' %',dec:1,obj:prz/100,co:' % proměněných přesilovek',
       proc:`tým hraje ~${f1(prz)} přesilovky za zápas`},
@@ -1525,7 +1604,7 @@ function renderPlytvani(t){
 /* ════════════════ ETAPA 3 — KÁDR ════════════════ */
 const ROLE_COLOR={'Elitní střelec':'#E05555','Tvůrce hry':'#FF8A3D','Obousměrný útočník':'#4CAF82','Motor týmu':'#4CAF82','PP specialista':'#5B9BD5',
   'Grinder / PK':'#A1887F','Útočný obránce':'#3AADAD','Defenzivní kotva':'#9B7BD4','Brankář':'#D4A843'};
-const PRINOS_COLOR={'Přesilovka':'#E05555','Oslabení':'#9B7BD4','Útok 5 na 5':'#FF8A3D','Bránění střelám':'#4CAF82',
+const PRINOS_COLOR={'Přesilovka':'#E05555','Oslabení':'#9B7BD4','Útok':'#FF8A3D','Útok 5 na 5':'#FF8A3D','Bránění střelám':'#4CAF82',
   'Střelba':'#FF8A3D','Dvoucestnost':'#5B9BD5','Defenziva':'#4CAF82'};   // + popisky staršího buildu
 /* (17. 10.) KDO HRAJE — stav hráče z build.R (hraci_complete / brankari / gm_dream: Kadr, Kadr_tym, Kam, Nehral).
    hraje / nehraje (N zápasů týmu bez něj) / odesel (mimo ligu, ručně) / prestup (ručně do jiného týmu).
@@ -1571,7 +1650,7 @@ function renderDream(){
   }
   // největší potřeba = největší ztráta v gólech proti úrovni Top 4 (stejná měna jako Bottleneck)
   const t=team();
-  const LAB={pp:'přesilovkového specialistu (PP)',pk:'PK specialistu / grindera',sv:'brankářskou stabilitu',ut:'gólovou produkci 5 na 5 (střelce)',
+  const LAB={pp:'přesilovkového specialistu (PP)',pk:'PK specialistu / grindera',sv:'brankářskou stabilitu',ut:'gólovou produkci 5 na 5 (střelce)',us:'hráče, kteří víc střílejí (útok má málo střel)',up:'střelce s lepším zakončením',
     ob:'defenzivu (soupeř má moc střel)',vy:'disciplínu (méně vyloučení)',pr:'hráče, kteří vybojují víc přesilovek'};
   const g=slozky(t,REF()).sort((a,b)=>b.g-a.g)[0];
   document.getElementById('gm-need-note').innerHTML = g&&g.g>0?`Tvá největší potřeba (${t.Tym}): <b style="color:var(--gold)">${LAB[g.k]||g.l.toLowerCase()}</b>.`:`${t.Tym}${vf(t.Tym,' je',' jsou')} ve všech částech hry ${U4()?'mezi 4 nejlepšími v lize':'na úrovni Top 4'}. 👏`;
@@ -1636,7 +1715,7 @@ function renderTrade(){
   exp.textContent=tradeExpanded?'▲ Zobrazit méně':`🔍 Zobrazit dalších ${Math.min(35,all.length-15)} hráčů`;
   exp.onclick=()=>{tradeExpanded=!tradeExpanded; renderTrade();};
   note.innerHTML=(entry.nejslabsi||all[0].Nahradi!==undefined)
-    ?`💡 <b>Fit Score</b> = dílčí skóre NHL Ratingu (pořadí mezi hráči na stejném postu, 0–100) vážená potřebami týmu ${t.Tym}: přesilovka → Přesilovka, oslabení → Oslabení, útok 5 na 5 → Střelba a Tvořivost, bránění střelám → Hra do obou stran a Fyzičnost. Potřeby jsou v gólech proti úrovni Top 4 (4. nejlepší tým ligy v té části hry), převedené na body do konce sezóny${maOdh()?' — z odhadu dlouhodobé úrovně jako Bottleneck, takže po pár kolech vycházejí menší':''}; brankář, vyloučení a vybojované přesilovky se tu nepočítají — hráč z pole je změní jen málo. Zobrazeni jsou jen hráči, kteří ve svém týmu nepatří mezi osm nejproduktivnějších — realistické posily, ne opory.`
+    ?`💡 <b>Fit Score</b> = dílčí skóre NHL Ratingu (pořadí mezi hráči na stejném postu, 0–100) vážená potřebami týmu ${t.Tym}: přesilovka → Přesilovka, oslabení → Oslabení, útok (střely na branku a proměňování) → Střelba a Tvořivost, bránění střelám → Hra do obou stran a Fyzičnost. Potřeby jsou v gólech proti úrovni Top 4 (4. nejlepší tým ligy v té části hry), převedené na body do konce sezóny${maOdh()?' — z odhadu dlouhodobé úrovně jako Bottleneck, takže po pár kolech vycházejí menší':''}; brankář, vyloučení a vybojované přesilovky se tu nepočítají — hráč z pole je změní jen málo. Zobrazeni jsou jen hráči, kteří ve svém týmu nepatří mezi osm nejproduktivnějších — realistické posily, ne opory.`
     :`💡 <b>Fit Score</b> váží přínos hráče podle potřeb týmu ${t.Tym}. Potřeby jsou spočítané v gólech proti průměru dnešní Top 4 a převedené na body do konce sezóny. Zobrazeni jsou jen hráči, kteří ve svém týmu nepatří mezi osm nejproduktivnějších — tedy realistické posily, ne opory.`;
 }
 
@@ -1816,7 +1895,7 @@ const VYM_VYROVNANA=5;   // do 45 : 55 vyrovnaná výměna
 const VYM_JASNE=15;      // od 65 : 35 výrazně víc pro jeden tým
 const VYM_ZISK=5;        // ✅ / ⚠️ u týmu od ±5 bodů zisku, mezi tím ⚖️
 const VYM_ROZDIL=15;     // rozdíl v oblasti (body 0–100), od kterého věta říká, že výměna pomáhá / ubírá
-const VYM_G0=0.5;        // od kolika gólů na zápas ztráty na Top 4 (součet 4 oblastí) váží Fit plně (½)
+const VYM_G0=0.75;       // od kolika gólů na zápas ztráty na Top 4 (součet 4 oblastí) váží Fit plně (½)
                          // (12. 11.) dřív 1,0 — potřeby byly nafouknuté náhodou; z odhadu dlouhodobé úrovně je 0,5 gólu
                          //   na zápas už velká slabina (≈ 12 bodů za sezónu, rozdíl mezi 4. a ~9. místem)
 const VYM_OBL=['pp','pk','ut','ob'];
@@ -2043,13 +2122,16 @@ function vymOblTym(k,t){
   switch(k){
     case 'pk': return `ubrání ${f1(T.PK_pct)} %, ${r.PK_pct}. z ${n} v lize`;
     case 'pp': return `promění ${f1(T.PP_pct)} %, ${r.PP_pct}. z ${n} v lize`;
-    case 'ut': return `${f2(T.ESGF_z)} gólu na zápas při hře 5 na 5, ${r.ESGF_z}. z ${n} v lize`;
+    // (12. 11. odpoledne) útok = góly na zápas, střely na branku a proměňování (starší gm_vymena.json: góly 5 na 5)
+    case 'ut': return T.SF_z!=null&&r.GF_na_zapas!=null
+      ? `${f2(T.GF_na_zapas)} gólu na zápas, ${r.GF_na_zapas}. z ${n} v lize — ${f1(T.SF_z)} střely na branku, gólem ${f1(T.Sh_pct)} %`
+      : `${f2(T.ESGF_z)} gólu na zápas při hře 5 na 5, ${r.ESGF_z}. z ${n} v lize`;
     case 'ob': return `soupeři vystřelí ${f1(T.SA_z)} střely na branku na zápas, ${r.SA_z===1?'nejvíc':r.SA_z+'. nejvíc'} v lize`;
   }
   return '';
 }
-const VYM_OBL_LOK={pp:'v přesilovce',pk:'v oslabení',ut:'v útoku 5 na 5',ob:'v bránění střelám'};
-const VYM_OBL_NAZ={pp:'přesilovka',pk:'oslabení',ut:'útok 5 na 5',ob:'bránění střelám'};
+const VYM_OBL_LOK={pp:'v přesilovce',pk:'v oslabení',ut:'v útoku',ob:'v bránění střelám'};
+const VYM_OBL_NAZ={pp:'přesilovka',pk:'oslabení',ut:'útok',ob:'bránění střelám'};
 // "Vála v oslabení hraje 3:11 na zápas" + krátký tvar pro druhého hráče "McCormack jen 0:07"
 function vymOblHrac(k,p,kratce){
   const j=vymEsc(vymPrijm(p.Jmeno));
@@ -2270,8 +2352,8 @@ function vymKresli(zapsat=true){
   // jak to počítáme + poctivá poznámka
   h+=`<details class="vs-det vym-det"><summary>Jak to počítáme</summary><div class="vs-det-sub">
     <p><b>Výkon</b> = NHL Rating bez Důvěry trenéra (bez minut a počtu střídání) — pořadí mezi hráči na stejném postu, 0–100.</p>
-    <p><b>Fit</b> = jak silné stránky hráče sedí na to, co týmu chybí do úrovně Top 4 (4. nejlepší tým ligy) v přesilovce, oslabení, útoku 5 na 5 a bránění střelám. Stejný výpočet jako Trade Help v záložce Kádr${VYM.odhad?' — z odhadu dlouhodobé úrovně (jako Bottleneck): po pár kolech je v číslech týmů hodně náhody, proto se přitahují k průměru ligy a slabiny vycházejí menší':''}. Kde je tým aspoň na úrovni Top 4, ta oblast se nepočítá.</p>
-    <p><b>Zisk týmu</b> = rozdíl Výkonu a rozdíl Fit dohromady (hráč, který přichází, minus hráč, který odchází). Týmu, kterému do úrovně Top 4 chybí aspoň ${f1(VYM_G0)} gólu na zápas (součet všech čtyř oblastí), se počítají půl na půl. Komu chybí míň, tomu Fit váží úměrně méně a rozhoduje hlavně výkon — týmu skoro bez slabin nepomůže hráč „do slabiny“, kterou nemá. ✅ od +${VYM_ZISK}, ⚠️ od −${VYM_ZISK}, mezi tím ⚖️.</p>
+    <p><b>Fit</b> = jak silné stránky hráče sedí na to, co týmu chybí do úrovně Top 4 (4. nejlepší tým ligy) v přesilovce, oslabení, útoku (střely na branku a proměňování) a bránění střelám. Stejný výpočet jako Trade Help v záložce Kádr${VYM.odhad?' — z odhadu dlouhodobé úrovně (jako Bottleneck): po pár kolech je v číslech týmů hodně náhody, proto se přitahují k průměru ligy a slabiny vycházejí menší':''}. Kde je tým aspoň na úrovni Top 4, ta oblast se nepočítá.</p>
+    <p><b>Zisk týmu</b> = rozdíl Výkonu a rozdíl Fit dohromady (hráč, který přichází, minus hráč, který odchází). Týmu, kterému do úrovně Top 4 chybí aspoň ${f2(VYM_G0)} gólu na zápas (součet všech čtyř oblastí), se počítají půl na půl. Komu chybí míň, tomu Fit váží úměrně méně a rozhoduje hlavně výkon — týmu skoro bez slabin nepomůže hráč „do slabiny“, kterou nemá. ✅ od +${VYM_ZISK}, ⚠️ od −${VYM_ZISK}, mezi tím ⚖️.</p>
     <p><b>Procenta</b> = rozdíl zisků obou týmů převedený na podíl: 50 : 50 je vyrovnaná výměna, rozdíl 10 bodů dá zhruba 58 : 42, rozdíl 30 bodů 73 : 27. Do 45 : 55 píšeme „vyrovnaná“, od 65 : 35 „výrazně líp“. Líp z výměny může vycházet i tým, který si sám nepolepší — stačí, že druhý tým tratí víc.</p>
     <p><b>Jistota</b> podle počtu zápasů méně vytíženého hráče: do 15 nízká, do 30 střední.</p></div></details>`;
   h+=`<div class="vs-pozn vym-pozn"><b>Co čísla nevidí:</b> hráč přichází z jiné role, s jinými spoluhráči a trenérem — u nového týmu může hrát víc, míň nebo jinak. Nevidíme smlouvy, zranění, šatnu ani to, jak dobře hráč hrál v oslabení (góly na ledě ve speciálních formacích nemáme, skóre oslabení stojí hlavně na minutách). Podíly na čase přesilovek a oslabení jsou z čísel na zápas, ve kterých hráč nastoupil.${(+VYM.odehrano||99)<=(+VYM.maly_vzorek_do||10)?' Po pár kolech je v číslech hodně náhody.':''}</div>`;

@@ -152,6 +152,14 @@
     .hist-txt{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:10px;}
     .hist-txt b{color:var(--text);}
     @media (max-width:760px){ .hist-grid{grid-template-columns:1fr;} }
+    /* (12. 11. večer) Historická dvojčata */
+    #hist-dvoj-box{margin-top:20px;}
+    #hist-dvoj-box h4{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+    .htbl.dvoj{max-width:680px;} .dvoj tbody tr.dv-r{cursor:pointer;} .dvoj tbody tr.dv-r:hover td{background:rgba(42,139,139,0.06);}
+    .dvoj td.dv-t::before{content:'▸ ';color:var(--text-faint);font-size:10px;} .dvoj tr.otev td.dv-t::before{content:'▾ ';}
+    .dvoj tr.dv-d td{white-space:normal;text-align:left;font-family:var(--font-main);font-size:12px;line-height:1.55;padding:6px 8px 10px;background:rgba(42,139,139,0.04);}
+    .dvoj .dv-l{display:block;} .dvoj .dv-l b{color:var(--text);font-weight:600;}
+    .dvoj .m4{color:var(--gold);} .dvoj .m12{color:var(--teal-light);} .dvoj .mx{color:var(--text-faint);}
     @media (max-width:760px){
       .bracket{grid-template-columns:1fr;gap:16px;}
       .bcol{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -334,6 +342,11 @@
         <div class="hist-pozn" id="hist-prahy-pozn"></div>
       </div>
       <div id="hist-serie-box"><h4>Série playoff — vyhrál lépe nasazený</h4><div id="hist-serie"></div></div>
+    </div>
+    <div id="hist-dvoj-box" style="display:none"><h4>Historická dvojčata — kam došly týmy s podobnými body</h4>
+      <div class="hist-pozn" id="dvoj-sub" style="margin:0 0 8px"></div>
+      <table class="htbl dvoj"><thead><tr><th>Tým</th><th>Záp.</th><th>Body</th><th>Dvojčat</th><th>Playoff</th><th>Top 4</th></tr></thead><tbody id="dvoj-body"></tbody></table>
+      <div class="hist-pozn" id="dvoj-pozn"></div>
     </div>
   </div>
 </main>
@@ -682,6 +695,32 @@ function renderHistorie(){
     if(D&&D.playoff!=null&&D.zakladni!=null) h+=`<div class="hist-txt">Domácí v playoff vyhráli <b>${pc(D.playoff*100)} %</b> zápasů (z ${D.playoff_n}), v základní části ${pc(D.zakladni*100)} %.</div>`;
     document.getElementById('hist-serie').innerHTML=h;
   } else sb.style.display='none';
+  renderDvojcata();
+}
+
+/* (12. 11. večer) HISTORICKÁ DVOJČATA: týmy minulých sezón se stejným formátem, které měly po stejném počtu zápasů
+   podobně bodů (± tolerance), a kam došly (build.R → playoff.json dvojcata). Klik na řádek = seznam dvojčat. */
+function renderDvojcata(){
+  const D=PL.dvojcata, box=document.getElementById('hist-dvoj-box');
+  if(!D||!D.tymy||!Object.keys(D.tymy).length){ box.style.display='none'; return; }
+  box.style.display='';
+  const obd=D.sezon>1?`ze sezón ${esc(D.sezona_od)}–${esc(D.sezona_do)}`:`ze sezóny ${esc(D.sezona_od)}`;
+  document.getElementById('dvoj-sub').innerHTML=`Týmy ${obd} (${D.tymu} týmů, stejný formát jako letos), které měly po stejném počtu zápasů podobně bodů (± ${D.tolerance}), a kam nakonec došly. Klikni na tým a uvidíš, kdo to byl. Sezón je jen ${D.sezon}, takže je to doplněk k simulaci výš, ne její náhrada.`;
+  const vys=x=>`${x.Misto}. místo, ${esc(x.Dosel)}${x.Dosel==='mistr'?' 🏆':''}`, cls=x=>x.Top4?'m4':(x.Top12?'m12':'mx');
+  const radek=x=>`<span class="dv-l"><b>${esc(x.Tym)} ${esc(x.Sezona)}</b> · ${x.Body} b. → <span class="${cls(x)}">${vys(x)}</span></span>`;
+  let h='';
+  Object.entries(D.tymy).forEach(([tm,d],i)=>{
+    const n=d.n, det=n?(d.dvojcata||[]).map(radek).join(''):
+      `Tolik bodů po ${d.Z} zápasech neměl nikdo — ${d.B>d.max.Body?'nejvíc':'nejméně'}: ${radek(d.B>d.max.Body?d.max:d.min)}`;
+    h+=`<tr class="dv-r" data-i="${i}"><td class="dv-t">${esc(tm)}</td><td>${d.Z}</td><td>${d.B}</td><td>${n||'—'}</td>`+
+       `<td class="c12">${n?d.top12:'—'}</td><td class="c4">${n?d.top4:'—'}</td></tr>`+
+       `<tr class="dv-d" data-i="${i}" style="display:none"><td colspan="6">${det}</td></tr>`;
+  });
+  const tb=document.getElementById('dvoj-body'); tb.innerHTML=h;
+  tb.querySelectorAll('tr.dv-r').forEach(r=>r.addEventListener('click',()=>{
+    const d=tb.querySelector(`tr.dv-d[data-i="${r.dataset.i}"]`), o=d.style.display==='none';
+    d.style.display=o?'':'none'; r.classList.toggle('otev',o); }));
+  document.getElementById('dvoj-pozn').innerHTML=`Barva: <span class="m4" style="color:var(--gold)">Top 4</span>, <span style="color:var(--teal-light)">playoff (předkolo)</span>, šedě bez playoff. Playoff a Top 4 podle toho, kdo hrál předkolo a čtvrtfinále; místo v tabulce podle bodů a při shodě podle skóre (oficiálně rozhodují vzájemné zápasy). Dvojčata se ukazují od ${D.od}. zápasu týmu do konce základní části.`;
 }
 
 /* ══ (28. 10.) 🎮 CO KDYBY — výpočet ════════════════════════════════════════

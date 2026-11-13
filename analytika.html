@@ -155,6 +155,8 @@
     #as-tbl th.srt{cursor:pointer;user-select:none;}
     #as-tbl th.akt{color:var(--gold);}
     #as-tbl td.as-pos{font-size:11px;}
+    #t-stav .st-cas{font-size:11px;color:var(--text-faint);margin-top:1px;}
+    .as-pozn{font-size:11.5px;color:var(--text-dim);margin:6px 0 2px;line-height:1.45;}
     .as-up{color:var(--win);} .as-dn{color:var(--loss);}
     @media (max-width:480px){ #as-tbl .as-dt{display:none;} .as-t{padding:7px 8px;} .as-t .n{font-size:17px;} #as-tbl td,#as-tbl th{padding:6px 4px;} }
     .hg-mob b{color:var(--gold);font-weight:700;}
@@ -325,7 +327,7 @@
   </div>
     <div class="intro">
       <h1>Liga pod lupou</h1>
-      <p>Exkluzivní týmové metriky, které nikde jinde nenajdeš — čas ve vedení, dramatičnost, regrese štěstí, nervy v koncovce a další.</p>
+      <p>Exkluzivní týmové metriky, které nikde jinde nenajdeš — čas ve vedení, dramatičnost, regrese štěstí, těsné zápasy a další.</p>
     </div>
 
     <!-- (12. 11.) ROZCESTNÍK — skupiny karet a skok na kartu; skládá ho rozcestnik() z karet, které mají data
@@ -366,7 +368,7 @@
 
     <div class="card" id="tesne-card">
       <div class="card-title">Record v těsných zápasech</div>
-      <div class="card-sub">Úspěšnost v zápasech rozhodnutých o jeden gól nebo v prodloužení — kdo zvládá nervy v koncovce. V popisku výhry–prohry. Šedě týmy s méně než 3 takovými zápasy, tam procenta zatím moc neznamenají.</div>
+      <div class="card-sub">Úspěšnost v zápasech rozhodnutých o jeden gól nebo v prodloužení. V popisku jsou výhry–prohry, šedě týmy s méně než 3 takovými zápasy. Rozhoduje tu hlavně štěstí: v minulých pěti sezónách úspěšnost v těsných zápasech z první poloviny sezóny skoro nepředpověděla tu ve druhé (shoda 0,08, u bodů na zápas 0,44). Tým, který jich vyhrává hodně, se proto obvykle časem vrátí k průměru (viz Regrese výše).</div>
       <div class="chart-wrap-tall" id="c-tesne"></div>
     </div>
 
@@ -477,7 +479,7 @@
 
     <div class="card" id="kdy-card">
       <div class="card-title">📊 Kdy skórují jednotlivé týmy</div>
-      <div class="card-sub">Rozložení gólů každého týmu podle stavu před gólem. Vysoké % „při prohrávání“ = tým, který se nevzdává.</div>
+      <div class="card-sub">Rozložení gólů každého týmu podle stavu před gólem. Kolik gólů tým dá při prohrávání, záleží hlavně na tom, jak dlouho prohrává (v minulé sezóně shoda 0,94). Vysoký podíl gólů při prohrávání proto většinou znamená tým, který často prohrává, ne tým, který se nevzdává. Pod každým číslem je i podíl času, který tým v daném stavu strávil.</div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>Tým</th><th>Při vedení</th><th>Nerozhodně</th><th>Při prohrávání</th><th>Gólů</th></tr></thead>
         <tbody id="t-stav"></tbody>
@@ -1536,6 +1538,9 @@ function asLiga(){
    kanadské a primární body, podíl druhých přihrávek a posun v pořadí (kanadské → primární, R_kan / R_prim).
    Hledání podle jména i týmu bez diakritiky, řazení kliknutím na hlavičku (druhé kliknutí obrátí). */
 let asSort='Prim', asDir=-1, asVse=false;
+// (12. 11. večer) řazení podle posunu a podílu 2. A: nejdřív hráči s aspoň AS_MIN body — u hráče s 1–2 body
+//   jeden gól posune pořadí o desítky míst a jedna druhá přihrávka udělá 100 %
+const AS_MIN=5, AS_MALO=['Posun','Pod'];
 const asNorm=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const AS_COL=[['G','G',true],['A1','1. A',true],['A2','2. A',false],['Body','Kan.',false],['Prim','Prim.',false],['Pod','% 2. A',true],['Posun','Posun',false]];
 const AS_TIT={G:'góly',A1:'první přihrávky',A2:'druhé přihrávky',Body:'kanadské body (G + 1. A + 2. A)',Prim:'primární body (G + 1. A)',Pod:'podíl druhých přihrávek na kanadských bodech',Posun:'pořadí v kanadském bodování → podle primárních bodů'};
@@ -1556,7 +1561,7 @@ function asPosunVeta(P){
   const jm=r=>`<b>${hgEsc(r.Jmeno)}</b> (${hgEsc(r.Tym)})`, b=n=>`${n} ${pl(n,'bod','body','bodů')}`;
   const c=[];
   if(dol) c.push(`Nejvíc ztrácí ${jm(dol)}: v kanadském bodování je ${dol.R_kan}., podle primárních bodů až ${dol.R_prim}. — ${dol.A2} z jeho ${b(dol.Body)} jsou druhé přihrávky.`);
-  if(nah) c.push(`Nejvíc získává ${jm(nah)}: kanadsky ${nah.R_kan}., podle primárních bodů ${nah.R_prim}. — ${nah.A2?`za druhou přihrávku jen ${nah.A2} z ${b(nah.Body)}`:`žádný z jeho ${b(nah.Body)} není za druhou přihrávku`}.`);
+  if(nah) c.push(`Nejvíc získává ${jm(nah)}: v kanadském bodování je ${nah.R_kan}., podle primárních bodů už ${nah.R_prim}. — ${nah.A2?`za druhou přihrávku jen ${nah.A2} z ${b(nah.Body)}`:`žádný z jeho ${b(nah.Body)} není za druhou přihrávku`}.`);
   el.innerHTML=c.length?c.join(' '):'';
 }
 function asRender(P){
@@ -1564,7 +1569,8 @@ function asRender(P){
   const q=asNorm(document.getElementById('as-hledat').value.trim());
   let d=P.map(r=>({...r,Pod:r.Body?r.A2/r.Body*100:0}));
   if(q) d=d.filter(r=>asNorm(r.Jmeno+' '+r.Tym).includes(q));
-  const k=asSort; d.sort((a,b)=>asDir*(a[k]-b[k])||(b.Prim-a.Prim)||(b.Body-a.Body)||String(a.Jmeno).localeCompare(String(b.Jmeno),'cs'));
+  const k=asSort, malo=AS_MALO.includes(k), mm=r=>malo&&r.Body<AS_MIN?1:0;
+  d.sort((a,b)=>(mm(a)-mm(b))||asDir*(a[k]-b[k])||(b.Prim-a.Prim)||(b.Body-a.Body)||String(a.Jmeno).localeCompare(String(b.Jmeno),'cs'));
   const n=d.length, uk=(q||asVse)?d:d.slice(0,20);
   head.innerHTML=`<tr><th>#</th><th>Hráč</th>${AS_COL.map(([kk,l,dt])=>`<th class="srt${dt?' as-dt':''}${kk===asSort?' akt':''}" data-k="${kk}" title="${AS_TIT[kk]} — seřadit">${l}${kk===asSort?(asDir<0?' ▾':' ▴'):''}</th>`).join('')}</tr>`;
   head.querySelectorAll('th.srt').forEach(th=>th.onclick=()=>{ const kk=th.dataset.k; if(kk===asSort) asDir=-asDir; else { asSort=kk; asDir=-1; } asRender(P); });
@@ -1573,7 +1579,8 @@ function asRender(P){
       `<td class="as-dt">${r.G}</td><td class="as-dt">${r.A1}</td><td>${r.A2}</td><td>${r.Body}</td><td class="hg-v">${r.Prim}</td><td class="as-dt">${Math.round(r.Pod)}&nbsp;%</td><td class="as-pos">${pos(r)}</td></tr>`).join('')
     :`<tr><td colspan="9"><div class="empty">Nikdo takový mezi hráči s bodem.</div></td></tr>`;
   poc.textContent=q?`${n} ${pl(n,'hráč','hráči','hráčů')}`:`${P.length} hráčů s bodem`;
-  vic.innerHTML=!q&&n>20?`<button class="hg-vic" type="button">${asVse?'Ukázat jen 20':`Ukázat všech ${n}`}</button>`:'';
+  vic.innerHTML=(malo?`<div class="as-pozn">Při řazení podle ${k==='Posun'?'posunu':'podílu druhých přihrávek'} jsou nahoře hráči s aspoň ${AS_MIN} body, ostatní až za nimi — u hráče s jedním nebo dvěma body ${k==='Posun'?'posune pořadí o desítky míst jediný gól':'udělá jedna druhá přihrávka hned 100 %'}.</div>`:'')+
+    (!q&&n>20?`<button class="hg-vic" type="button">${asVse?'Ukázat jen 20':`Ukázat všech ${n}`}</button>`:'');
   const bt=vic.querySelector('button'); if(bt) bt.onclick=()=>{ asVse=!asVse; asRender(P); };
 }
 let hlTym=null;
@@ -2444,11 +2451,15 @@ function renderVyvoj(){
         yaxis:{...AX_LOCK,title:{text:'počet gólů',font:{size:11,color:'#4A6070'}},color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10}},showlegend:false}),LOCK_CONFIG);
   } else emptyBox('c-stav','Zatím bez gólových dat.');
   const st=VYV.stav_tymy||[];
+  // (12. 11. večer) pod počtem gólů podíl času v daném stavu (analytika_liga.json → cas_vedeni, karta Čas ve vedení):
+  //   podíl gólů při prohrávání kopíruje hlavně to, jak dlouho tým prohrává
+  const CV={}; ((typeof LIGA!=='undefined'&&LIGA&&LIGA.cas_vedeni)||[]).forEach(c=>{CV[c.Tym]=c;});
+  const casR=(r,k)=>{ const c=CV[r.Tym]; return c&&c[k]!=null&&!isNaN(c[k])?`<div class="st-cas">čas ${Math.round(c[k])} %</div>`:''; };
   document.getElementById('t-stav').innerHTML = st.length? st.map(r=>`<tr>
     <td style="text-align:left;color:var(--text);font-family:var(--font-main);font-weight:500">${r.Tym}</td>
-    <td style="color:#7FE0AC">${r.Vedeni} <span style="color:var(--text-faint)">(${f1(r.Vedeni_pct)} %)</span></td>
-    <td>${r.Remiza} <span style="color:var(--text-faint)">(${f1(r.Remiza_pct)} %)</span></td>
-    <td style="color:#F0A0A0">${r.Prohravani} <span style="color:var(--text-faint)">(${f1(r.Prohravani_pct)} %)</span></td>
+    <td style="color:#7FE0AC">${r.Vedeni} <span style="color:var(--text-faint)">(${f1(r.Vedeni_pct)} %)</span>${casR(r,'Vedeni')}</td>
+    <td>${r.Remiza} <span style="color:var(--text-faint)">(${f1(r.Remiza_pct)} %)</span>${casR(r,'Nerozhodno')}</td>
+    <td style="color:#F0A0A0">${r.Prohravani} <span style="color:var(--text-faint)">(${f1(r.Prohravani_pct)} %)</span>${casR(r,'Prohra')}</td>
     <td>${r.Celkem}</td></tr>`).join('') : '<tr><td colspan="5"><div class="empty">Zatím bez gólových dat.</div></td></tr>';
   const vr=VYV.vyrovnanost||[], vrColor={'O 1 gól':'#E05555','O 2 góly':'#D4A843','O 3+ gólů':'#5B9BD5','Prodloužení/nájezdy':'#9B7BD4'};
   if(vr.length) Plotly.newPlot('c-vyrov',[{type:'bar',x:vr.map(r=>r.Kategorie),y:vr.map(r=>r.Pocet),marker:{color:vr.map(r=>vrColor[r.Kategorie]||'#2A8B8B')},

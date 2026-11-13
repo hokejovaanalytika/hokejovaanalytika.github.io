@@ -584,9 +584,9 @@ const sanceGolu=(s,o)=>s&&Array.isArray(s.g)?s.g.find(q=>q.m===o.m&&q.s===o.s)||
 //   pr / po = šance před a po gólu (celá %), v = po − pr (+N u gólu) → „ze 47 na 82 %“ je vždy +35
 const golCisla=o=>{ const pr=Math.round(o.k==='D'?o.a/10:100-o.a/10), po=Math.round(o.k==='D'?o.b/10:100-o.b/10); return {pr, po, v:po-pr}; };
 // (12. 11., audit) hodnota gólu v BODECH do tabulky (e = o kolik gól zvedl očekávané body týmu, 3-2-1-0);
-//   starší sance_zapasu.json bez e → procentní body šance jako dřív
+//   starší sance_zapasu.json bez e → procentní body šance jako dřív.
+//   (12. 11. večer, Jan) číslo u gólu a v grafu je zase v procentních bodech šance na výhru (+8) — body jen u ⭐
 const maBody=o=>o&&o.e!=null&&!isNaN(o.e);
-const bTxt=e=>{ const x=Math.round(Math.abs(+e)*10)/10; return x<0.05?'~0 b.':'+'+String(x).replace('.',',')+' b.'; };
 const prijmeni=j=>{ const p=String(j||'').trim().split(/\s+/); return p[p.length-1]||''; };
 function sanceSvg(z,s,g){
   const ot=s.ot&&s.ot.t!=null&&s.ot.p!=null?s.ot:null, L=ot?65:60, W=340, H=160, X0=6, X1=334, Y0=10, Y1=134, id='wp'+(++wpN);
@@ -619,7 +619,7 @@ function sanceSvg(z,s,g){
   (s.g||[]).forEach((o,i)=>{ const t=minut(o.m); if(isNaN(t)) return;
     const gd=g.find(q=>q.m===o.m&&q.s===o.s), tym=o.k==='D'?z.Domaci:z.Hoste;
     const q=golCisla(o), nej=i===s.nej;
-    const tit=`${o.m} ${o.s} ${gd?gd.st:''} (${tym}) · šance na výhru ${q.pr} → ${q.po} %`+(maBody(o)?` · ${bTxt(o.e)}`:` (+${q.v})`);
+    const tit=`${o.m} ${o.s} ${gd?gd.st:''} (${tym}) · šance na výhru ${q.pr} → ${q.po} % (+${q.v})`;
     v+=`<circle cx="${xp(t).toFixed(1)}" cy="${yp(o.b).toFixed(1)}" r="${nej?5:3.4}" fill="${o.k==='D'?'#3AADAD':'#5B9BD5'}"${nej?' stroke="#D4A843" stroke-width="2"':' stroke="#243545" stroke-width="1"'}><title>${esc(tit)}</title></circle>`; });
   return v+'</svg>';
 }
@@ -649,8 +649,11 @@ function sanceHtml(z,s,g,cas){
   const p0=Math.round(+s.p0/10);
   let pozn=`Start podle Elo ${p0}&nbsp;:&nbsp;${100-p0}.`;
   if(vyrazny){ const q=golCisla(o), gd=g.find(x=>x.m===o.m&&x.s===o.s);
-    pozn=(B?`Číslo u gólu = kolik bodů do tabulky gól týmu přidal, podle stavu a zbývajícího času (výhra 3 body, v prodloužení 2 a 1). `
-           :`Číslo u gólu = o kolik bodů zvedl šanci týmu na výhru (${esc(prijmeni(gd?gd.st:''))} +${q.v}: ${zZe(q.pr)} ${q.pr} na ${q.po}&nbsp;%). `)+pozn; }
+    // ⭐ se vybírá podle bodů do tabulky (build.R); když má jiný gól větší číslo (typicky gól v prodloužení: šance +50,
+    //   ale k jistému bodu přidá jen ten druhý), řekneme proč
+    const vic=B&&(s.g||[]).some(x=>x!==o&&golCisla(x).v>q.v);
+    pozn=`Číslo u gólu = o kolik procentních bodů zvedl šanci týmu na výhru (${esc(prijmeni(gd?gd.st:''))} +${q.v}: ${zZe(q.pr)} ${q.pr} na ${q.po}&nbsp;%). `+
+      (vic?`Nejcennější gól se vybírá podle bodů do tabulky, proto nemusí mít největší číslo — třeba gól v prodloužení zvedne šanci hodně, ale k jistému bodu přidá jen ten druhý. `:'')+pozn; }
   h+=`<div class="d-wp-p">${pozn}</div>`;
   return h+'</div>';
 }
@@ -971,11 +974,10 @@ function detailHtml(z,x){
       // (8. 10.) gól v prodloužení "64:36 prodl." — "PP" vedle štítku přesilovky znamenal dvě různé věci
       const kdy=o.sit==='SN'?'nájezdy':(minut(o.m)>=60?o.m+' prodl.':o.m);
       const jm=o.sit==='SN'?(i===posledniSN?`rozhodl ${esc(o.st)}`:esc(o.st)):`${esc(o.st)}${as.length?` <small>(${as.map(esc).join(', ')})</small>`:''}`;
-      // (29. 10.) hodnota gólu (nájezd ne); (12. 11.) v bodech do tabulky, starší JSON v procentních bodech šance
+      // (29. 10.) hodnota gólu (nájezd ne): o kolik procentních bodů zvedl šanci svého týmu na výhru
+      //   (12. 11. večer, Jan: zase procentní body jako dřív, body do tabulky jen u ⭐ Nejcennějšího gólu)
       const hv=o.sit==='SN'?null:sanceGolu(sz,o);
-      const hodn=!hv?'':maBody(hv)
-        ?`<span class="g-v ${+hv.e>=0.75?'velky':+hv.e>=0.3?'stred':''}" title="${esc(`gól přidal ${o.k==='D'?z.Domaci:z.Hoste} ${bTxt(hv.e).replace('+','')} · šance na výhru ${golCisla(hv).pr} → ${golCisla(hv).po} %`)}">${bTxt(hv.e)}</span>`
-        :(hv.v!=null?`<span class="g-v ${+hv.v>=25?'velky':+hv.v>=10?'stred':''}" title="${esc(`šance ${o.k==='D'?z.Domaci:z.Hoste} na výhru ${golCisla(hv).pr} → ${golCisla(hv).po} %`)}">+${golCisla(hv).v}</span>`:'');
+      const hodn=hv&&hv.v!=null?`<span class="g-v ${+hv.v>=25?'velky':+hv.v>=10?'stred':''}" title="${esc(`šance ${o.k==='D'?z.Domaci:z.Hoste} na výhru ${golCisla(hv).pr} → ${golCisla(hv).po} %`)}">+${golCisla(hv).v}</span>`:'';
       return `<div class="g-row ${o.k==='D'?'gd':'gh'}"><span class="g-t">${esc(kdy)}</span><span class="g-s">${esc(o.s)}</span><span class="g-n">${jm}</span><span class="g-x">${sitLabel(o)}${hodn}</span></div>`;}).join('')+'</div>';
   } else h+=`<div class="d-pozn">Gólový detail k tomuhle zápasu zatím není.</div>`;
   h+=statHtml(z,x&&x.st);   // (25. 10.)
