@@ -347,7 +347,7 @@
     </div>
     <div class="card" id="vys-card">
       <div class="card-title gold">Výsledky zápasů</div>
-      <div class="card-sub">Výsledky posledních dvou kol — starší zápasy ukáže tlačítko pod seznamem nebo výběr kola a týmu. Klepni na zápas a uvidíš góly, průběh, kdo kolik času vedl, tip modelu a letošní vzájemné zápasy. <span style="color:var(--gold)">pp</span> = rozhodnuto v prodloužení/nájezdech. Ikonky = štítky zápasu (🔄 obrat · 🎢 přestřelka · 🧱 čisté konto · ⏱️ rozhodnuto na konci · 🎩 hattrick · 😱 překvapení · 🔒 vedli skoro celý zápas · 💔 prohráli, přestože většinu času vedli · ⏳ vyhráli, i když vedli jen pár minut).</div>
+      <div class="card-sub">Výsledky posledních dvou kol — starší zápasy ukáže tlačítko pod seznamem nebo výběr kola a týmu. Klepni na zápas a uvidíš góly, průběh, kdo kolik času vedl, tip modelu a letošní vzájemné zápasy. <span style="color:var(--gold)">pp</span> = rozhodnuto v prodloužení, <span style="color:var(--gold)">sn</span> = na samostatné nájezdy. Ikonky = štítky zápasu (🔄 obrat · 🎢 přestřelka · 🧱 čisté konto · ⏱️ rozhodnuto na konci · 🎩 hattrick · 😱 překvapení · 🔒 vedli skoro celý zápas · 💔 prohráli, přestože většinu času vedli · ⏳ vyhráli, i když vedli jen pár minut).</div>
       <div class="filters">
         <select id="f-kolo"><option value="">Všechna kola</option></select>
         <select id="f-tym"><option value="">Všechny týmy</option></select>
@@ -670,6 +670,9 @@ function buildFilters(){
   else ch.onclick=()=>{ jenZajimave=!jenZajimave; ch.classList.toggle('active',jenZajimave); renderVysledky(); };
 }
 function isOT(v){ return v===true||v==='TRUE'||v==='True'||v==='ANO'||v===1||v==='1'; }
+// (14. 11.) „pp“ = rozhodlo prodloužení, „sn“ = samostatné nájezdy (vysledky.json → Najezdy; starý JSON bez pole → „pp“)
+function konecZap(z){ return isOT(z.Prodlouzeni) ? (isOT(z.Najezdy) ? 'sn' : 'pp') : ''; }
+function konecTit(k){ return k==='sn' ? 'rozhodly samostatné nájezdy' : 'rozhodnuto v prodloužení'; }
 // výsledek z pohledu týmu: V / VP / PP / P
 function vysledekTymu(z,t){
   const doma=z.Domaci===t, gf=+(doma?z.Goly_domaci:z.Goly_hoste), ga=+(doma?z.Goly_hoste:z.Goly_domaci), ot=isOT(z.Prodlouzeni);
@@ -711,7 +714,7 @@ function renderForma(t){
   const body=a=>a.reduce((s,o)=>s+BODY_ZA[o.v],0);
   const doma=r.filter(o=>o.doma), venku=r.filter(o=>!o.doma), posl=r.slice(-5);
   const ctverce=r.map(o=>{const s=o.doma?o.x.Hoste:o.x.Domaci;
-    return `<span class="fm fm-${o.v}" title="${esc(fmtDen(o.x.Datum))} · ${o.doma?'doma':'venku'} ${esc(s)} ${o.x.Goly_domaci}:${o.x.Goly_hoste}${isOT(o.x.Prodlouzeni)?' pp':''}">${o.v}</span>`;}).join('');
+    return `<span class="fm fm-${o.v}" title="${esc(fmtDen(o.x.Datum))} · ${o.doma?'doma':'venku'} ${esc(s)} ${o.x.Goly_domaci}:${o.x.Goly_hoste}${konecZap(o.x)?' '+konecZap(o.x):''}">${o.v}</span>`;}).join('');
   box.innerHTML=`<div class="fm-h">${esc(t)} — průběh sezóny <small>(nejstarší vlevo)</small></div>
     <div class="fm-strip">${ctverce}</div>
     <div class="fm-sum"><b>${body(r)} b.</b> za ${zap(r.length)} (možných ${r.length*3}) · V ${pocty.V} · VP ${pocty.VP} · PP ${pocty.PP} · P ${pocty.P}<br>
@@ -802,7 +805,7 @@ function renderVysledky(){
   if(!d.length){ list.innerHTML=`<div class="empty">${jenZajimave?'V tomhle výběru žádný zápas se štítkem není.':'Žádné odehrané zápasy (doplň <code>zapasy_master.csv</code>).'}</div>`; return; }
   list.innerHTML=d.map(z=>{
     const k=klicZ(z), x=detailZ(z), gd=+z.Goly_domaci, gh=+z.Goly_hoste;
-    const ot=isOT(z.Prodlouzeni)?'<span class="ot">pp</span>':'';
+    const kz=konecZap(z), ot=kz?`<span class="ot" title="${konecTit(kz)}">${kz}</span>`:'';
     const tagy=x&&x.tag&&x.tag.length?`<span class="m-tags" title="${esc(x.tag.map(t=>t.t).join(' · '))}">${x.tag.map(t=>t.ic).join('')}</span>`:'';
     const otv=otevrene.has(k);
     return `<div class="m-row${otv?' open':''}" data-k="${esc(k)}" role="button" tabindex="0" aria-expanded="${otv}">
@@ -987,7 +990,7 @@ function detailHtml(z,x){
     let vD=0; dalsi.concat([z]).forEach(o=>{const v=+o.Goly_domaci>+o.Goly_hoste?o.Domaci:o.Hoste; if(v===z.Domaci)vD++;});
     const n=dalsi.length+1;
     h+=`<div class="d-h2h">Letos spolu (${n} ${n<5?'zápasy':'zápasů'}, výhry ${esc(z.Domaci)} ${vD} : ${n-vD} ${esc(z.Hoste)}): `+
-      dalsi.map(o=>`${esc(o.Domaci)} – ${esc(o.Hoste)} <b>${o.Goly_domaci}:${o.Goly_hoste}${isOT(o.Prodlouzeni)?' pp':''}</b>`).join(' · ')+'</div>';
+      dalsi.map(o=>`${esc(o.Domaci)} – ${esc(o.Hoste)} <b>${o.Goly_domaci}:${o.Goly_hoste}${konecZap(o)?' '+konecZap(o):''}</b>`).join(' · ')+'</div>';
   } else h+=`<div class="d-h2h">Letos první vzájemný zápas.</div>`;
   return h;
 }
@@ -1224,7 +1227,7 @@ function renderVersus(zapsat=true){
   const dalsi=seradZapasy(PRISTI.filter(z=>((z.Domaci===vsA&&z.Hoste===vsB)||(z.Domaci===vsB&&z.Hoste===vsA))&&!isNaN(den(z.Datum))&&den(z.Datum)>=hranice),false)[0];
   h+=`<div class="vs-h">Letos spolu</div><ul class="vs-zap">`+
     (spolu.length?spolu.map(z=>{const gd=+z.Goly_domaci, gh=+z.Goly_hoste;
-      return `<li><span class="d">${esc(fmtDen(z.Datum))}</span><span>${gd>gh?'<b>'+esc(z.Domaci)+'</b>':esc(z.Domaci)} – ${gh>gd?'<b>'+esc(z.Hoste)+'</b>':esc(z.Hoste)}</span><span class="sk">${gd}:${gh}${isOT(z.Prodlouzeni)?' pp':''}</span></li>`;}).join('')
+      return `<li><span class="d">${esc(fmtDen(z.Datum))}</span><span>${gd>gh?'<b>'+esc(z.Domaci)+'</b>':esc(z.Domaci)} – ${gh>gd?'<b>'+esc(z.Hoste)+'</b>':esc(z.Hoste)}</span><span class="sk">${gd}:${gh}${konecZap(z)?' '+konecZap(z):''}</span></li>`;}).join('')
       :'<li>Letos spolu ještě nehráli.</li>')+
     (dalsi?`<li><span class="d">${esc(fmtDen(dalsi.Datum))}</span><span>příště — doma ${esc(dalsi.Domaci)}</span></li>`:'')+`</ul>`;
   // --- poctivá poznámka ---

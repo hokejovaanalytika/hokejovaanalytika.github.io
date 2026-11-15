@@ -171,6 +171,7 @@
     .rozc .r-ic{font-size:18px;line-height:1;}
     .rozc .r-t{font-size:13px;font-weight:600;margin-top:6px;}
     .rozc .r-s{font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.4;}
+    .rozc a.wide{grid-column:1/-1;border-left-color:var(--loss);}   /* (15. 11.) Mýty proti datům přes celou šířku */
 
     .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
     .empty{display:flex;align-items:center;justify-content:center;height:100%;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
@@ -301,6 +302,7 @@
       <a href="gm-mod.html" class="gold"><div class="r-ic">🎯</div><div class="r-t">GM mód</div><div class="r-s">Kolik bodů tvůj tým potřebuje a kde je nejvíc ztrácí</div></a>
       <a href="zapasy.html#predikce" class="blue"><div class="r-ic">🔮</div><div class="r-t">Predikce</div><div class="r-s">Tipy modelu na další kolo a jak si zatím vede</div></a>
       <a href="playoff.html" class="win"><div class="r-ic">🏆</div><div class="r-t">Playoff</div><div class="r-s">Simulace zbytku sezóny a možný pavouk</div></a>
+      <a href="analytika.html#myty" class="wide"><div class="r-ic">🔍</div><div class="r-t">Mýty proti datům</div><div class="r-s">Je 2:0 nejnebezpečnější vedení? Přijde po debaklu reakce? Hokejová moudra ověřená na výsledcích Extraligy</div></a>
     </div>
   </div>
 
@@ -572,7 +574,7 @@ function renderKola(K){
       const tagy = (Array.isArray(z.tagy) ? z.tagy : []).slice(0,2).map(t=>`${un(t.ic)} ${esc(un(t.t))}`).join(' · ');
       const zk = un(z.zk)===true && ZK;   // (11. 11.) 🍿 Zápas kola
       return `<div class="zap${zk?' zk':''}">${sk(z)}<div class="zap-r">${tym(un(z.d), true, gd>gh)}
-        <div class="zap-s">${gd}:${gh}${un(z.pp)===true?'<small>pp</small>':''}</div>${tym(un(z.h), false, gh>gd)}</div>
+        <div class="zap-s">${gd}:${gh}${un(z.pp)===true?`<small>${un(z.sn)===true?'sn':'pp'}</small>`:''}</div>${tym(un(z.h), false, gh>gd)}</div>
         ${tagy?`<div class="zap-tag">${tagy}</div>`:''}${zk?`<div class="zap-zk">🍿 <a href="zapasy.html#zapas=${encodeURIComponent(un(ZK.kr)||'')}">Zápas kola</a>: ${esc(ZK.p)}</div>`:''}</div>`;
     });
     const stav = (celk && odeh < celk) ? `odehráno ${odeh} z ${celk}` : (r.den || '');

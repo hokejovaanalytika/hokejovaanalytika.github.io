@@ -1879,7 +1879,7 @@ function renderKadr(){
 
 /* ══ (28. 10.) VÝMĚNA — rozbor výměny 1 za 1 ════════════════════════════════
    Data: gm_vymena.json z build.R — hráči do pole s NHL Ratingem (dnešní tým, čísla na zápas,
-   8 stránek hry, 4 oblasti jako Trade Help), týmy (potřeby proti úrovni Top 4 = Trade Help,
+   7 stránek hry (do 15. 11. 8), 4 oblasti jako Trade Help), týmy (potřeby proti úrovni Top 4 = Trade Help,
    pořadí v lize, minuty přesilovek a oslabení), skutečné výměny v sezóně. Dvojic je ~60 000,
    proto čísla i věty skládá stránka.
    BILANCE:  zisk týmu = (1 − λ/2) × (Výkon příchozího − Výkon odcházejícího)
@@ -1901,6 +1901,7 @@ const VYM_G0=0.75;       // od kolika gólů na zápas ztráty na Top 4 (součet
 const VYM_OBL=['pp','pk','ut','ob'];
 const VYM_SUBS=[['Strelba','Střelba'],['Tvorivost','Tvořivost'],['Presilovka','Přesilovka'],['Oslabeni','Oslabení'],
   ['Dvoucestnost','Hra do obou stran'],['Fyzicnost','Fyzičnost'],['Clutch','Těsné zápasy'],['Duvera','Důvěra trenéra']];
+// (15. 11.) Těsné zápasy (Clutch) z NHL Ratingu vyřazené — zůstávají kvůli staršímu gm_vymena.json, řádek se ukáže jen s nimi
 // herní typ z NHL Ratingu → stránka hry, ze které vznikl (build.R: NHL_TYP)
 const VYM_TYP_SUB={'Střelec':'Strelba','Střílející obránce':'Strelba','Tvůrce hry':'Tvorivost','Rozehrávač':'Tvorivost',
   'Specialista na přesilovku':'Presilovka','Rozehrávač přesilovky':'Presilovka','Specialista na oslabení':'Oslabeni',
@@ -2344,7 +2345,8 @@ function vymKresli(zapsat=true){
      radek('Bloky a hity','na zápas',p=>p.Bloky_zg+p.Hity_zg,v=>f1(v))+
      radek('+/− proti týmu','',p=>p.PM_rel,v=>vymZn(v));
   h+=`<div class="vs-h">Stránky hry <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-faint)">(0–100 = kolik procent hráčů na stejném postu je horších)</small></div>`+
-     VYM_SUBS.map(([k,l])=>radek(l,'',p=>p.subs[k],cel,p=>p.subs[k])).join('');
+     // (15. 11.) jen stránky hry, které hráči v gm_vymena.json mají (nový build bez Těsných zápasů, starší s nimi)
+     VYM_SUBS.filter(([k])=>[R.A,R.B].some(p=>p&&p.subs&&p.subs[k]!=null)).map(([k,l])=>radek(l,'',p=>p.subs[k],cel,p=>p.subs[k])).join('');
   h+=`<div class="vs-h">Jak hráč sedí na potřeby týmu <small style="text-transform:none;letter-spacing:0;font-weight:400;color:var(--text-faint)">(Fit jako v Trade Help)</small></div>`+
      [R.TA,R.TB].map(T=>{const g=vymTym(T).potreby, lam=vymLambda(T), top=VYM_OBL.filter(k=>nv(g[k],0)>0.02).sort((x,y)=>g[y]-g[x]).map(k=>VYM_OBL_NAZ[k]);
        const pop=lam<0.1||!top.length?'skoro bez slabin proti Top 4 — Fit tu skoro neváží':'potřebuje '+spoj(top.slice(0,2))+(lam<0.5?' (slabiny malé, Fit váží méně)':'');

@@ -170,6 +170,34 @@
     .loading{display:flex;align-items:center;justify-content:center;height:80px;color:var(--text-faint);font-size:13px;gap:8px;}
     .spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
+    /* (15. 11.) 🔍 Mýty proti datům */
+    .myty-filtr{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+    .myty-filtr button{background:var(--slate-light);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-main);font-size:12.5px;font-weight:600;padding:6px 11px;border-radius:16px;cursor:pointer;}
+    .myty-filtr button.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .myty-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:900px){.myty-grid{grid-template-columns:1fr 1fr;}}
+    .myt{background:var(--slate-light);border-radius:9px;padding:13px 14px;border-left:4px solid var(--text-faint);scroll-margin-top:90px;transition:box-shadow .4s;}
+    .myt.v-mytus{border-left-color:var(--loss);} .myt.v-pravda{border-left-color:var(--win);} .myt.v-nevime{border-left-color:var(--gold);}
+    .myt.zvyr{box-shadow:0 0 0 2px var(--teal-light);}
+    .myt-h{display:flex;align-items:flex-start;gap:8px;}
+    .myt-ic{font-size:20px;line-height:1.2;flex:0 0 auto;}
+    .myt-t{flex:1 1 auto;font-size:14.5px;font-weight:700;line-height:1.35;}
+    .myt-v{flex:0 0 auto;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:12px;white-space:nowrap;}
+    .v-mytus .myt-v{background:rgba(224,85,85,.18);color:#F08A8A;} .v-pravda .myt-v{background:rgba(76,175,130,.18);color:#7CD3A9;} .v-nevime .myt-v{background:rgba(212,168,67,.18);color:var(--gold);}
+    .myt-veta{font-size:13.5px;line-height:1.5;margin:8px 0 9px;}
+    .myt-pr{display:grid;grid-template-columns:auto 1fr auto;gap:5px 9px;align-items:center;font-size:12px;margin-bottom:8px;}
+    .myt-pr .l{color:var(--text-dim);white-space:nowrap;}
+    .myt-pr .b{height:9px;background:rgba(143,163,176,.13);border-radius:5px;overflow:hidden;}
+    .myt-pr .b i{display:block;height:100%;background:rgba(143,163,176,.55);border-radius:5px;}
+    .myt-pr .b i.zv{background:var(--teal-light);}
+    .myt-pr .n{font-family:var(--font-mono);font-size:11.5px;text-align:right;white-space:nowrap;}
+    .myt-f{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-faint);}
+    .myt-f a{color:var(--text-faint);text-decoration:none;} .myt-f a:hover{color:var(--teal-light);}
+    .myt details{margin-top:6px;font-size:12px;color:var(--text-dim);} .myt summary{cursor:pointer;color:var(--teal-light);}
+    .myt details p{margin-top:5px;line-height:1.5;}
+    .myty-jak{margin-top:14px;font-size:12.5px;color:var(--text-dim);} .myty-jak summary{cursor:pointer;color:var(--teal-light);}
+    .myty-jak p{margin-top:6px;line-height:1.55;}
+    @media(max-width:420px){.myt-t{font-size:14px;} .myt-pr{font-size:11.5px;}}
     .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--text-faint);font-size:13px;text-align:center;padding:20px;}
     /* (20. 10.) Góly v oslabení — počítadlo, týmy / hráči */
     .osl-stats{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px;}
@@ -311,6 +339,7 @@
   <div class="subnav">
     <button data-tab="liga" class="active">Liga pod lupou</button>
     <button data-tab="hraci">Hráči pod lupou</button>
+    <button data-tab="myty">🔍 Mýty</button>
     <button data-tab="tresty">Trestná lavice</button>
     <button data-tab="koncovky">Koncovky</button>
     <button data-tab="clutch">Clutch</button>
@@ -786,7 +815,7 @@
   </div>
     <div class="intro">
       <h1>NHL Rating</h1>
-      <p id="nhl-intro">Každý hráč dostane hodnocení 0–100 podle osmi stránek hry. Každá stránka se porovnává jen s hráči na stejném postu: 80 znamená, že je v ní lepší než 80 % útočníků (u obránců než 80 % obránců). Celkový rating je pořadí váženého průměru — u útočníků váží nejvíc střelba a tvořivost, u obránců hra do obou stran, minuty na ledě a oslabení. Počítá se jen ze základních statistik přepočtených na zápas nebo na 60 minut na ledě, takže víc odehraných zápasů samo o sobě rating nezvedá.</p>
+      <p id="nhl-intro">Každý hráč dostane hodnocení 0–100 podle <span id="nhl-pocet-stranek">sedmi</span> stránek hry. Každá stránka se porovnává jen s hráči na stejném postu: 80 znamená, že je v ní lepší než 80 % útočníků (u obránců než 80 % obránců). Celkový rating je pořadí váženého průměru — u útočníků váží nejvíc střelba a tvořivost, u obránců hra do obou stran, minuty na ledě a oslabení. Počítá se jen ze základních statistik přepočtených na zápas nebo na 60 minut na ledě, takže víc odehraných zápasů samo o sobě rating nezvedá.</p>
     </div>
 
     <!-- štítek malého vzorku: plní se z nhl_rating.json (pole "vzorek"), jinak zůstává skrytý -->
@@ -858,11 +887,24 @@
 
     <div class="card">
       <div class="card-title">Herní typy — top 40 podle ratingu</div>
-      <div class="card-sub" id="nhl-arch-sub">Herní typ podle nejsilnější stránky hráče (když je aspoň 70, jinak Univerzál). „Muž do těsných zápasů“ jen s aspoň 3 góly za těsného stavu nebo 2 vítěznými góly — jinak by stačil jediný šťastný gól.</div>
+      <div class="card-sub" id="nhl-arch-sub">Herní typ podle nejsilnější stránky hráče (když je aspoň 70, jinak Univerzál).</div>
       <div class="tbl-wrap"><table class="tbl">
         <thead><tr><th>#</th><th>Hráč</th><th>Tým</th><th>Poz</th><th>Herní typ</th><th>Rating</th></tr></thead>
         <tbody id="nhl-arch"></tbody>
       </table></div>
+    </div>
+  </section>
+
+  <!-- ===================== (15. 11.) MÝTY PROTI DATŮM ===================== -->
+  <section class="subpanel" id="panel-myty">
+    <div class="intro">
+      <h1>🔍 Mýty proti datům</h1>
+      <p>Hokejová moudra z kabin, televize i hospody, ověřená na výsledcích a gólech Extraligy. Každé tvrzení dostane verdikt: ❌ mýtus, ✅ pravda, nebo 🤷 nedá se říct (na jistý závěr je zatím málo zápasů). Čísla se přepočítávají po každém kole.</p>
+    </div>
+    <div class="card" id="myty-card">
+      <div class="myty-filtr" id="myty-filtr"></div>
+      <div class="myty-grid" id="myty-grid"><div class="empty">Načítám…</div></div>
+      <details class="myty-jak" id="myty-jak"><summary>Jak rozhodujeme o verdiktu</summary><div id="myty-pravidla"></div></details>
     </div>
   </section>
 </main>
@@ -920,17 +962,19 @@ const hlupaNames = () => { const a=[]; const R=HRA||{};
 const nhlNames = () => { const a=[]; if(NHL&&NHL.players) NHL.players.forEach(p=>{a.push(p.Jmeno);a.push(p.Tym);}); if(NHL&&NHL.goalies) NHL.goalies.forEach(g=>a.push(g.Jmeno)); return a; };
 const TIER_COLOR={'Elita':'#FFD700','Hvězda':'#4CAF82','Opora':'#5B9BD5','Rolový hráč':'#8FA3B0','Doplněk':'#5E7384',
   'Elite':'#FFD700','Star':'#4CAF82','Quality':'#5B9BD5','Role Player':'#8FA3B0','Depth':'#5E7384'};   // + starší build (anglicky)
+// (15. 11.) Těsné zápasy (Clutch) z ratingu vyřazené — zůstávají tu kvůli staršímu nhl_rating.json (verze 2);
+//   osy se berou jen ty, které hráči v JSONu opravdu mají (NHL_SUBS_AKT)
 const NHL_SUBS2=[['Strelba','Střelba'],['Tvorivost','Tvořivost'],['Presilovka','Přesilovka'],['Oslabeni','Oslabení'],['Dvoucestnost','Hra do obou stran'],['Fyzicnost','Fyzičnost'],['Clutch','Těsné zápasy'],['Duvera','Důvěra trenéra']];
 const NHL_SUBS_OLD=[['Strelba','Střelba'],['Tvorivost','Tvořivost'],['Produkce','Produkce'],['PP','Přesilovka'],['PK','Oslabení'],['Dvoucestnost','Dvoucestnost'],['Zakonceni','Zakončení'],['Fyzicnost','Fyzičnost'],['Clutch','Clutch'],['Duvera','Důvěra']];
 const NHL_SUB_POPIS={Strelba:'góly na 60 minut (50 %), střely na zápas a úspěšnost střelby (po 25 %)',
-  Tvorivost:'asistence na 60 minut (60 %) a na zápas (40 %)',
+  Tvorivost:'asistence na 60 minut (60 %) a na zápas (40 %), druhá přihrávka se počítá za polovinu',
   Presilovka:'body v přesilovce na 60 minut v ní (60 %, od 5 odehraných minut) a minuty v přesilovce na zápas (40 %)',
   Oslabeni:'minuty v oslabení na zápas (70 %) a blokované střely (30 %)',
   Dvoucestnost:'+/− proti týmu (50 %), defenzivní práce — bloky, hity, oslabení (25 %) a body na 60 minut (25 %)',
   Fyzicnost:'hity (60 %) a blokované střely (40 %) na zápas',
   Clutch:'góly za těsného stavu (60 %) a vítězné góly (40 %) na zápas',
   Duvera:'minuty na ledě (60 %), minuty při hře 5 na 5 (25 %) a střídání (15 %) na zápas'};
-const rendered={liga:true,hraci:false,tresty:false,koncovky:false,clutch:false,cestovani:false,nhl:false};
+const rendered={liga:true,hraci:false,tresty:false,koncovky:false,clutch:false,cestovani:false,nhl:false,myty:false};
 
 async function init(){
   try{
@@ -962,9 +1006,12 @@ async function init(){
     try{ rozcestnik(); }catch(e){ console.error('rozcestnik',e); }   // (12. 11.) až po vykreslení — karty bez dat se schovají
     // (12. 10.) analytika.html#nhl apod. (odkazy z Profilu týmu) otevře rovnou danou záložku
     const zHashe=location.hash.replace('#','');
-    if(zHashe && zHashe!=='liga' && document.getElementById('panel-'+zHashe)) showSub(zHashe);
+    if(zHashe.startsWith('myty-')) { showSub('myty'); }   // (15. 11.) analytika.html#myty-dve-nula = rovnou daný mýtus (odkaz do tweetu)
+    else if(zHashe && zHashe!=='liga' && document.getElementById('panel-'+zHashe)) showSub(zHashe);
     else if(zHashe){ const el=document.getElementById(zHashe); if(el && el.offsetParent) setTimeout(()=>el.scrollIntoView(),60); }   // (23. 10.) analytika.html#stesti-card z Přehledu — karta se ukáže až po načtení dat
-    window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#',''); if(h && document.getElementById('panel-'+h)) showSub(h); });
+    window.addEventListener('hashchange',()=>{ const h=location.hash.replace('#','');
+      if(h.startsWith('myty-')){ if(!document.getElementById('panel-myty').classList.contains('active')) showSub('myty'); else mytyNaHash(); return; }
+      if(h && document.getElementById('panel-'+h)) showSub(h); });
   }catch(e){
     console.error(e);
     document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ Nepodařilo se načíst data. Spusť <code>build.R</code> a ověř <code>analytika_liga.json</code> / <code>analytika_hraci.json</code>.<br><small>'+e.message+'</small></div>';
@@ -974,9 +1021,68 @@ function showSub(name){
   document.querySelectorAll('.subpanel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.subnav button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));
   document.getElementById('panel-'+name).classList.add('active');
-  if(!rendered[name]){rendered[name]=true; if(name==='hraci')renderHraci(); if(name==='tresty')renderTresty(); if(name==='koncovky')renderKoncovky(); if(name==='clutch')renderClutch(); if(name==='cestovani')renderCestovani(); if(name==='nhl')loadNhl();}
+  { const ab=document.querySelector('.subnav button[data-tab="'+name+'"]'), sn=ab&&ab.parentElement;   // (15. 11.) aktivní záložka vidět i na telefonu
+    if(sn && (ab.offsetLeft<sn.scrollLeft || ab.offsetLeft+ab.offsetWidth>sn.scrollLeft+sn.clientWidth)) sn.scrollLeft=ab.offsetLeft-8; }
+  if(!rendered[name]){rendered[name]=true; if(name==='hraci')renderHraci(); if(name==='tresty')renderTresty(); if(name==='koncovky')renderKoncovky(); if(name==='clutch')renderClutch(); if(name==='cestovani')renderCestovani(); if(name==='nhl')loadNhl(); if(name==='myty')renderMyty();}
   else setTimeout(()=>document.querySelectorAll('#panel-'+name+' .js-plotly-plot').forEach(g=>{try{Plotly.Plots.resize(g);}catch(_){}}),40);
   window.scrollTo(0,0);
+}
+
+/* ---------- (15. 11.) 🔍 MÝTY PROTI DATŮM — myty.json z build.R ----------
+   Každý mýtus: verdikt (mytus / pravda / nevime), věta s čísly, pruhy (skutečnost × čekalo se), počet zápasů a „jak“.
+   Verdikty počítá build.R z 95% intervalu (pravidla v myty.json → info). Starší build bez souboru = hláška.
+   (15. 11. večer 3) + věta o obráceném pravidle u nájezdů (jen když je mýtus v JSONu) a počet zápasů playoff v řádku Data. */
+let MYTY=null, mytyFiltr='vse';
+const MYT_VD={mytus:['❌','Mýtus'],pravda:['✅','Pravda'],nevime:['🤷','Nedá se říct']};
+const mytEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function mytHodnota(v,j){ if(v==null||isNaN(v)) return '—'; return j==='%'?f1(v)+' %':j==='b.'?f2(v)+' b.':String(f2(v)).replace(/^-/,'−'); }
+async function renderMyty(){
+  const g=document.getElementById('myty-grid'), fl=document.getElementById('myty-filtr');
+  try{ MYTY=await loadJSON('myty.json'); }catch(e){ MYTY=null; }
+  if(!MYTY||!Array.isArray(MYTY.myty)||!MYTY.myty.length){
+    console.warn('Mýty: myty.json chybí — pusť novou verzi build.R.');
+    g.innerHTML='<div class="empty">Mýty proti datům se odemknou po dalším spuštění build.R.</div>';
+    fl.style.display='none'; document.getElementById('myty-jak').style.display='none'; return;
+  }
+  const poc=k=>MYTY.myty.filter(m=>k==='vse'||m.verdikt===k).length;
+  fl.innerHTML=[['vse','Vše'],['mytus','❌ Mýtus'],['pravda','✅ Pravda'],['nevime','🤷 Nedá se říct']].filter(([k])=>poc(k)>0)
+    .map(([k,l])=>`<button data-mf="${k}" class="${k===mytyFiltr?'active':''}">${l} (${poc(k)})</button>`).join('');
+  fl.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{ mytyFiltr=b.dataset.mf;
+    fl.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b)); mytyKresli(); }));
+  const I=MYTY.info||{};
+  document.getElementById('myty-pravidla').innerHTML=
+    `<p><b>„Čekalo se“</b> = co by podle síly soupeřů a domácího ledu dávalo Elo — stejný model jako tipy v Predikci.</p>
+     <p><b>Verdikt</b> bereme z 95% intervalu spolehlivosti (rozpětí, ve kterém skutečný vliv s velkou pravděpodobností leží):
+     ✅ <b>pravda</b> = vliv je jasně vidět; ❌ <b>mýtus</b> = vliv v datech není, nebo je i v nejpříznivějším případě menší než polovina výhody domácího ledu
+     (${f2(I.delta_b)} bodu na zápas, ${f1(I.delta_p)} procentního bodu šance na výhru); 🤷 <b>nedá se říct</b> = zápasů je na jistý závěr zatím málo.
+     U brankáře je měřítkem 1 procentní bod úspěšnosti, u těsných zápasů to, jak se opakují body na zápas.</p>
+     ${MYTY.myty.some(m=>m.id==='najezdy')?`<p>U „Nájezdy jsou loterie“ mýtus tvrdí, že síla <i>nerozhoduje</i> — pravidlo je proto obráceně: ✅ pravda, když je výhoda favorita i v nejlepším případě menší než polovina výhody domácího ledu; ❌ mýtus, když favorit vyhrává nájezdy jasně častěji.</p>`:''}
+     <p><b>Data:</b> góly s časem: ${I.zapasu_goly||'—'} zápasů (letos ${I.zapasu_goly_letos||0}${I.zapasu_goly_loni?`, sezóna ${mytEsc(I.sezona_loni)} ${I.zapasu_goly_loni}`:''}),
+     výsledky základních částí ${mytEsc(I.sezony||'')} (${(I.zapasu_vysledky||0).toLocaleString('cs-CZ')} zápasů)${I.zapasu_playoff?` a playoff (${(+I.zapasu_playoff).toLocaleString('cs-CZ')} zápasů)`:''}. Starší sezóny gólů s časem nemáme — proto mýty o průběhu zápasu stojí na menším počtu zápasů.</p>`;
+  mytyKresli(); mytyNaHash();
+}
+function mytyKresli(){
+  const g=document.getElementById('myty-grid');
+  const mm=MYTY.myty.filter(m=>mytyFiltr==='vse'||m.verdikt===mytyFiltr);
+  g.innerHTML=mm.map(m=>{
+    const vd=MYT_VD[m.verdikt]||MYT_VD.nevime, j=m.jednotka||'', mx=+m.max||100, mn=+m.min||0;
+    const pr=(m.pruhy||[]).map(p=>{ const w=Math.max(0,Math.min(100,(p.v-mn)/(mx-mn)*100));
+      return `<span class="l">${mytEsc(p.lab)}</span><span class="b"><i class="${p.zv?'zv':''}" style="width:${w.toFixed(1)}%"></i></span><span class="n">${mytHodnota(p.v,j)}</span>`; }).join('');
+    return `<div class="myt v-${mytEsc(m.verdikt)}" id="myty-${mytEsc(m.id)}">
+      <div class="myt-h"><span class="myt-ic">${mytEsc(m.ikona||'')}</span><span class="myt-t">„${mytEsc(m.tvrzeni)}“</span><span class="myt-v">${vd[0]} ${vd[1]}</span></div>
+      <p class="myt-veta">${mytEsc(m.veta)}</p>
+      ${pr?`<div class="myt-pr">${pr}</div>`:''}
+      <div class="myt-f"><span>${mytEsc(m.n_txt||'')}</span><a href="#myty-${mytEsc(m.id)}" title="Odkaz přímo na tenhle mýtus">🔗</a></div>
+      ${m.jak?`<details><summary>Jak jsme to počítali</summary><p>${mytEsc(m.jak)}</p></details>`:''}
+    </div>`; }).join('') || '<div class="empty">V tomhle filtru nic není.</div>';
+}
+// analytika.html#myty-<id> → sjet na mýtus a krátce ho zvýraznit (při jiném filtru se přepne na Vše)
+function mytyNaHash(){
+  const h=location.hash.replace('#',''); if(!h.startsWith('myty-')||!MYTY) return;
+  let el=document.getElementById(h);
+  if(!el && mytyFiltr!=='vse'){ mytyFiltr='vse'; document.querySelectorAll('#myty-filtr button').forEach(x=>x.classList.toggle('active',x.dataset.mf==='vse')); mytyKresli(); el=document.getElementById(h); }
+  if(!el) return;
+  setTimeout(()=>{ el.scrollIntoView({block:'start'}); el.classList.add('zvyr'); setTimeout(()=>el.classList.remove('zvyr'),2200); },60);
 }
 
 /* ---------- LIGA ---------- */
@@ -2159,8 +2265,9 @@ function renderNhlVzorek(){
 // (8. 10.) NHL Rating verze 2: 8 stránek hry jako pořadí (percentil) na postu,
 // české tiery a typy, výkon bez minut, brankáři podle upravené úspěšnosti.
 // Starší nhl_rating.json (10 stránek, anglické tiery) se pořád vykreslí.
-let NHL_V2=false, nhlPoz='U';
-const nhlSubs=()=>NHL_V2?NHL_SUBS2:NHL_SUBS_OLD;
+let NHL_V2=false, nhlPoz='U', NHL_SUBS_AKT=NHL_SUBS2;
+const nhlSubs=()=>NHL_V2?NHL_SUBS_AKT:NHL_SUBS_OLD;
+const CISLOVKA={6:'šesti',7:'sedmi',8:'osmi',9:'devíti',10:'deseti'};
 const rt=x=>x==null||isNaN(x)?'—':(Number.isInteger(+x)?String(x):f1(x));   // rating 0–100 bez ",0"
 const pozMn=p=>p==='O'?'obránců':'útočníků';
 const mmss=m=>{ if(m==null||isNaN(m)) return '—'; const s=Math.round(m*60); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
@@ -2175,6 +2282,11 @@ async function loadNhl(){
   }
   const s0=NHL.players[0].subs||{};
   NHL_V2 = (NHL.verze>=2) || s0.Presilovka!==undefined;
+  // (15. 11.) jen stránky hry, které v JSONu jsou (nový build 7 bez Těsných zápasů, starší 8)
+  NHL_SUBS_AKT = NHL_SUBS2.filter(x=>s0[x[0]]!==undefined);
+  if(NHL_V2){ const e=document.getElementById('nhl-pocet-stranek'); if(e) e.textContent=CISLOVKA[NHL_SUBS_AKT.length]||String(NHL_SUBS_AKT.length);
+    if(s0.Clutch!==undefined){ const a=document.getElementById('nhl-arch-sub');
+      if(a) a.textContent+=' „Muž do těsných zápasů“ jen s aspoň 3 góly za těsného stavu nebo 2 vítěznými góly — jinak by stačil jediný šťastný gól.'; } }
   if(!NHL_V2) nhlStareTexty();
   renderNhlVzorek();
   renderInsights('insight-nhl', INS_NHL, nhlNames());
@@ -2201,9 +2313,13 @@ function renderNhlLegenda(){
   const V=NHL.vahy||{};
   const vahy=poz=>{ const w=V[poz]; if(!w) return ''; return Object.keys(w).sort((a,b)=>w[b]-w[a]).map(k=>{
       const n=(NHL_SUBS2.find(s=>s[0]===k)||[k,k])[1]; return `${n} ${Math.round(w[k]*100)} %`; }).join(', '); };
+  const s0=(NHL.players[0]||{}).subs||{}, novy=s0.Clutch===undefined;   // (15. 11.) build bez Těsných zápasů
+  const popis=k=>k==='Tvorivost'&&!novy?'asistence na 60 minut (60 %) a na zápas (40 %)':NHL_SUB_POPIS[k];
   el.innerHTML=`<details class="nhl-details"><summary>Z čeho se jednotlivé stránky skládají a jak váží</summary>
-    <ul>${NHL_SUBS2.map(s=>`<li><b>${s[1]}</b> — ${NHL_SUB_POPIS[s[0]]}</li>`).join('')}</ul>
+    <ul>${NHL_SUBS_AKT.map(s=>`<li><b>${s[1]}</b> — ${popis(s[0])}</li>`).join('')}</ul>
     ${V.U?`<p><b>Váhy u útočníků:</b> ${vahy('U')}.</p>`:''}${V.O?`<p><b>Váhy u obránců:</b> ${vahy('O')}.</p>`:''}
+    ${novy?`<p><b>Proč druhá přihrávka za polovinu:</b> první přihrávka (u gólu nejblíž) se u hráčů opakuje víc než druhá. V loňské sezóně byla korelace mezi lichými a sudými zápasy hráče u prvních asistencí 0,44, u druhých jen 0,16 — druhá asistence je z velké části náhoda.</p>
+    <p><b>Proč tu nejsou těsné zápasy:</b> do 15. 11. měl rating i stránku Těsné zápasy (góly za těsného stavu a vítězné góly). Kopírovala ale hlavně počet gólů a to, co měl hráč „navíc“, se v další části sezóny neopakovalo — byla to náhoda, ne schopnost. Její váha přešla do střelby. Kdo dává góly v důležitých chvílích, ukazuje dál záložka Clutch.</p>`:''}
     <p>Chybějící údaj = 50 (průměr). Úspěšnost střelby je smrštěná k průměru postu (jako by hráč měl 300 střel navíc s průměrnou úspěšností útočníků, nebo obránců) — rozdíly v proměňování jsou z velké části náhoda, takže jeden gól ze dvou střel nedělá 50 %.</p>
     <p><b>Kdo rating dostane:</b> hráči, kteří odehráli aspoň polovinu dosavadních zápasů${nhlPrah()?` (teď ${nhlPrah()} ${sk(nhlPrah(),'zápas','zápasy','zápasů')}, s postupem sezóny hranice poroste až na 10)`:' (s postupem sezóny hranice roste až na 10 zápasů)'}. U pár zápasů by jeden gól nebo jeden horší večer udělal z hráče špičku nebo dno ligy.${Array.isArray(NHL.nehodnoceni)&&NHL.nehodnoceni.length?` Hodnocených je ${NHL.players.length} hráčů, ${NHL.nehodnoceni.length} ${sk(NHL.nehodnoceni.length,'je','jsou','je')} zatím pod hranicí — ve vyhledávání je najdeš šedě s počtem zápasů.`:''}</p></details>`;
 }
