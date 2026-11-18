@@ -349,6 +349,7 @@
     <a href="analytika.html">Analytika</a>
     <a href="gm-mod.html" class="active">GM Mód</a>
     <a href="playoff.html">Playoff</a>
+    <a href="lab.html">Laboratoř</a>
   </div>
 </nav>
 
@@ -462,9 +463,9 @@
       <div id="gm-roitext"></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="whatif" style="scroll-margin-top:78px">
       <div class="card-title">What If simulátor — Moneyball laboratoř</div>
-      <div class="card-sub">Posuň metriky a sleduj, jak se změní projekce bodů proti hranicím Top 4 a Top 12. Projekce ostatních týmů je ze simulace zbytku sezóny. Góly z přesilovky se počítají i do gólů na zápas — když posuneš všechno najednou, efekt bude trochu nadsazený.</div>
+      <div class="card-sub">Posuň metriky a sleduj, jak se změní projekce bodů proti hranicím Top 4 a Top 12. Projekce ostatních týmů je ze simulace zbytku sezóny. Góly z přesilovky se počítají i do gólů na zápas — když posuneš všechno najednou, efekt bude trochu nadsazený. Co by udělal konkrétní brankář ligy, zkus v <a href="lab.html#brankar" style="color:var(--teal-light);font-weight:600;text-decoration:none">🧪 Laboratoři</a>.</div>
       <div class="wi-grid">
         <div class="wi-sliders" id="gm-wi-sliders">
           <div class="wi-row"><label>PP % (přesilovka)</label><input type="range" id="wi-pp" min="10" max="35" step="0.5"><span id="wi-pp-v"></span></div>
@@ -669,6 +670,8 @@ async function init(){
     refresh();
     // (28. 10.) gm-mod.html#vymena=vala-mccormack otevře rovnou rozbor výměny
     if(/^#vymena/.test(location.hash)) showSub('vymena');
+    // (17. 11.) gm-mod.html#whatif (z Laboratoře) otevře Optimalizaci a sjede na What If simulátor
+    else if(/^#whatif/.test(location.hash)){ showSub('opt'); setTimeout(()=>{ const c=document.getElementById('whatif'); if(c) c.scrollIntoView({block:'start'}); }, 150); }
     document.getElementById('vym-swap').onclick=()=>{ if(VYM&&vymPlatne()){ [vymA,vymB]=[vymB,vymA]; vymUkazka=null; vymKresli(); } };
   }catch(e){console.error(e);document.querySelector('main').innerHTML='<div class="card" style="color:var(--loss);padding:24px">⚠️ '+e.message+'</div>';}
 }

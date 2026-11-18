@@ -175,6 +175,9 @@
     /* (28. 10.) 🎮 CO KDYBY — vlastní výsledky zbývajících zápasů → šance */
     #cokdyby{scroll-margin-top:78px;}
     .ck-odkaz{display:inline-block;margin-top:8px;font-size:13px;font-weight:600;color:var(--teal-light);text-decoration:none;}
+    /* (17. 11.) 🧪 odkaz z dvojice pavouka do Laboratoře (Simulátor série) */
+    .b-lab{display:block;margin-top:5px;font-size:11px;font-weight:600;color:var(--teal-light);text-decoration:none;text-align:center;}
+    .b-lab:hover{text-decoration:underline;}
     .ck-odkaz:hover{text-decoration:underline;}
     .ck-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 12px;margin-bottom:12px;}
     .ck-top .chips{margin-bottom:0;align-items:center;}
@@ -251,6 +254,7 @@
     <a href="analytika.html">Analytika</a>
     <a href="gm-mod.html">GM Mód</a>
     <a href="playoff.html" class="active">Playoff</a>
+    <a href="lab.html">Laboratoř</a>
   </div>
 </nav>
 
@@ -642,10 +646,14 @@ function renderVyvoj(){
 function renderBracket(){
   const pre=PL.predkolo||[], qf=PL.qf||[];
   const radek=(seed,nm,cls)=>`<div class="team${cls?' '+cls:''}"><span class="seed">${seed!=null&&seed!==''?seed+'.':''}</span><span class="nm">${esc(nm)}</span></div>`;
-  const preCol=pre.map(m=>`<div class="match pre">${radek(m.s1,m.t1)}<div class="vs">proti</div>${radek(m.s2,m.t2)}</div>`).join('');
+  // (17. 11.) 🧪 dvojici si jde zahrát v Laboratoři (Simulátor série): lépe nasazený vlevo = výhoda domácího ledu
+  const labSlug=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const labOdkaz=(sa,ta,sb,tb,n)=>{ if(!ta||!tb) return ''; const a=(+sb<+sa)?[tb,ta]:[ta,tb];
+    return `<a class="b-lab" href="lab.html#serie=${labSlug(a[0])}-${labSlug(a[1])}/${n}">🧪 Zahraj si sérii</a>`; };
+  const preCol=pre.map(m=>`<div class="match pre">${radek(m.s1,m.t1)}<div class="vs">proti</div>${radek(m.s2,m.t2)}${labOdkaz(m.s1,m.t1,m.s2,m.t2,3)}</div>`).join('');
   // čtvrtfinále: soupeř = nejhůř umístěný postupující z předkola; když předkolo vyhrají výš nasazení, je to 8., 7., 6., 5.
   const maSoupere=qf.length&&qf[0].souper!=null;
-  const qfCol=qf.map(m=>`<div class="match qf">${radek(m.seed,m.top)}<div class="vs">proti</div>${maSoupere?radek(m.s_souper,m.souper+' *','vyhled'):'<div class="pravidlo">nejhůř umístěný postupující z předkola</div>'}</div>`).join('');
+  const qfCol=qf.map(m=>`<div class="match qf">${radek(m.seed,m.top)}<div class="vs">proti</div>${maSoupere?radek(m.s_souper,m.souper+' *','vyhled'):'<div class="pravidlo">nejhůř umístěný postupující z předkola</div>'}${maSoupere?labOdkaz(m.seed,m.top,m.s_souper,m.souper,4):''}</div>`).join('');
   const sfCol=`<div class="match sf"><div class="pravidlo">Nejlépe umístěný postupující<br><span class="vs">proti</span><br>nejhůř umístěnému</div></div>
                <div class="match sf"><div class="pravidlo">Zbylí dva postupující<br><span class="vs">(druhý proti třetímu)</span></div></div>`;
   const finCol=`<div class="match fin"><div class="pravidlo">Vítězové semifinále<br><span class="vs">výhoda domácího ledu pro lépe umístěný tým</span></div></div>`;

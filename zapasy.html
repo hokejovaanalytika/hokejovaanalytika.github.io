@@ -256,6 +256,8 @@
     .d-wp-t{font-size:12.5px;color:var(--text);line-height:1.5;margin-top:4px;}
     .d-wp-p{font-size:11px;color:var(--text-faint);line-height:1.45;margin-top:3px;}
     @media (max-width:380px){ .d-wp-p{font-size:10.5px;} }
+    .d-lab{display:inline-block;margin-top:6px;font-size:12px;font-weight:600;color:var(--teal-light);text-decoration:none;}   /* (17. 11.) odkaz do Laboratoře */
+    .d-lab:hover{text-decoration:underline;}
     .d-wp-wait{font-size:11.5px;color:var(--text-faint);margin:4px 0 8px;}
     .d-h2h{margin-top:10px;color:var(--text-dim);font-size:12.5px;line-height:1.55;}
     .d-h2h b{color:var(--text);font-family:var(--font-mono);}
@@ -328,6 +330,7 @@
     <a href="analytika.html">Analytika</a>
     <a href="gm-mod.html">GM Mód</a>
     <a href="playoff.html">Playoff</a>
+    <a href="lab.html">Laboratoř</a>
   </div>
 </nav>
 
@@ -655,6 +658,8 @@ function sanceHtml(z,s,g,cas){
     pozn=`Číslo u gólu = o kolik procentních bodů zvedl šanci týmu na výhru (${esc(prijmeni(gd?gd.st:''))} +${q.v}: ${zZe(q.pr)} ${q.pr} na ${q.po}&nbsp;%). `+
       (vic?`Nejcennější gól se vybírá podle bodů do tabulky, proto nemusí mít největší číslo — třeba gól v prodloužení zvedne šanci hodně, ale k jistému bodu přidá jen ten druhý. `:'')+pozn; }
   h+=`<div class="d-wp-p">${pozn}</div>`;
+  // (17. 11.) 🧪 stejný model v Laboratoři: zahraj si zápas těchto týmů od libovolného stavu (síla týmů dnešní)
+  h+=`<a class="d-lab" href="lab.html#zapas=${vsSlug(z.Domaci)}-${vsSlug(z.Hoste)}">🧪 Zkus si tenhle zápas od libovolného stavu v Laboratoři →</a>`;
   return h+'</div>';
 }
 

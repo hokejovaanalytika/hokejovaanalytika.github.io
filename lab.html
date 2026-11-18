@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratoř — Hokejová Analytika</title>
+  <link rel="icon" type="image/png" href="logos/profilovka.png">
+  <link rel="apple-touch-icon" href="logos/profilovka.png">
+  <meta name="description" content="Laboratoř: zahraj si zápas od libovolného stavu, klikni výsledky série v playoff nebo zkus týmu dát jiného brankáře.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="🧪 Laboratoř — Hokejová Analytika">
+  <meta property="og:description" content="Zahraj si zápas od libovolného stavu, klikni výsledky série v playoff nebo zkus týmu dát jiného brankáře.">
+  <meta property="og:url" content="https://hokejovaanalytika.cz/lab.html">
+  <meta property="og:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@hokejanalytika">
+  <meta name="twitter:title" content="🧪 Laboratoř — Hokejová Analytika">
+  <meta name="twitter:description" content="Zahraj si zápas od libovolného stavu, klikni výsledky série v playoff nebo zkus týmu dát jiného brankáře.">
+  <meta name="twitter:image" content="https://hokejovaanalytika.cz/logos/profilovka_velka.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- (17. 11. 2026) 🧪 LABORATOŘ — „zkus si, co by se stalo, kdyby…“
+       Data: lab.json z build.R (sekce LABORATOŘ). Nic nového se tu neodhaduje — Elo, model šance
+       v průběhu zápasu, úspěšnost brankářů i převod gólů na body jsou stejná čísla jako jinde na webu.
+       Bez lab.json zůstanou vidět jen odkazy na nástroje na ostatních stránkách.
+       Adresy pro sdílení: lab.html#zapas=sparta-pardubice/2-1/45, #serie=trinec-kometa/4/ABA,
+       #brankar=olomouc/dominik-frodl/letos (tým, brankář, volitelně „letos“ = jak chytal letos). -->
+  <style>
+    :root{
+      --teal:#2A8B8B;--teal-light:#3AADAD;--teal-dim:#1E6565;
+      --slate:#1B2B34;--slate-mid:#243545;--slate-light:#2E4256;
+      --gold:#D4A843;--gold-dim:#A87E2A;
+      --text:#E8EFF4;--text-dim:#8FA3B0;--text-faint:#4A6070;
+      --border:rgba(42,139,139,0.2);
+      --win:#4CAF82;--loss:#E05555;--otwin:#5B9BD5;
+      --dom:#3AADAD;--host:#5B9BD5;
+      --radius:10px;--font-main:'DM Sans',sans-serif;--font-mono:'JetBrains Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--slate);color:var(--text);font-family:var(--font-main);font-size:15px;line-height:1.5;min-height:100vh;}
+
+    header{background:linear-gradient(135deg,var(--slate-mid) 0%,#0F1E26 100%);border-bottom:2px solid var(--teal-dim);padding:14px 16px;position:sticky;top:0;z-index:100;}
+    .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .logo-text{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;} a.logo-text:hover .site-title{opacity:.85;}
+    .logo-icon{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;display:block;}
+    .site-title{font-size:17px;font-weight:700;letter-spacing:-0.3px;color:var(--text);}
+    .site-title span{color:var(--teal-light);}
+    .meta-badge{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);text-align:right;line-height:1.4;}
+    .meta-badge strong{color:var(--gold);}
+
+    nav{background:var(--slate-mid);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+    nav::-webkit-scrollbar{display:none;}
+    .nav-inner{max-width:1100px;margin:0 auto;display:flex;gap:0;padding:0 8px;}
+    nav a{color:var(--text-dim);text-decoration:none;font-size:13px;font-weight:500;padding:11px 14px;white-space:nowrap;border-bottom:2px solid transparent;transition:color .2s,border-color .2s;}
+    nav a:hover{color:var(--text);}
+    nav a.active{color:var(--teal-light);border-bottom-color:var(--teal-light);}
+
+    main{max-width:1100px;margin:0 auto;padding:16px 12px 40px;}
+    .card{background:var(--slate-mid);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px;scroll-margin-top:78px;}
+    .card-title{font-size:12px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+    .card-title::before{content:'';display:block;width:3px;height:14px;background:var(--teal);border-radius:2px;flex-shrink:0;}
+    .card-title.gold::before{background:var(--gold);}
+    .card-title.blue::before{background:var(--otwin);}
+    .card-sub{font-size:12px;color:var(--text-dim);margin-bottom:12px;}
+    .empty{display:flex;align-items:center;justify-content:center;min-height:90px;color:var(--text-faint);font-size:13px;text-align:center;padding:16px;}
+    select{background:var(--slate);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-family:var(--font-main);font-size:13px;max-width:100%;}
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .chip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:16px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;transition:all .15s;font-family:var(--font-main);}
+    .chip:hover{color:var(--text);}
+    .chip.active{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .chip small{font-weight:500;opacity:.75;margin-left:4px;}
+
+    /* úvod */
+    .lab-hero{padding:4px 2px 14px;}
+    .lab-hero h1{font-size:22px;font-weight:700;letter-spacing:-.3px;}
+    .lab-hero p{font-size:13.5px;color:var(--text-dim);margin-top:4px;max-width:760px;}
+
+    /* rozcestník (stejný vzhled jako Kam dál na Přehledu) */
+    .rozc{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .rozc.tady{grid-template-columns:1fr;}
+    @media(min-width:600px){.rozc.tady{grid-template-columns:repeat(3,1fr);} .rozc{grid-template-columns:repeat(3,1fr);}}
+    @media(min-width:960px){.rozc.jinde{grid-template-columns:repeat(5,1fr);}}
+    .rozc a{display:block;background:var(--slate-light);border-radius:8px;padding:12px;text-decoration:none;color:var(--text);border-left:3px solid var(--teal);transition:background .2s;}
+    .rozc a:hover{background:#34506a;}
+    .rozc a.gold{border-left-color:var(--gold);} .rozc a.blue{border-left-color:var(--otwin);} .rozc a.win{border-left-color:var(--win);} .rozc a.loss{border-left-color:var(--loss);}
+    .rozc .r-ic{font-size:18px;line-height:1;}
+    .rozc .r-t{font-size:13px;font-weight:600;margin-top:6px;}
+    .rozc .r-s{font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.4;}
+    .rozc .r-kde{font-size:10px;color:var(--text-faint);margin-top:6px;text-transform:uppercase;letter-spacing:.6px;}
+    .rozc-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint);margin:2px 0 8px;}
+    .rozc-h + .rozc{margin-bottom:14px;}
+    .rozc.tady a{padding:11px 12px;}
+
+    /* výběr dvou týmů (stejné jako Souboj v Zápasech) */
+    .vs-top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;gap:8px;margin-top:4px;max-width:760px;margin-left:auto;margin-right:auto;}
+    .vs-side{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0;}
+    .vs-logo{width:56px;height:56px;object-fit:contain;}
+    .vs-side select{width:100%;max-width:210px;font-weight:600;font-size:14px;text-align:center;}
+    .vs-role{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint);}
+    .vs-swap{margin-top:16px;width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);font-size:18px;line-height:1;cursor:pointer;transition:all .15s;}
+    .vs-swap:hover{color:var(--text);border-color:var(--teal);}
+    .lab-blok{max-width:760px;margin:0 auto;}
+    .sance{margin:16px 0 0;}
+    .sance-pct{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--font-mono);font-weight:700;font-size:28px;line-height:1.1;}
+    .sance-pct small{font-size:12px;font-weight:600;color:var(--text-dim);font-family:var(--font-main);}
+    .sance-bar{display:flex;gap:3px;height:12px;margin-top:6px;}
+    .sance-bar i{display:block;height:100%;border-radius:6px;transition:flex-grow .35s;}
+    .sance-tx{margin-top:9px;text-align:center;font-size:13.5px;color:var(--text-dim);}
+    .sance-tx b{color:var(--text);}
+    .c-dom{color:var(--dom);} .c-host{color:var(--host);} .c-gold{color:var(--gold);}
+
+    .lab-h{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-dim);margin:18px 0 10px;padding-top:14px;border-top:1px solid var(--border);}
+    .lab-pozn{font-size:11.5px;line-height:1.5;color:var(--text-faint);margin-top:14px;padding-top:10px;border-top:1px dashed rgba(42,139,139,.25);}
+    .lab-pozn a{color:var(--teal-light);text-decoration:none;font-weight:600;}
+    .lab-pozn b{color:var(--text-dim);font-weight:600;}
+    .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+    .btn{font-family:var(--font-main);font-size:13.5px;font-weight:700;padding:9px 16px;border-radius:8px;border:1px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer;transition:all .15s;}
+    .btn:hover{background:var(--teal-light);border-color:var(--teal-light);}
+    .btn.sek{background:transparent;color:var(--teal-light);}
+    .btn.sek:hover{background:rgba(42,139,139,.15);}
+    .btn:disabled{opacity:.45;cursor:default;}
+    .btn-mini{font-family:var(--font-main);font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:14px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;}
+    .btn-mini:hover{color:var(--text);border-color:var(--teal);}
+
+    /* ⏱️ simulátor zápasu */
+    .rychle{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin-bottom:12px;}
+    .rychle::-webkit-scrollbar{display:none;}
+    .rychle .chip{white-space:nowrap;flex-shrink:0;}
+    .rychle-l{font-size:11px;color:var(--text-faint);align-self:center;white-space:nowrap;flex-shrink:0;margin-right:2px;}
+    .stav{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px;padding:12px;background:rgba(27,43,52,.55);border:1px solid var(--border);border-radius:8px;}
+    @media(min-width:600px){.stav{grid-template-columns:auto 1fr;align-items:center;gap:18px;}}
+    .stav-l{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint);margin-bottom:5px;}
+    .skore{display:flex;align-items:center;justify-content:center;gap:6px;}
+    .skore .krok{width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);font-size:17px;line-height:1;cursor:pointer;}
+    .skore .krok:hover{color:var(--text);border-color:var(--teal);}
+    .skore .g{font-family:var(--font-mono);font-size:26px;font-weight:700;min-width:30px;text-align:center;}
+    .skore .dv{font-family:var(--font-mono);font-size:22px;color:var(--text-faint);}
+    .cas{display:flex;align-items:center;gap:10px;}
+    .cas input[type=range]{flex:1;min-width:0;accent-color:var(--teal);height:28px;}
+    .cas-v{font-family:var(--font-mono);font-size:13px;color:var(--text);white-space:nowrap;min-width:118px;text-align:right;}
+    .cas-v small{color:var(--text-dim);font-family:var(--font-main);font-size:11px;display:block;}
+    .rozpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;}
+    .rozpad div{background:rgba(27,43,52,.55);border-radius:7px;padding:7px 6px;text-align:center;}
+    .rozpad b{display:block;font-family:var(--font-mono);font-size:16px;}
+    .rozpad span{font-size:10.5px;color:var(--text-dim);line-height:1.3;display:block;}
+    .vysl-top{margin-top:10px;text-align:center;font-size:12.5px;color:var(--text-dim);}
+    .vysl-top b{font-family:var(--font-mono);color:var(--text);font-weight:600;}
+
+    .anim{margin-top:16px;}
+    .tabule{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;}
+    .tabule .t{font-size:15px;font-weight:700;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .tabule .t.d{text-align:right;} .tabule .t.h{text-align:left;}
+    .tabule .sk{font-family:var(--font-mono);font-size:34px;font-weight:700;line-height:1;text-align:center;}
+    .tabule .hodiny{grid-column:1/-1;text-align:center;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-top:-4px;}
+    .tabule .hodiny b{color:var(--gold);font-weight:600;}
+    svg.wp{width:100%;max-width:520px;height:auto;display:block;margin:10px auto 0;}
+    .goly{list-style:none;margin:8px auto 0;max-width:520px;font-size:12.5px;}
+    .goly li{display:flex;gap:10px;padding:3px 2px;border-bottom:1px solid rgba(42,139,139,.08);}
+    .goly .m{font-family:var(--font-mono);color:var(--text-faint);min-width:46px;}
+    .goly .s{font-family:var(--font-mono);font-weight:600;min-width:34px;}
+    .konec{margin-top:10px;text-align:center;font-size:14px;}
+    .konec b{color:var(--gold);}
+
+    .sim-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;}
+    .sim-pocty{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;}
+    .sim-pocty div{background:rgba(27,43,52,.55);border-radius:7px;padding:9px 8px;text-align:center;border-top:2px solid var(--dom);}
+    .sim-pocty div.h{border-top-color:var(--host);}
+    .sim-pocty b{display:block;font-family:var(--font-mono);font-size:22px;}
+    .sim-pocty span{font-size:11px;color:var(--text-dim);}
+    .rozd{margin-top:12px;}
+    .rozd-r{display:grid;grid-template-columns:62px minmax(0,1fr) 58px;align-items:center;gap:8px;margin-bottom:4px;font-size:12px;}
+    .rozd-r .l{font-family:var(--font-mono);font-weight:600;text-align:right;white-space:nowrap;}
+    .rozd-r .l small{font-family:var(--font-main);font-weight:500;color:var(--text-faint);font-size:10px;margin-left:2px;}
+    .rozd-r .tr{height:9px;background:rgba(143,163,176,.08);border-radius:4px;}
+    .rozd-r .tr i{display:block;height:100%;border-radius:4px;}
+    .rozd-r .v{font-family:var(--font-mono);color:var(--text-dim);text-align:right;white-space:nowrap;}
+
+    /* 🏆 série */
+    .zapasy-s{margin-top:12px;}
+    .zs{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid rgba(42,139,139,.1);}
+    .zs .co{font-size:12.5px;min-width:0;}
+    .zs .co b{font-weight:600;}
+    .zs .co small{display:block;color:var(--text-faint);font-size:11px;}
+    .zs .kdo{display:flex;gap:5px;}
+    .zs .kdo button{font-family:var(--font-main);font-size:12px;font-weight:600;padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .zs .kdo button:hover:not(:disabled){color:var(--text);border-color:var(--teal);}
+    .zs .kdo button.vyhral-a{background:var(--teal);border-color:var(--teal);color:#fff;}
+    .zs .kdo button.vyhral-b{background:var(--otwin);border-color:var(--otwin);color:#fff;}
+    .zs .kdo button:disabled{opacity:.35;cursor:default;}
+    .zs.nehraje{opacity:.4;}
+    .zs.dalsi{background:rgba(42,139,139,.07);border-radius:6px;}
+    .prubeh{margin-top:12px;font-size:12.5px;color:var(--text-dim);line-height:1.7;text-align:center;}
+    .prubeh b{font-family:var(--font-mono);color:var(--text);font-weight:600;}
+    .prubeh .ar{color:var(--text-faint);margin:0 3px;}
+    .vysledek-serie{margin-top:12px;text-align:center;font-size:15px;font-weight:600;}
+
+    /* 🧤 brankář */
+    .bk-pick{display:grid;grid-template-columns:1fr;gap:10px;max-width:760px;margin:0 auto;}
+    @media(min-width:600px){.bk-pick{grid-template-columns:1fr 1.4fr;}}
+    .bk-pick label{display:flex;flex-direction:column;gap:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text-faint);}
+    .bk-pick select{width:100%;font-size:14px;font-weight:600;text-transform:none;letter-spacing:0;}
+    .bk-mod{justify-content:center;margin:12px 0 4px;}
+    .bk-boxy{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+    .bk-boxy > div{background:rgba(27,43,52,.55);border-radius:8px;padding:10px 6px;text-align:center;position:relative;overflow:hidden;}
+    .bk-boxy > div::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--teal);}
+    .bk-boxy .lab{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-faint);}
+    .bk-boxy .z{font-family:var(--font-mono);font-size:12px;color:var(--text-dim);margin-top:4px;}
+    .bk-boxy .n{font-family:var(--font-mono);font-size:21px;font-weight:700;line-height:1.2;}
+    .bk-boxy .r{font-family:var(--font-mono);font-size:12px;font-weight:600;margin-top:2px;}
+    .lepsi{color:var(--win);} .horsi{color:var(--loss);}
+    .bk-veta{margin-top:12px;font-size:13.5px;line-height:1.55;color:var(--text-dim);text-align:center;}
+    .bk-veta b{color:var(--text);}
+    .bk-tab{width:100%;max-width:520px;margin:14px auto 0;border-collapse:collapse;font-size:12.5px;}
+    .bk-tab td{padding:4px 6px;border-bottom:1px solid rgba(42,139,139,.08);}
+    .bk-tab td.p{font-family:var(--font-mono);color:var(--text-faint);width:32px;text-align:right;}
+    .bk-tab td.b{font-family:var(--font-mono);text-align:right;color:var(--text-dim);width:64px;}
+    .bk-tab td.s{font-family:var(--font-mono);font-size:11px;width:44px;text-align:right;}
+    .bk-tab tr.ja td{background:rgba(42,139,139,.16);color:var(--text);font-weight:600;}
+    .bk-tab tr.ja td.b{color:var(--gold);}
+    .bk-tab tr.hr4 td{border-bottom:2px solid var(--gold-dim);} .bk-tab tr.hr12 td{border-bottom:2px solid var(--teal-dim);}
+    .bk-det summary{cursor:pointer;color:var(--teal-light);font-size:12px;font-weight:600;padding:4px 0;margin-top:10px;text-align:center;list-style:none;}
+    .bk-det summary::-webkit-details-marker{display:none;}
+
+    footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
+    footer a{color:var(--teal-light);text-decoration:none;}
+    @media(max-width:420px){
+      .sance-pct{font-size:24px;}
+      .rozpad b{font-size:14px;}
+      .tabule .sk{font-size:28px;}
+      .tabule .t{font-size:13.5px;}
+      .bk-boxy .n{font-size:18px;}
+      .zs .kdo button{max-width:96px;padding:6px 8px;}
+      .vs-side select{font-size:12.5px;padding:7px 4px;}
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo-text" href="index.html" title="Na hlavní stránku" aria-label="Hokejová Analytika — na hlavní stránku">
+      <img class="logo-icon" src="logos/profilovka.png" alt="Hokejová Analytika logo" width="36" height="36">
+      <div class="site-title">Hokejová<span>Analytika</span></div>
+    </a>
+    <div class="meta-badge">
+      <div>Tipsport Extraliga</div>
+      <div>Aktualizováno: <strong id="meta-datum">—</strong></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html">Přehled</a>
+    <a href="tymy.html">Týmy</a>
+    <a href="hraci.html">Hráči</a>
+    <a href="zapasy.html">Zápasy</a>
+    <a href="analytika.html">Analytika</a>
+    <a href="gm-mod.html">GM Mód</a>
+    <a href="playoff.html">Playoff</a>
+    <a href="lab.html" class="active">Laboratoř</a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="lab-hero">
+    <h1>🧪 Laboratoř</h1>
+    <p>Místo na zkoušení: co by se stalo, kdyby… Všechno počítá stejný model jako zbytek webu, jen si tady nastavuješ, co se stane.</p>
+  </div>
+
+  <!-- ROZCESTNÍK: nové nástroje tady + odkazy na to, co už je jinde (nic se nestěhuje) -->
+  <div class="card">
+    <div class="rozc-h">Tady na stránce</div>
+    <div class="rozc tady">
+      <a href="#zapas" data-skok="zapas"><div class="r-ic">⏱️</div><div class="r-t">Simulátor zápasu</div><div class="r-s">Šance na výhru pro libovolný stav zápasu. Zahraj si ho jednou, nebo rovnou 1 000×.</div></a>
+      <a href="#serie" data-skok="serie" class="gold"><div class="r-ic">🏆</div><div class="r-t">Série v playoff</div><div class="r-s">Klikej výsledky zápasů série a sleduj šanci na postup.</div></a>
+      <a href="#brankar" data-skok="brankar" class="blue"><div class="r-ic">🧤</div><div class="r-t">Jiný brankář</div><div class="r-s">Kolik gólů a bodů by tým měl, kdyby mu chytal někdo jiný.</div></a>
+    </div>
+    <div class="rozc-h">Další věci na zkoušení</div>
+    <div class="rozc jinde">
+      <a href="playoff.html#cokdyby" class="win"><div class="r-ic">🎮</div><div class="r-t">Co kdyby</div><div class="r-s">Nastav výsledky zbývajících zápasů, šance na playoff se přepočítají.</div><div class="r-kde">Playoff</div></a>
+      <a href="zapasy.html#vs" class="gold"><div class="r-ic">🆚</div><div class="r-t">Souboj dvou týmů</div><div class="r-s">Jak by dopadl zápas libovolné dvojice a proč.</div><div class="r-kde">Zápasy</div></a>
+      <a href="gm-mod.html#vymena"><div class="r-ic">🔄</div><div class="r-t">Výměna hráčů</div><div class="r-s">Vyber dva hráče a uvidíš, kdo si výměnou polepší.</div><div class="r-kde">GM mód</div></a>
+      <a href="gm-mod.html#whatif" class="loss"><div class="r-ic">🎚️</div><div class="r-t">What If simulátor</div><div class="r-s">Posuň přesilovku, oslabení nebo brankáře a sleduj projekci bodů.</div><div class="r-kde">GM mód</div></a>
+      <a href="analytika.html#nhl" class="blue"><div class="r-ic">📊</div><div class="r-t">Porovnání hráčů</div><div class="r-s">NHL Rating: dva hráči vedle sebe, stránku hry po stránce.</div><div class="r-kde">Analytika</div></a>
+    </div>
+  </div>
+
+  <!-- ⏱️ SIMULÁTOR ZÁPASU -->
+  <div class="card" id="zapas">
+    <div class="card-title">⏱️ Simulátor zápasu</div>
+    <div class="card-sub">Vyber zápas a případně nastav stav — skóre a odehraný čas. Hned uvidíš šanci na výhru, pak si zápas můžeš zahrát. ⇄ prohodí, kdo hraje doma.</div>
+    <div id="zs-body"><div class="empty">Načítám…</div></div>
+  </div>
+
+  <!-- 🏆 SIMULÁTOR SÉRIE -->
+  <div class="card" id="serie">
+    <div class="card-title gold">🏆 Simulátor série v playoff</div>
+    <div class="card-sub">Vyber dva týmy a klikej, kdo vyhrál jednotlivé zápasy série. Po každém zápase uvidíš šanci na postup. Vlevo je tým s výhodou domácího ledu (lépe nasazený); ⇄ výhodu prohodí.</div>
+    <div id="se-body"><div class="empty">Načítám…</div></div>
+  </div>
+
+  <!-- 🧤 JINÝ BRANKÁŘ -->
+  <div class="card" id="brankar">
+    <div class="card-title blue">🧤 Co kdyby měl tým jiného brankáře</div>
+    <div class="card-sub">Vyber tým a brankáře. Spočítáme, kolik gólů by tým při stejných střelách dostal, kolik bodů by to dělalo a kde by byl v tabulce.</div>
+    <div id="bk-body"><div class="empty">Načítám…</div></div>
+  </div>
+
+</main>
+
+<footer>
+  Data: <a href="https://hokej.cz" target="_blank" rel="noopener">hokej.cz</a> &nbsp;·&nbsp;
+  Tipsport Extraliga <span id="foot-sezona"></span> &nbsp;·&nbsp;
+  <a href="https://x.com/hokejanalytika" target="_blank" rel="noopener">@hokejanalytika</a> &nbsp;·&nbsp;
+  <a href="mailto:hockeyanalyticscz@proton.me">hockeyanalyticscz@proton.me</a> &nbsp;·&nbsp;
+  <a href="index.html">hokejovaanalytika.cz</a>
+  <div style="margin-top:6px;font-size:11px;">Návštěvnost měříme anonymně a bez cookies (<a href="https://www.goatcounter.com" target="_blank" rel="noopener">GoatCounter</a>).</div>
+</footer>
+
+<script>
+const DATA = 'data/';
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const logoSrc = t => 'logos/' + encodeURIComponent(t) + '.png';
+// adresa bez háčků, mezer a teček (jako #vs= v Zápasech): "Hr. Králové" → hrkralove
+const slug = t => String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const c1 = x => (Math.round(x*10)/10).toFixed(1).replace('.', ',');
+// procenta z pravděpodobnosti 0–1: celá čísla, pod 1 % a nad 99 % na desetiny, 0 a 100 jen při jistotě
+function pct(p){
+  const x = 100*p;
+  if(!(x>0)) return '0\u00a0%';
+  if(x>=100) return '100\u00a0%';
+  if(x<1 || x>99) { const r=Math.round(x*10)/10; return (r>=100?'99,9':r<=0?'0,1':String(r).replace('.',','))+'\u00a0%'; }
+  return Math.round(x)+'\u00a0%';
+}
+// dvojice procent, která dá dohromady 100 (horní řádek se šancí obou stran)
+function pctPar(p){ const a=pct(p), b=pct(1-p); if(/,/.test(a+b)) return [a,b]; const x=Math.round(100*p); return [x+'\u00a0%',(100-x)+'\u00a0%']; }
+const pocet = (n,a,b,c) => n+' '+(n===1?a:(n>=2&&n<=4?b:c));
+const mmss = t => { const s=Math.max(0,Math.round(t*60)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+const zapsatHash = h => { try{ history.replaceState(null,'','#'+h); }catch(_){ } };
+const redukovanyPohyb = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+async function loadJSON(file){
+  const r = await fetch(DATA + file);
+  if(!r.ok) throw new Error('Nelze načíst ' + file);
+  return r.json();
+}
+const zkus = (f, d) => loadJSON(f).catch(()=>d);
+
+let LAB=null, TYMY=[], ELO={};
+const tymSel = (id, val) => `<select id="${id}">${TYMY.map(t=>`<option value="${esc(t)}"${t===val?' selected':''}>${esc(t)}</option>`).join('')}</select>`;
+const najdiTym = s => TYMY.find(t=>slug(t)===slug(s)) || null;
+// "sparta-pardubice", "hrkralove-sparta", i "hr-kralove-sparta": zkusí každé místo rozdělení (jako #vs=)
+function dvaTymy(s){
+  const d=String(s||'').split('-');
+  for(let i=1;i<d.length;i++){ const a=najdiTym(d.slice(0,i).join('-')), b=najdiTym(d.slice(i).join('-')); if(a&&b&&a!==b) return [a,b]; }
+  return null;
+}
+const eloP = (rd, rh, doma) => 1/(1+Math.pow(10, -(rd - rh + doma)/400));
+
+/* ══ ⏱️ MODEL ZÁPASU — přesně jako build.R (sekce ŠANCE V PRŮBĚHU ZÁPASU, křivka v rozkliku zápasu) ══
+   Góly každého týmu padají jako Poissonův proces s tempem podle třetiny a domácího ledu:
+     tempo domácích = exp(b0 + třetina + doma/2 + s), hostů = exp(b0 + třetina + doma/2 − s)  (gólů za minutu)
+   s se dopočítá tak, aby šance před zápasem byla přesně šance podle Elo (stejná jako Predikce a Souboj).
+   Šance domácích při stavu d (domácí − hosté) v čase t: P(d + Xd − Xh > 0) + p_ot · P(… = 0), Xd, Xh = góly
+   do konce základní doby. p_ot = šance domácích v prodloužení a na nájezdech (logit podle Elo, historie). */
+const KMAX = 30;
+function poisson(L){ const a=new Float64Array(KMAX+1); a[0]=Math.exp(-L); for(let i=1;i<=KMAX;i++) a[i]=a[i-1]*L/i; return a; }
+function rozdil(Ld, Lh){   // v[k+KMAX] = P(Xd − Xh = k)
+  const a=poisson(Ld), b=poisson(Lh), v=new Float64Array(2*KMAX+1);
+  for(let i=0;i<=KMAX;i++) for(let j=0;j<=KMAX;j++) v[i-j+KMAX]+=a[i]*b[j];
+  return v;
+}
+const KONCE=[20,40,60], ZACATKY=[0,20,40];
+const zbyva = (t, tempo) => tempo.reduce((s,x,p)=>s + x*Math.max(0, KONCE[p]-Math.max(t, ZACATKY[p])), 0);
+function sanceStavu(d, Ld, Lh, po){
+  const v=rozdil(Ld,Lh); let w=0, rem=0, l=0;
+  for(let k=-KMAX;k<=KMAX;k++){ const x=v[k+KMAX]; if(k+d>0) w+=x; else if(k+d===0) rem+=x; else l+=x; }
+  return {w, rem, l, p: w + po*rem};
+}
+const plogis = x => 1/(1+Math.exp(-x)), qlogis = p => Math.log(p/(1-p));
+const MODEL_CACHE = {};
+function modelZapasu(D, H){
+  const k=D+'|'+H; if(MODEL_CACHE[k]) return MODEL_CACHE[k];
+  const Z=LAB.zapas, pe=eloP(ELO[D], ELO[H], LAB.elo.doma);
+  const po=plogis(Z.p_ot[0] + Z.p_ot[1]*qlogis(pe));
+  const bt=[0, Z.tret2, Z.tret3];
+  const tempo = s => ({d: bt.map(b=>Math.exp(Z.b0 + b + Z.doma/2 + s)), h: bt.map(b=>Math.exp(Z.b0 + b + Z.doma/2 - s))});
+  const f = s => { const tp=tempo(s); return sanceStavu(0, zbyva(0,tp.d), zbyva(0,tp.h), po).p - pe; };
+  let lo=-1.5, hi=1.5;                      // jako uniroot v build.R (šance roste s s)
+  for(let i=0;i<200 && hi-lo>1e-12;i++){ const m=(lo+hi)/2; if(f(m)>0) hi=m; else lo=m; }
+  const s=(lo+hi)/2, tp=tempo(s);
+  const W = (t, d) => t>=60 ? (d>0?1:d<0?0:po) : sanceStavu(d, zbyva(t,tp.d), zbyva(t,tp.h), po).p;
+  return MODEL_CACHE[k] = {D, H, pe, po, s, tp, W};
+}
+// šance ze stavu: výhra domácích / prodloužení / hosté + nejčastější konečné výsledky
+function rozborStavu(M, t, gd, gh){
+  const d=gd-gh;
+  if(t>=60){
+    if(d!==0) return {p:d>0?1:0, w:d>0?1:0, rem:0, l:d<0?1:0, top:[{a:gd,b:gh,p:1,ot:false}]};
+    return {p:M.po, w:0, rem:1, l:0, top:[{a:gd+1,b:gh,p:M.po,ot:true},{a:gd,b:gh+1,p:1-M.po,ot:true}].sort((x,y)=>y.p-x.p)};
+  }
+  const Ld=zbyva(t,M.tp.d), Lh=zbyva(t,M.tp.h), r=sanceStavu(d, Ld, Lh, M.po);
+  const a=poisson(Ld), b=poisson(Lh), sk={};
+  const pridej=(x,y,p,ot)=>{ const k=x+':'+y+(ot?'p':''); if(!sk[k]) sk[k]={a:x,b:y,p:0,ot}; sk[k].p+=p; };
+  for(let i=0;i<=12;i++) for(let j=0;j<=12;j++){
+    const p=a[i]*b[j], x=gd+i, y=gh+j;
+    if(x!==y) pridej(x,y,p,false); else { pridej(x+1,y,p*M.po,true); pridej(x,y+1,p*(1-M.po),true); }
+  }
+  return {p:r.p, w:r.w, rem:r.rem, l:r.l, top:Object.values(sk).sort((x,y)=>y.p-x.p).slice(0,3)};
+}
+// náhodné číslo z Poissonova rozdělení (malé L, Knuth)
+function nahodnyPoisson(L){ const e=Math.exp(-L); let k=0, p=Math.random(); while(p>e){ k++; p*=Math.random(); } return k; }
+// jeden zápas od stavu (t, gd, gh): góly s časy do 60. minuty + prodloužení / nájezdy
+function zahrajJeden(M, t0, gd, gh){
+  const goly=[];
+  for(let p=0;p<3;p++){
+    const a=Math.max(t0, ZACATKY[p]), b=KONCE[p]; if(b<=a) continue;
+    [['D',M.tp.d[p]],['H',M.tp.h[p]]].forEach(([kdo,tempo])=>{
+      const n=nahodnyPoisson(tempo*(b-a)); for(let i=0;i<n;i++) goly.push({t:a+Math.random()*(b-a), k:kdo}); });
+  }
+  goly.sort((x,y)=>x.t-y.t);
+  let d=gd, h=gh; goly.forEach(g=>{ if(g.k==='D') d++; else h++; g.s=d+':'+h; });
+  let ot=null;
+  if(d===h){
+    const kdo=Math.random()<M.po?'D':'H';
+    const psn=LAB.zapas.p_sn!=null&&isFinite(LAB.zapas.p_sn)?+LAB.zapas.p_sn:0.4;
+    const sn=Math.random()<psn;
+    ot={k:kdo, sn, t: sn?65:60+Math.random()*5};
+    if(kdo==='D') d++; else h++;
+  }
+  return {goly, ot, gd:d, gh:h};
+}
+
+/* ── UI simulátoru zápasu ── */
+let zsD=null, zsH=null, zsT=0, zsGd=0, zsGh=0, zsAnim=null;
+function zsVychozi(){
+  const nr=Array.isArray(LAB.pristi)?LAB.pristi.filter(z=>ELO[z.Domaci]!=null&&ELO[z.Hoste]!=null):[];
+  const z=nr.find(m=>!m.Skupina)||nr[0];
+  if(z){ zsD=z.Domaci; zsH=z.Hoste; return; }
+  const s=[...TYMY].sort((a,b)=>ELO[b]-ELO[a]); zsD=s[0]; zsH=s[1];
+}
+function zsInit(){
+  const el=document.getElementById('zs-body');
+  if(!LAB || !LAB.zapas || !LAB.elo){ el.innerHTML=`<div class="empty">Simulátor zápasu se odemkne po dalším spuštění build.R${LAB?' (chybí model šance v průběhu zápasu)':''}.</div>`; return false; }
+  if(!zsD||!zsH||zsD===zsH||ELO[zsD]==null||ELO[zsH]==null) zsVychozi();
+  const nr=Array.isArray(LAB.pristi)?LAB.pristi.filter(z=>ELO[z.Domaci]!=null&&ELO[z.Hoste]!=null):[];
+  el.innerHTML=
+    (nr.length?`<div class="rychle"><span class="rychle-l">Příští zápasy:</span>${nr.map((z,i)=>`<button class="chip" data-i="${i}" title="${esc(z.Skupina||'')}">${esc(z.Domaci)} – ${esc(z.Hoste)}</button>`).join('')}</div>`:'')+
+    `<div class="vs-top">
+      <div class="vs-side"><span class="vs-role">Domácí</span><img class="vs-logo" id="zs-ld" alt=""><span id="zs-sd"></span></div>
+      <button class="vs-swap" id="zs-swap" title="Prohodit domácí a hosty" aria-label="Prohodit domácí a hosty">⇄</button>
+      <div class="vs-side"><span class="vs-role">Hosté</span><img class="vs-logo" id="zs-lh" alt=""><span id="zs-sh"></span></div>
+    </div>
+    <div class="lab-blok">
+      <div class="stav">
+        <div><div class="stav-l">Skóre</div>
+          <div class="skore">
+            <button class="krok" data-g="d" data-z="-1" aria-label="Domácí o gól méně">−</button><span class="g c-dom" id="zs-gd">0</span><button class="krok" data-g="d" data-z="1" aria-label="Domácí o gól více">+</button>
+            <span class="dv">:</span>
+            <button class="krok" data-g="h" data-z="-1" aria-label="Hosté o gól méně">−</button><span class="g c-host" id="zs-gh">0</span><button class="krok" data-g="h" data-z="1" aria-label="Hosté o gól více">+</button>
+          </div></div>
+        <div><div class="stav-l">Odehraný čas</div>
+          <div class="cas"><input type="range" id="zs-t" min="0" max="60" step="1" value="0" aria-label="Odehraný čas v minutách"><span class="cas-v" id="zs-tv"></span></div></div>
+      </div>
+      <div class="sance" id="zs-sance"></div>
+      <div class="btns">
+        <button class="btn" id="zs-hraj">▶ Zahraj zápas</button>
+        <button class="btn sek" id="zs-1000">🎲 Zahraj 1 000×</button>
+        <button class="btn-mini" id="zs-reset" style="align-self:center">↺ Od začátku</button>
+      </div>
+      <div class="anim" id="zs-anim"></div>
+      <div id="zs-sim"></div>
+      <div class="lab-pozn">Stejný model jako křivka šance v rozkliku zápasu (<a href="zapasy.html">Zápasy → Výsledky</a>): góly padají náhodně tempem podle třetiny a domácího ledu, síla týmů podle Elo — před zápasem je to přesně šance z <a href="zapasy.html#predikce">Predikce</a>. Prodloužení a nájezdy jsou skoro loterie (domácí je při stejné síle vyhrají v ${pct(plogis(LAB.zapas.p_ot[0]))} případů). Model nezná sestavy, zranění ani to, kdo zrovna chytá, a tempo gólů nemění podle stavu (testy ukázaly, že by to předpověď nezlepšilo).</div>
+    </div>`;
+  el.querySelectorAll('.rychle .chip').forEach(b=>b.onclick=()=>{ const z=nr[+b.dataset.i]; zsD=z.Domaci; zsH=z.Hoste; zsT=0; zsGd=0; zsGh=0; zsKresli(); });
+  document.getElementById('zs-swap').onclick=()=>{ [zsD,zsH]=[zsH,zsD]; [zsGd,zsGh]=[zsGh,zsGd]; zsKresli(); };
+  el.querySelectorAll('.krok').forEach(b=>b.onclick=()=>{ const z=+b.dataset.z;
+    if(b.dataset.g==='d') zsGd=Math.max(0,Math.min(15,zsGd+z)); else zsGh=Math.max(0,Math.min(15,zsGh+z)); zsKresli(); });
+  document.getElementById('zs-t').oninput=e=>{ zsT=+e.target.value; zsKresli(); };
+  document.getElementById('zs-reset').onclick=()=>{ zsT=0; zsGd=0; zsGh=0; zsKresli(); };
+  document.getElementById('zs-hraj').onclick=zsHraj;
+  document.getElementById('zs-1000').onclick=zs1000;
+  return true;
+}
+function zsCasTxt(t){
+  if(t<=0) return `0:00<small>před zápasem</small>`;
+  if(t>=60) return `60:00<small>konec základní doby</small>`;
+  return `${t}:00<small>${t<20?'1.':t<40?'2.':'3.'} třetina</small>`;
+}
+function zsKresli(zapsat=true){
+  zsStop();
+  const sd=document.getElementById('zs-sd'), sh=document.getElementById('zs-sh');
+  sd.innerHTML=tymSel('zs-d', zsD); sh.innerHTML=tymSel('zs-h', zsH);
+  document.getElementById('zs-d').onchange=e=>{ const v=e.target.value; if(v===zsH) zsH=zsD; zsD=v; zsKresli(); };
+  document.getElementById('zs-h').onchange=e=>{ const v=e.target.value; if(v===zsD) zsD=zsH; zsH=v; zsKresli(); };
+  const ld=document.getElementById('zs-ld'), lh=document.getElementById('zs-lh');
+  ld.src=logoSrc(zsD); ld.alt=zsD; lh.src=logoSrc(zsH); lh.alt=zsH;
+  [ld,lh].forEach(i=>{ i.style.visibility=''; i.onerror=()=>{ i.style.visibility='hidden'; }; });
+  document.getElementById('zs-gd').textContent=zsGd; document.getElementById('zs-gh').textContent=zsGh;
+  document.getElementById('zs-t').value=zsT; document.getElementById('zs-tv').innerHTML=zsCasTxt(zsT);
+  document.querySelectorAll('#zs-body .rychle .chip').forEach(b=>{ const z=LAB.pristi.filter(z=>ELO[z.Domaci]!=null&&ELO[z.Hoste]!=null)[+b.dataset.i]; b.classList.toggle('active', !!z&&z.Domaci===zsD&&z.Hoste===zsH); });
+  const M=modelZapasu(zsD, zsH), R=rozborStavu(M, zsT, zsGd, zsGh);
+  const [pd,ph]=pctPar(R.p), start=zsT===0&&zsGd===0&&zsGh===0;
+  const konec=zsT>=60&&zsGd!==zsGh;
+  let tx;
+  if(start) tx=`Šance na výhru před zápasem (podle Elo, stejně jako <a href="zapasy.html#predikce" style="color:var(--teal-light)">Predikce</a>).`;
+  else tx=`Šance na výhru ${zsT>=60?'po 60 minutách — rozhodne prodloužení nebo nájezdy':'za stavu <b>'+zsGd+':'+zsGh+'</b> po '+zsT+' minutách'}.`;
+  if(konec) tx=`Po 60 minutách je rozhodnuto — vítěz <b>${esc(zsGd>zsGh?zsD:zsH)}</b>, ${zsGd}:${zsGh}.`;
+  const roz = konec ? '' : (zsT>=60
+    ? `<div class="rozpad"><div><b class="c-dom">${pct(M.po)}</b><span>${esc(zsD)} v prodloužení nebo na nájezdech</span></div><div><b class="c-gold">100 %</b><span>prodloužení</span></div><div><b class="c-host">${pct(1-M.po)}</b><span>${esc(zsH)} v prodloužení nebo na nájezdech</span></div></div>`
+    : `<div class="rozpad"><div><b class="c-dom">${pct(R.w)}</b><span>${esc(zsD)} v základní době</span></div><div><b class="c-gold">${pct(R.rem)}</b><span>prodloužení (domácí ${pct(R.rem*M.po)}, hosté ${pct(R.rem*(1-M.po))})</span></div><div><b class="c-host">${pct(R.l)}</b><span>${esc(zsH)} v základní době</span></div></div>`);
+  const top = konec ? '' : `<div class="vysl-top">Nejčastější konečné výsledky: ${R.top.map(o=>`<b>${o.a}:${o.b}${o.ot?' pp/sn':''}</b> (${pct(o.p)})`).join(' · ')}</div>`;
+  document.getElementById('zs-sance').innerHTML=
+    `<div class="sance-pct"><span class="c-dom">${pd}</span><small>šance na výhru</small><span class="c-host">${ph}</span></div>
+     <div class="sance-bar"><i style="flex-grow:${Math.max(R.p,0.004)};background:var(--dom)"></i><i style="flex-grow:${Math.max(1-R.p,0.004)};background:var(--host)"></i></div>
+     <div class="sance-tx">${tx}</div>${roz}${top}`;
+  document.getElementById('zs-hraj').disabled=konec; document.getElementById('zs-1000').disabled=konec;
+  document.getElementById('zs-hraj').textContent=start?'▶ Zahraj zápas':'▶ Dohraj zápas';
+  document.getElementById('zs-1000').textContent=start?'🎲 Zahraj 1 000×':'🎲 Dohraj 1 000×';
+  document.getElementById('zs-anim').innerHTML=''; document.getElementById('zs-sim').innerHTML='';
+  if(zapsat) zapsatHash('zapas='+slug(zsD)+'-'+slug(zsH)+(start?'':'/'+zsGd+'-'+zsGh+'/'+zsT));
+}
+// křivka šance jako v rozkliku zápasu (sanceSvg v zapasy.html), kreslí se do minuty m
+function zsSvg(M, P, m, otLabel){
+  const L=P.some(q=>q.t>60)||otLabel?65:60, W=340, H=150, X0=6, X1=334, Y0=10, Y1=134;
+  const xp=t=>X0+(Math.min(Math.max(t,0),L)/L)*(X1-X0), yp=p=>Y0+(1-Math.min(Math.max(p,0),1))*(Y1-Y0), y50=yp(0.5);
+  const Q=P.filter(q=>q.t<=m+1e-9);
+  let v=`<svg class="wp" viewBox="0 0 ${W} ${H}" role="img" aria-label="Šance na výhru v průběhu zápasu">`+
+    `<defs><clipPath id="zsT"><rect x="0" y="0" width="${W}" height="${y50}"/></clipPath><clipPath id="zsB"><rect x="0" y="${y50}" width="${W}" height="${H-y50}"/></clipPath></defs>`;
+  [0.25,0.75].forEach(p=>{v+=`<line x1="${X0}" y1="${yp(p)}" x2="${X1}" y2="${yp(p)}" stroke="#4A6070" stroke-width="0.6" stroke-dasharray="2,3"/>`;});
+  [20,40].concat(L>60?[60]:[]).forEach(t=>{v+=`<line x1="${xp(t)}" y1="${Y0}" x2="${xp(t)}" y2="${Y1}" stroke="#4A6070" stroke-width="0.8" stroke-dasharray="2,2"/>`;});
+  if(Q.length>1){
+    const d=Q.map((q,i)=>`${i?'L':'M'}${xp(q.t).toFixed(1)},${yp(q.p).toFixed(1)}`).join(' ');
+    const pl=`M${xp(Q[0].t).toFixed(1)},${y50.toFixed(1)} ${d.replace(/^M/,'L')} L${xp(Q[Q.length-1].t).toFixed(1)},${y50.toFixed(1)} Z`;
+    v+=`<path d="${pl}" fill="#3AADAD" fill-opacity="0.30" clip-path="url(#zsT)"/><path d="${pl}" fill="#5B9BD5" fill-opacity="0.30" clip-path="url(#zsB)"/>`;
+    v+=`<line x1="${X0}" y1="${y50}" x2="${X1}" y2="${y50}" stroke="#8FA3B0" stroke-width="0.8"/>`;
+    v+=`<path d="${d}" fill="none" stroke="#E8EFF4" stroke-width="1.6" stroke-linejoin="round"/>`;
+  } else v+=`<line x1="${X0}" y1="${y50}" x2="${X1}" y2="${y50}" stroke="#8FA3B0" stroke-width="0.8"/>`;
+  v+=`<text x="${X0+2}" y="${Y0+9}" font-size="9" fill="#3AADAD">${esc(M.D)} vyhraje</text><text x="${X0+2}" y="${Y1-3}" font-size="9" fill="#5B9BD5">${esc(M.H)} vyhraje</text>`;
+  v+=`<text x="${X1-2}" y="${y50-3}" font-size="8" fill="#8FA3B0" text-anchor="end">50 %</text>`;
+  [['1.',10],['2.',30],['3.',50]].forEach(([t,x])=>{v+=`<text x="${xp(x)}" y="${H-3}" text-anchor="middle" font-size="9" fill="#4A6070">${t}</text>`;});
+  if(L>60) v+=`<text x="${xp(62.5)}" y="${H-3}" text-anchor="middle" font-size="9" fill="#D4A843">${otLabel||'prodl.'}</text>`;
+  Q.filter(q=>q.g).forEach(q=>{ v+=`<circle cx="${xp(q.t).toFixed(1)}" cy="${yp(q.p).toFixed(1)}" r="3.4" fill="${q.g==='D'?'#3AADAD':'#5B9BD5'}" stroke="#243545" stroke-width="1"/>`; });
+  return v+'</svg>';
+}
+function zsStop(){ if(zsAnim){ cancelAnimationFrame(zsAnim.raf); zsAnim=null; } ['zs-hraj','zs-1000'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled=false; }); }
+function zsHraj(){
+  zsStop();
+  const M=modelZapasu(zsD,zsH), t0=zsT, Z=zahrajJeden(M, t0, zsGd, zsGh);
+  // body křivky: celé minuty + skok u gólu (před / po), na konci prodloužení nebo nájezdy
+  const P=[]; let d=zsGd-zsGh, gi=0;
+  const gl=Z.goly;
+  for(let mm=t0; mm<=60; mm++){
+    while(gi<gl.length && gl[gi].t<=mm){ const g=gl[gi]; P.push({t:g.t,p:M.W(g.t,d)}); d+=g.k==='D'?1:-1; P.push({t:g.t,p:M.W(g.t,d),g:g.k}); gi++; }
+    P.push({t:mm,p:M.W(mm,d)});
+  }
+  P.sort((a,b)=>a.t-b.t);
+  if(Z.ot){ P.push({t:Z.ot.t,p:M.po}); P.push({t:Z.ot.t,p:Z.ot.k==='D'?1:0,g:Z.ot.sn?null:Z.ot.k}); }
+  const konecT=Z.ot?Z.ot.t:60, trvani=redukovanyPohyb()?0:Math.max(1500, 7000*(konecT-t0)/60);
+  const el=document.getElementById('zs-anim'); document.getElementById('zs-sim').innerHTML='';
+  ['zs-hraj','zs-1000'].forEach(id=>document.getElementById(id).disabled=true);
+  const otL=Z.ot?(Z.ot.sn?'nájezdy':'prodl.'):null;
+  const kresli=m=>{
+    let gd=zsGd, gh=zsGh; const vid=gl.filter(g=>g.t<=m); vid.forEach(g=>{ if(g.k==='D') gd++; else gh++; });
+    const otHotovo=Z.ot&&m>=Z.ot.t;
+    if(otHotovo){ if(Z.ot.k==='D') gd++; else gh++; }
+    const cas = m>=60 ? (Z.ot&&!otHotovo ? '<b>prodloužení</b>' : (Z.ot ? `<b>${Z.ot.sn?'po nájezdech':'po prodloužení ('+mmss(Z.ot.t)+')'}</b>` : '<b>konec</b>')) : mmss(m);
+    let h=`<div class="tabule"><div class="t d c-dom">${esc(zsD)}</div><div class="sk">${gd}:${gh}</div><div class="t h c-host">${esc(zsH)}</div><div class="hodiny">${cas}</div></div>`;
+    h+=zsSvg(M, P, m, (Z.ot&&m>=60)?otL:null);
+    const seznam=vid.map(g=>`<li><span class="m">${mmss(g.t)}</span><span class="s">${g.s}</span><span class="${g.k==='D'?'c-dom':'c-host'}">${esc(g.k==='D'?zsD:zsH)}</span></li>`);
+    if(otHotovo) seznam.push(`<li><span class="m">${Z.ot.sn?'SN':mmss(Z.ot.t)}</span><span class="s">${Z.gd}:${Z.gh}</span><span class="${Z.ot.k==='D'?'c-dom':'c-host'}">${esc(Z.ot.k==='D'?zsD:zsH)} ${Z.ot.sn?'(rozhodující nájezd)':'(v prodloužení)'}</span></li>`);
+    if(seznam.length) h+=`<ul class="goly">${seznam.join('')}</ul>`;
+    return h;
+  };
+  const start=performance.now();
+  const krok=now=>{
+    const f=trvani?Math.min(1,(now-start)/trvani):1, m=t0+(konecT-t0)*f;
+    el.innerHTML=kresli(m);
+    if(f<1){ zsAnim.raf=requestAnimationFrame(krok); return; }
+    const vit=Z.gd>Z.gh?zsD:zsH;
+    el.innerHTML+=`<div class="konec">Konec — vítěz <b>${esc(vit)}</b>, ${Z.gd}:${Z.gh}${Z.ot?(Z.ot.sn?' po nájezdech':' v prodloužení'):''}. <button class="btn-mini" id="zs-znovu">↻ Znovu</button></div>`;
+    document.getElementById('zs-znovu').onclick=zsHraj;
+    zsStop();
+  };
+  zsAnim={raf:requestAnimationFrame(krok)};
+}
+function zs1000(){
+  zsStop();
+  const M=modelZapasu(zsD,zsH), N=1000, cnt={dR:0,dO:0,hR:0,hO:0}, sk={};
+  for(let i=0;i<N;i++){
+    const Z=zahrajJeden(M, zsT, zsGd, zsGh), dom=Z.gd>Z.gh;
+    if(dom) Z.ot?cnt.dO++:cnt.dR++; else Z.ot?cnt.hO++:cnt.hR++;
+    const k=Z.gd+':'+Z.gh+(Z.ot?(Z.ot.sn?' sn':' pp'):''); sk[k]=(sk[k]||0)+1;
+  }
+  const dv=cnt.dR+cnt.dO, hv=cnt.hR+cnt.hO, R=rozborStavu(M, zsT, zsGd, zsGh);
+  const top=Object.entries(sk).sort((a,b)=>b[1]-a[1]).slice(0,8), mx=top.length?top[0][1]:1;
+  const fav=R.p>=0.5?{t:zsD,n:hv,p:R.p}:{t:zsH,n:dv,p:1-R.p};
+  let h=`<div class="lab-h">🎲 1 000 zápasů${zsT>0||zsGd||zsGh?` od stavu ${zsGd}:${zsGh} po ${zsT} minutách`:''}</div>
+    <div class="sim-pocty"><div><b class="c-dom">${dv}×</b><span>vítěz ${esc(zsD)}<br>(z toho ${cnt.dO}× v prodl. / na nájezdech)</span></div>
+    <div class="h"><b class="c-host">${hv}×</b><span>vítěz ${esc(zsH)}<br>(z toho ${cnt.hO}× v prodl. / na nájezdech)</span></div></div>
+    <div class="rozd">${top.map(([k,n])=>{ const [a,b]=k.split(' ')[0].split(':').map(Number), x=k.split(' ')[1]||'';
+      return `<div class="rozd-r"><span class="l">${a}:${b}${x?`<small>${x}</small>`:''}</span><span class="tr"><i style="width:${(100*n/mx).toFixed(1)}%;background:${a>b?'var(--dom)':'var(--host)'}"></i></span><span class="v">${n}×</span></div>`; }).join('')}</div>
+    <div class="sance-tx" style="font-size:12.5px">Nejčastější výsledek <b>${esc(top[0][0])}</b> přišel jen ${top[0][1]}× z 1 000. `+
+    (fav.p<0.995?`I favorit ${esc(fav.t)} se šancí ${pct(fav.p)} prohrál ${fav.n}× z 1 000 — hokej je hodně náhodný.`:'')+
+    ` Simulace je náhodná, při každém spuštění vyjde trochu jinak.</div>`;
+  document.getElementById('zs-sim').innerHTML=h;
+  document.getElementById('zs-anim').innerHTML='';
+}
+
+/* ══ 🏆 SÉRIE — přesný výpočet (ne simulace) ══
+   Šance týmu A v jednom zápase podle Elo s domácím ledem v playoff (lab.json → elo.doma_playoff, 20 bodů
+   Elo ≈ 53 % proti stejně silnému soupeři). Pořadí domácích zápasů: A má výhodu domácího ledu,
+   na 4 výhry doma 1., 2., 5. a 7. zápas, na 3 výhry (předkolo) 1., 2. a 5. Síla týmů se během série nemění. */
+let seA=null, seB=null, seN=4, seV=[];
+const SE_DOMA = {4:[1,1,0,0,1,0,1], 3:[1,1,0,0,1]};
+const seDoma = i => SE_DOMA[seN][i]===1;          // hraje i-tý zápas (od 0) A doma?
+function sePa(i){ const d=LAB.elo.doma_playoff; return seDoma(i) ? eloP(ELO[seA], ELO[seB], d) : 1-eloP(ELO[seB], ELO[seA], d); }
+// rozdělení konečných výsledků ze stavu (a, b výher) — {"4:1": p, ...} z pohledu A
+function seRozdeleni(a, b){
+  const out={}; const rec=(x,y,p)=>{ if(p<1e-15) return; if(x===seN||y===seN){ const k=x+':'+y; out[k]=(out[k]||0)+p; return; }
+    const q=sePa(x+y); rec(x+1,y,p*q); rec(x,y+1,p*(1-q)); };
+  rec(a,b,1); return out;
+}
+const seStav = v => { let a=0,b=0; v.forEach(w=>{ if(w==='A') a++; else b++; }); return {a,b}; };
+const seKonec = v => { const s=seStav(v); return s.a===seN||s.b===seN; };
+function seVychozi(){
+  const s=[...TYMY].sort((a,b)=>ELO[b]-ELO[a]); seA=s[0]; seB=s[Math.min(7,s.length-1)];   // 1. proti 8. podle Elo
+}
+function seInit(){
+  const el=document.getElementById('se-body');
+  if(!LAB || !LAB.elo){ el.innerHTML=`<div class="empty">Simulátor série se odemkne po dalším spuštění build.R${LAB?' (chybí Elo)':''}.</div>`; return false; }
+  if(!seA||!seB||seA===seB||ELO[seA]==null||ELO[seB]==null) seVychozi();
+  el.innerHTML=`<div class="vs-top">
+      <div class="vs-side"><span class="vs-role">Výhoda domácího ledu</span><img class="vs-logo" id="se-la" alt=""><span id="se-sa"></span></div>
+      <button class="vs-swap" id="se-swap" title="Prohodit výhodu domácího ledu" aria-label="Prohodit výhodu domácího ledu">⇄</button>
+      <div class="vs-side"><span class="vs-role">Soupeř</span><img class="vs-logo" id="se-lb" alt=""><span id="se-sb"></span></div>
+    </div>
+    <div class="lab-blok">
+      <div class="chips" id="se-format" style="justify-content:center;margin-top:12px">
+        <button class="chip" data-n="4">Na 4 výhry</button><button class="chip" data-n="3">Předkolo · na 3 výhry</button>
+      </div>
+      <div class="sance" id="se-sance"></div>
+      <div class="lab-h">Zápasy série — klikni, kdo vyhrál</div>
+      <div class="zapasy-s" id="se-zapasy"></div>
+      <div class="prubeh" id="se-prubeh"></div>
+      <div class="btns"><button class="btn-mini" id="se-reset">↺ Série od začátku</button></div>
+      <div class="lab-h">Jak může série skončit</div>
+      <div class="rozd" id="se-rozd"></div>
+      <div class="lab-pozn">Šance v každém zápase je z Elo jako v <a href="zapasy.html#predikce">Predikci</a>, jen s menší výhodou domácího ledu, jaká je v playoff (${LAB.elo.doma_playoff} bodů Elo — domácí v playoff vyhrávají jen asi 54 % zápasů). Počítá se přesně, ne simulací. Síla týmů je dnešní a během série se nemění; zápas v playoff se hraje do rozhodnutí, takže šance zahrnuje i prodloužení. Jak často v historii postupoval vítěz 1. zápasu, najdeš v <a href="analytika.html#myty">Mýtech proti datům</a>.</div>
+    </div>`;
+  document.getElementById('se-swap').onclick=()=>{ [seA,seB]=[seB,seA]; seV=seV.map(w=>w==='A'?'B':'A'); seKresli(); };
+  el.querySelectorAll('#se-format .chip').forEach(b=>b.onclick=()=>{ const n=+b.dataset.n; if(n!==seN){ seN=n; seV=[]; seKresli(); } });
+  document.getElementById('se-reset').onclick=()=>{ seV=[]; seKresli(); };
+  return true;
+}
+function seKresli(zapsat=true){
+  document.getElementById('se-sa').innerHTML=tymSel('se-a', seA); document.getElementById('se-sb').innerHTML=tymSel('se-b', seB);
+  document.getElementById('se-a').onchange=e=>{ const v=e.target.value; if(v===seB) seB=seA; seA=v; seV=[]; seKresli(); };
+  document.getElementById('se-b').onchange=e=>{ const v=e.target.value; if(v===seA) seA=seB; seB=v; seV=[]; seKresli(); };
+  const la=document.getElementById('se-la'), lb=document.getElementById('se-lb');
+  la.src=logoSrc(seA); la.alt=seA; lb.src=logoSrc(seB); lb.alt=seB;
+  [la,lb].forEach(i=>{ i.style.visibility=''; i.onerror=()=>{ i.style.visibility='hidden'; }; });
+  document.querySelectorAll('#se-format .chip').forEach(b=>b.classList.toggle('active', +b.dataset.n===seN));
+  const st=seStav(seV), R=seRozdeleni(st.a, st.b);
+  const pA=Object.entries(R).filter(([k])=>+k.split(':')[0]===seN).reduce((s,[,p])=>s+p,0);
+  const [a,b]=pctPar(pA), konec=seKonec(seV);
+  const stavTx = seV.length ? `Stav série <b>${st.a}:${st.b}</b>` : 'Před sérií';
+  document.getElementById('se-sance').innerHTML=
+    `<div class="sance-pct"><span class="c-dom">${a}</span><small>${konec?'postup':'šance na postup'}</small><span class="c-host">${b}</span></div>
+     <div class="sance-bar"><i style="flex-grow:${Math.max(pA,0.004)};background:var(--dom)"></i><i style="flex-grow:${Math.max(1-pA,0.004)};background:var(--host)"></i></div>
+     <div class="sance-tx">${konec?`Postup: <b>${esc(st.a===seN?seA:seB)}</b>, série ${st.a}:${st.b}.`:stavTx+` — ${esc(seA)} ${a}, ${esc(seB)} ${b}.`}</div>`;
+  // zápasy
+  const maxZ=2*seN-1; let h='';
+  for(let i=0;i<maxZ;i++){
+    // klikat jde jen na odehrané zápasy (změna vítěze) a na ten další; po konci série se zbytek nehraje
+    const w=seV[i], hraje=i<=seV.length && !(konec && i>=seV.length), dalsi=i===seV.length && !konec, nehraje=konec && i>=seV.length;
+    const qa=sePa(i), doma=seDoma(i)?seA:seB;
+    const sub = nehraje ? 'nehraje se' : (w ? `vítěz ${esc(w==='A'?seA:seB)}` : `šance ${esc(seA)} ${pct(qa)}`);
+    h+=`<div class="zs${nehraje?' nehraje':''}${dalsi?' dalsi':''}"><div class="co"><b>${i+1}. zápas</b> · doma ${esc(doma)}<small>${sub}</small></div>
+      <div class="kdo"><button data-i="${i}" data-w="A" class="${w==='A'?'vyhral-a':''}"${hraje?'':' disabled'} title="Vítěz: ${esc(seA)}">${esc(seA)}</button><button data-i="${i}" data-w="B" class="${w==='B'?'vyhral-b':''}"${hraje?'':' disabled'} title="Vítěz: ${esc(seB)}">${esc(seB)}</button></div></div>`;
+  }
+  const zz=document.getElementById('se-zapasy'); zz.innerHTML=h;
+  zz.querySelectorAll('button').forEach(btn=>btn.onclick=()=>{ const i=+btn.dataset.i, w=btn.dataset.w;
+    if(seV[i]===w) seV=seV.slice(0,i);              // znovu klik na vítěze = zápas (a další po něm) zrušit
+    else seV=seV.slice(0,i).concat([w]);            // změna vítěze zruší pozdější zápasy
+    seKresli(); });
+  // průběh šance po zápasech
+  if(seV.length){
+    const kroky=[]; for(let i=0;i<=seV.length;i++){ const s=seStav(seV.slice(0,i)), r=seRozdeleni(s.a,s.b);
+      kroky.push(Object.entries(r).filter(([k])=>+k.split(':')[0]===seN).reduce((x,[,p])=>x+p,0)); }
+    document.getElementById('se-prubeh').innerHTML=`Šance ${esc(seA)} na postup: `+kroky.map((p,i)=>`${i?'<span class="ar">→</span>':''}${i?`po ${i}. zápase`:'před sérií'} <b>${pct(p)}</b>`).join(' ');
+  } else document.getElementById('se-prubeh').innerHTML='';
+  // rozdělení konečných výsledků
+  const klice=[]; for(let l=0;l<seN;l++) klice.push(seN+':'+l); for(let l=seN-1;l>=0;l--) klice.push(l+':'+seN);
+  const mx=Math.max(...klice.map(k=>R[k]||0), 1e-9);
+  document.getElementById('se-rozd').innerHTML=klice.map(k=>{ const p=R[k]||0, vA=+k.split(':')[0]===seN;
+    return `<div class="rozd-r"><span class="l">${k}</span><span class="tr"><i style="width:${(100*p/mx).toFixed(1)}%;background:${vA?'var(--dom)':'var(--host)'}"></i></span><span class="v">${p>0?pct(p):'—'}</span></div>`; }).join('')+
+    `<div class="sance-tx" style="font-size:11.5px">Výsledek série ve tvaru ${esc(seA)} : ${esc(seB)}.</div>`;
+  if(zapsat) zapsatHash('serie='+slug(seA)+'-'+slug(seB)+'/'+seN+(seV.length?'/'+seV.join(''):''));
+}
+
+/* ══ 🧤 JINÝ BRANKÁŘ ══
+   Tým měl SA střel na branku (součet jeho brankářů z brankari.csv). Nový brankář s úspěšností s by při
+   stejných střelách dostal SA · (1 − s) gólů. Rozdíl proti dosavadním brankářům → body přes převod
+   gólů na body (GOLY_NA_BOD jako GM mód) → místo v tabulce (jen podle bodů, ostatní týmy beze změny).
+   Realistický odhad = úspěšnost obou stran smrštěná k ligovému průměru (+1000 střel jako NHL Rating),
+   protože po pár desítkách zápasů je velká část rozdílů mezi brankáři náhoda. „Jak chytal letos“ =
+   skutečná úspěšnost bez tlumení. */
+let bkTym=null, bkBr=null, bkMod='upr';
+const bkTymy = () => LAB.brankari.tymy.filter(t=>t.SA>0);
+const bkTymD = t => LAB.brankari.tymy.find(x=>x.Tym===t);
+const bkKlic = g => g.Jmeno+'|'+g.Tym;
+const bkGolie = k => LAB.brankari.brankari.find(g=>bkKlic(g)===k);
+const svTxt = s => (Math.round(s*1000)/10).toFixed(1).replace('.',',')+'\u00a0%';
+function bkVychozi(){
+  const T=bkTymy(); if(!T.length) return;
+  const nej=[...T].sort((a,b)=>a.Sv_upr-b.Sv_upr)[0];           // tým s nejslabší (odhadnutou) úspěšností
+  bkTym=nej.Tym;
+  const g=LAB.brankari.brankari.filter(x=>x.Tym!==bkTym).sort((a,b)=>b.Sv_upr-a.Sv_upr)[0];
+  bkBr=g?bkKlic(g):null;
+}
+function bkInit(){
+  const el=document.getElementById('bk-body');
+  if(!LAB || !LAB.brankari || !Array.isArray(LAB.brankari.brankari) || !LAB.brankari.brankari.length || !bkTymy().length){
+    el.innerHTML=`<div class="empty">Tenhle nástroj se odemkne po dalším spuštění build.R${LAB?' (chybí brankáři)':''}.</div>`; return false; }
+  if(!bkTymD(bkTym) || !bkGolie(bkBr)) bkVychozi();
+  el.innerHTML=`<div class="bk-pick">
+      <label>Tým<select id="bk-tym"></select></label>
+      <label>Brankář (úspěšnost zákroků · zápasy)<select id="bk-br"></select></label>
+    </div>
+    <div class="chips bk-mod" id="bk-mod"><button class="chip" data-m="upr">Realistický odhad</button><button class="chip" data-m="letos">Jak chytal letos</button></div>
+    <div class="lab-blok" id="bk-vysl"></div>
+    <div class="lab-blok"><div class="lab-pozn" id="bk-pozn"></div></div>`;
+  el.querySelectorAll('#bk-mod .chip').forEach(b=>b.onclick=()=>{ bkMod=b.dataset.m; bkKresli(); });
+  return true;
+}
+function bkVypocet(tymD, g, mod){
+  const B=LAB.brankari, gnb=+B.goly_na_bod||2.2;
+  const svNew = mod==='letos' ? g.Sv : g.Sv_upr, svOld = mod==='letos' ? tymD.Sv : tymD.Sv_upr;
+  const dGA = tymD.SA*(svOld - svNew);           // + = víc gólů
+  const dB = -dGA/gnb, bNew = tymD.B + dB;
+  const ost = B.tymy.filter(t=>t.Tym!==tymD.Tym);
+  const misto = 1 + ost.filter(t=>t.B > bNew + 1e-9).length;
+  const stejne = ost.filter(t=>Math.abs(t.B-bNew)<1e-9).length;
+  return {svNew, svOld, dGA, dB, bNew, gaNew: tymD.GA + dGA, misto, stejne};
+}
+function bkKresli(zapsat=true){
+  const B=LAB.brankari, T=[...bkTymy()].sort((a,b)=>a.Tym.localeCompare(b.Tym,'cs'));
+  document.getElementById('bk-tym').innerHTML=T.map(t=>`<option value="${esc(t.Tym)}"${t.Tym===bkTym?' selected':''}>${esc(t.Tym)}</option>`).join('');
+  const G=[...B.brankari].sort((a,b)=>(bkMod==='letos'?b.Sv-a.Sv:b.Sv_upr-a.Sv_upr)||a.Jmeno.localeCompare(b.Jmeno,'cs'));
+  document.getElementById('bk-br').innerHTML=G.map(g=>`<option value="${esc(bkKlic(g))}"${bkKlic(g)===bkBr?' selected':''}>${esc(g.Jmeno)} (${esc(g.Tym)}) · ${svTxt(g.Sv)} · ${g.GP} z.${g.GP<B.prah_gp?' — málo zápasů':''}</option>`).join('');
+  document.getElementById('bk-tym').onchange=e=>{ bkTym=e.target.value; bkKresli(); };
+  document.getElementById('bk-br').onchange=e=>{ bkBr=e.target.value; bkKresli(); };
+  document.querySelectorAll('#bk-mod .chip').forEach(b=>b.classList.toggle('active', b.dataset.m===bkMod));
+  const tD=bkTymD(bkTym), g=bkGolie(bkBr), V=bkVypocet(tD, g, bkMod);
+  const vlastni=g.Tym===tD.Tym, zn=x=>(x>0?'+':x<0?'−':'±')+c1(Math.abs(x));
+  const tridaG = V.dGA< -0.05?'lepsi':V.dGA>0.05?'horsi':'', tridaB = V.dB>0.05?'lepsi':V.dB< -0.05?'horsi':'';
+  const mistoTx = V.misto+'.'+(V.stejne?' (o místo se dělí)':'');
+  let h=`<div class="bk-boxy">
+      <div><div class="lab">Góly na brankáře</div><div class="z">${tD.GA} →</div><div class="n">${c1(V.gaNew)}</div><div class="r ${tridaG}">${zn(V.dGA)}</div></div>
+      <div><div class="lab">Body</div><div class="z">${tD.B} →</div><div class="n">${c1(V.bNew)}</div><div class="r ${tridaB}">${zn(V.dB)}</div></div>
+      <div><div class="lab">Místo</div><div class="z">${tD.Poradi}. →</div><div class="n">${V.misto}.</div><div class="r ${V.misto<tD.Poradi?'lepsi':V.misto>tD.Poradi?'horsi':''}">${V.misto<tD.Poradi?'▲ '+(tD.Poradi-V.misto):V.misto>tD.Poradi?'▼ '+(V.misto-tD.Poradi):'beze změny'}</div></div>
+    </div>`;
+  const mn=Math.abs(V.dGA)<0.05;
+  h+=`<div class="bk-veta">${vlastni?`<b>${esc(g.Jmeno)}</b> chytá za ${esc(tD.Tym)} — tady je vidět, co by se změnilo, kdyby chytal všechny zápasy sám.<br>`:''}`+
+     `${esc(tD.Tym)}: <b>${tD.SA}</b> střel na branku, úspěšnost brankářů ${bkMod==='letos'?'':'(odhad) '}<b>${svTxt(V.svOld)}</b>. `+
+     `${esc(g.Jmeno)} (${bkMod==='letos'?'letos':'odhad'} <b>${svTxt(V.svNew)}</b>) by při stejných střelách dostal `+
+     (mn?'<b>skoro stejně gólů</b>.':`o <b>${c1(Math.abs(V.dGA))} gólu ${V.dGA<0?'méně':'víc'}</b> — zhruba <b>${zn(V.dB)} bodu</b>, tedy ${c1(V.bNew)} bodu a ${mistoTx} místo.`)+`</div>`;
+  if(bkMod==='letos' && g.GP<B.prah_gp) h+=`<div class="bk-veta" style="color:var(--gold);font-size:12.5px">⚠️ ${esc(g.Jmeno)} má jen ${pocet(g.GP,'zápas','zápasy','zápasů')} — jeho letošní úspěšnost je hlavně náhoda. Spolehlivější je realistický odhad.</div>`;
+  // tabulka s přepočtenými body
+  const tab=B.tymy.map(t=>({Tym:t.Tym, B:t.Tym===tD.Tym?V.bNew:t.B, P0:t.Poradi})).sort((a,b)=>b.B-a.B||a.P0-b.P0);
+  h+=`<details class="bk-det"${window.innerWidth>=600?' open':''}><summary>Tabulka s přepočtenými body ▾</summary><table class="bk-tab"><tbody>`+
+    tab.map((t,i)=>{ const zm=t.P0-(i+1);
+      return `<tr class="${t.Tym===tD.Tym?'ja':''}${i===3?' hr4':''}${i===11?' hr12':''}"><td class="p">${i+1}.</td><td>${esc(t.Tym)}</td><td class="b">${t.Tym===tD.Tym?c1(t.B):t.B}</td><td class="s ${zm>0?'lepsi':zm<0?'horsi':''}">${zm>0?'▲'+zm:zm<0?'▼'+(-zm):''}</td></tr>`; }).join('')+
+    `</tbody></table></details>`;
+  document.getElementById('bk-vysl').innerHTML=h;
+  document.getElementById('bk-pozn').innerHTML=
+    `<b>Jak se to počítá:</b> střely na branku proti týmu × (1 − úspěšnost brankáře). Rozdíl v gólech převádíme na body stejně jako GM mód (${c1(+B.goly_na_bod)} gólu ≈ 1 bod), pořadí jen podle bodů (ostatní týmy beze změny). `+
+    `<b>Realistický odhad</b> přičte každému brankáři ${B.k_sv.toLocaleString('cs-CZ')} střel s ligovou úspěšností (${svTxt(B.liga_sv)}) — jako NHL Rating — protože po pár desítkách zápasů je velká část rozdílů mezi brankáři náhoda. `+
+    `<b>Jak chytal letos</b> bere skutečnou letošní úspěšnost. `+
+    `Předpokládá, že brankář chytá všechny zápasy, obrana hraje stejně a soupeři střílejí stejně. Úspěšnost, přesilovky a oslabení zkus posunout ve <a href="gm-mod.html#whatif">What If simulátoru v GM módu</a>.`;
+  if(zapsat) zapsatHash('brankar='+slug(bkTym)+'/'+slug(g.Jmeno)+(bkMod==='letos'?'/letos':''));
+}
+
+/* ══ ADRESA: #zapas=… / #serie=… / #brankar=… otevře nástroj s nastavením (jde poslat dál) ══ */
+function zHashe(){
+  let h=''; try{ h=decodeURIComponent(location.hash.replace('#','')); }catch(_){ h=location.hash.replace('#',''); }
+  const m=/^(zapas|serie|brankar)(?:=(.*))?$/.exec(h); if(!m) return null;
+  const casti=(m[2]||'').split('/');
+  if(m[1]==='zapas' && zsOK){ const p=dvaTymy(casti[0]); if(p){ [zsD,zsH]=p; }
+    const sk=/^(\d{1,2})-(\d{1,2})$/.exec(casti[1]||''); zsGd=sk?Math.min(15,+sk[1]):0; zsGh=sk?Math.min(15,+sk[2]):0;
+    const t=parseInt(casti[2],10); zsT=isFinite(t)?Math.max(0,Math.min(60,t)):0;
+    zsKresli(false); }
+  if(m[1]==='serie' && seOK){ const p=dvaTymy(casti[0]); if(p){ [seA,seB]=p; }
+    seN=casti[1]==='3'?3:4; const v=String(casti[2]||'').toUpperCase().replace(/[^AB]/g,'').split('');
+    seV=[]; for(const w of v){ if(seKonec(seV)) break; seV.push(w); }
+    seKresli(false); }
+  if(m[1]==='brankar' && bkOK){ const t=najdiTym(casti[0]); if(t&&bkTymD(t)) bkTym=t;
+    const g=LAB.brankari.brankari.find(x=>slug(x.Jmeno)===slug(casti[1]||'')); if(g) bkBr=bkKlic(g);
+    bkMod=casti[2]==='letos'?'letos':'upr'; bkKresli(false); }
+  return m[1];
+}
+let zsOK=false, seOK=false, bkOK=false;
+async function init(){
+  const [meta, lab] = await Promise.all([zkus('meta.json', {}), zkus('lab.json', null)]);
+  document.getElementById('meta-datum').textContent = (meta && meta.aktualizovano) || '—';
+  { const fs=document.getElementById('foot-sezona'); if(fs) fs.textContent = (meta && meta.sezona) || ''; }
+  LAB = lab && typeof lab==='object' ? lab : null;
+  // chybějící nebo prázdná část (sekce v build.R přeskočená) = null → nástroj se schová
+  if(LAB){ const Z=LAB.zapas; if(!(Z && [Z.b0,Z.doma,Z.tret2,Z.tret3].every(x=>isFinite(+x)) && Array.isArray(Z.p_ot) && Z.p_ot.length===2)) LAB.zapas=null;
+    const E=LAB.elo; if(!(E && Array.isArray(E.tymy) && isFinite(+E.doma) && isFinite(+E.doma_playoff))) LAB.elo=null;
+    const B=LAB.brankari; if(!(B && Array.isArray(B.brankari) && Array.isArray(B.tymy) && isFinite(+B.liga_sv))) LAB.brankari=null;
+    if(!Array.isArray(LAB.pristi)) LAB.pristi=[]; }
+  if(!LAB) console.warn('lab.json chybí — nástroje Laboratoře se odemknou po dalším spuštění build.R (od 17. 11. 2026).');
+  if(LAB && LAB.elo && Array.isArray(LAB.elo.tymy)){ LAB.elo.tymy.forEach(t=>{ ELO[t.Tym]=+t.Elo; }); TYMY=Object.keys(ELO).sort((a,b)=>a.localeCompare(b,'cs')); }
+  if(TYMY.length<2 && LAB){ LAB.elo=null; LAB.zapas=null; }
+  const bezpecne=(nazev, fn)=>{ try{ return fn(); }catch(e){ console.error('Nástroj "'+nazev+'" se nevykreslil:', e); return false; } };
+  zsOK=bezpecne('Simulátor zápasu', ()=>{ const ok=zsInit(); if(ok) zsKresli(false); return ok; });
+  seOK=bezpecne('Simulátor série', ()=>{ const ok=seInit(); if(ok) seKresli(false); return ok; });
+  bkOK=bezpecne('Jiný brankář', ()=>{ const ok=bkInit(); if(ok) bkKresli(false); return ok; });
+  const kde=bezpecne('Adresa', zHashe);
+  if(kde){ const el=document.getElementById(kde); if(el) el.scrollIntoView({block:'start'}); }
+  window.addEventListener('hashchange', ()=>{ const k=bezpecne('Adresa', zHashe); if(k){ const el=document.getElementById(k); if(el) el.scrollIntoView({block:'start'}); } });
+}
+init();
+</script>
+<script data-goatcounter="https://hokejovaanalytika.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>

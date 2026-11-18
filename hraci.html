@@ -125,6 +125,43 @@
     .subnav button{flex:1;white-space:nowrap;background:transparent;border:none;color:var(--text-dim);font-family:var(--font-main);font-size:13px;font-weight:600;padding:9px 12px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;}
     .subnav button:hover{color:var(--text);}
     .subnav button.active{background:var(--teal);color:#fff;}
+    /* (18. 11.) 4. záložka 🏁 Závod — na telefonu se všechny čtyři vejdou bez posouvání */
+    @media(max-width:480px){ .subnav{gap:2px;padding:3px;} .subnav button{padding:9px 6px;font-size:12px;} }
+    @media(max-width:370px){ .subnav button{padding:9px 4px;font-size:11.5px;letter-spacing:-.1px;} }
+
+    /* (18. 11.) 🏁 ZÁVOD O KANADSKÉ BODOVÁNÍ A KORUNU STŘELCŮ */
+    .ins-odkaz{color:var(--teal-light);font-weight:600;text-decoration:none;white-space:nowrap;}
+    .ins-odkaz:hover{text-decoration:underline;}
+    table.zav{width:100%;border-collapse:collapse;font-size:13px;}
+    .zav th{padding:7px 6px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border);background:var(--slate-light);}
+    .zav td{padding:7px 6px;text-align:right;border-bottom:1px solid rgba(42,139,139,.08);font-family:var(--font-mono);vertical-align:middle;}
+    .zav th.l,.zav td.l{text-align:left;font-family:var(--font-main);}
+    .zav td.l b{font-weight:600;color:var(--text);}
+    .zav td.l small{display:block;color:var(--text-faint);font-size:11px;}
+    .zav td.r{color:var(--text-faint);width:22px;}
+    .zav td.s{font-weight:700;color:var(--text);white-space:nowrap;}
+    .zav tr.prvni td.s{color:var(--gold);}
+    .zav td.pas{width:44%;min-width:120px;}
+    .pas-bar{position:relative;height:14px;}
+    .pas-bar .tr{position:absolute;left:0;right:0;top:6px;height:2px;background:rgba(143,163,176,.12);border-radius:1px;}
+    .pas-bar .pa{position:absolute;top:3px;height:8px;border-radius:4px;background:rgba(58,173,173,.45);}
+    .pas-bar .te{position:absolute;top:1px;width:2px;height:12px;background:var(--text-faint);border-radius:1px;}
+    .pas-bar .pr{position:absolute;top:2px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--teal-light);border:2px solid var(--slate-mid);}
+    .pas-tx{font-size:11px;color:var(--text-dim);margin-top:2px;text-align:left;white-space:nowrap;}
+    .zav-leg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:11px;color:var(--text-dim);margin-top:8px;}
+    .zav-leg i{display:inline-block;vertical-align:middle;margin-right:5px;}
+    .zav-ostatni td{color:var(--text-faint);font-size:12px;}
+    .zav-pozn{font-size:12px;color:var(--text-dim);margin-top:10px;line-height:1.5;}
+    .zav-pozn b{color:var(--text);font-weight:600;}
+    .zav-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+    .zav-chips button{font-family:var(--font-main);font-size:12px;font-weight:600;padding:5px 10px;border-radius:16px;border:1px solid var(--border);background:var(--slate);color:var(--text-dim);cursor:pointer;display:inline-flex;align-items:center;gap:6px;}
+    .zav-chips button.active{color:var(--text);border-color:var(--teal);}
+    .zav-chips .tecka{width:9px;height:9px;border-radius:50%;display:inline-block;}
+    .zav-jak summary{cursor:pointer;color:var(--teal-light);font-size:13px;font-weight:600;list-style:none;}
+    .zav-jak summary::-webkit-details-marker{display:none;}
+    .zav-jak p{font-size:12.5px;line-height:1.55;color:var(--text-dim);margin-top:8px;}
+    .zav-jak p b{color:var(--text);font-weight:600;}
+    @media(max-width:560px){ .zav .m-hide{display:none;} .zav td.pas{width:auto;min-width:96px;} .zav td,.zav th{padding:7px 4px;} }
     .subpanel{display:none;}
     .subpanel.active{display:block;animation:fade .25s ease;}
     @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
@@ -202,6 +239,7 @@
     <a href="analytika.html">Analytika</a>
     <a href="gm-mod.html">GM Mód</a>
     <a href="playoff.html">Playoff</a>
+    <a href="lab.html">Laboratoř</a>
   </div>
 </nav>
 
@@ -211,6 +249,7 @@
     <button data-tab="pole" class="active">Hráči do pole</button>
     <button data-tab="skryti">Skrytí hrdinové</button>
     <button data-tab="brankari">Brankáři</button>
+    <button data-tab="zavod">🏁 Závod</button>
   </div>
 
   <section class="subpanel active" id="panel-pole">
@@ -435,6 +474,30 @@
 
   </section><!-- /panel-brankari -->
 
+  <!-- (18. 11.) 🏁 ZÁVOD O KANADSKÉ BODOVÁNÍ A KORUNU STŘELCŮ (zavod.json z build.R) — hraci.html#zavod -->
+  <section class="subpanel" id="panel-zavod">
+    <div class="insight" id="insight-zavod" style="display:none">
+      <div class="insight-h">Co ti to říká</div>
+      <div class="insight-body"></div>
+    </div>
+    <div class="card">
+      <div class="card-title gold">🏁 Kdo vyhraje kanadské bodování a korunu střelců</div>
+      <div class="card-sub" id="zav-sub">Šance hráčů skončit po základní části první — z 20 000 simulací zbytku sezóny. Ne prosté protažení dosavadního tempa: rozjeté tempo skoro nikdo neudrží.</div>
+      <div class="sort-toggle" id="zav-co"><button data-co="body" class="active">Kanadské bodování</button><button data-co="goly">Koruna střelců</button></div>
+      <div id="zav-tab"><div class="empty">Načítám…</div></div>
+      <div class="zav-pozn" id="zav-vitez"></div>
+    </div>
+    <div class="card" id="zav-vyvoj-card">
+      <div class="card-title">📈 Vývoj šancí po kolech</div>
+      <div class="card-sub">Jak se šance měnila po každém odehraném kole. Vyber až 6 hráčů.</div>
+      <div class="zav-chips" id="zav-chips"></div>
+      <div class="chart-wrap" id="chart-zavod"></div>
+    </div>
+    <div class="card">
+      <details class="zav-jak"><summary>Jak to počítáme ▾</summary><div id="zav-jak"></div></details>
+    </div>
+  </section><!-- /panel-zavod -->
+
 </main>
 
 <footer>
@@ -600,7 +663,7 @@ const PRAH_STRELY = () => Math.max(5, ODEHRANO);
 const PRAH_PP     = () => Math.max(5, ODEHRANO);
 
 const state = {gp:1, pozice:'all', tym:'all', goalieSort:'sv', hraciSort:'body', cpiExpanded:false, hledat:''};
-const rendered = {pole:true, skryti:false, brankari:false};  // pole se renderuje hned
+const rendered = {pole:true, skryti:false, brankari:false, zavod:false};  // pole se renderuje hned
 
 function filtered(minGp){
   const m = minGp==null ? state.gp : minGp;
@@ -706,6 +769,7 @@ function showSub(name){
     rendered[name]=true;
     if(name==='skryti')   renderSkryti();
     if(name==='brankari') renderBrankari();
+    if(name==='zavod')    renderZavod();
   } else {
     // Plotly přepočítá rozměry po zviditelnění
     setTimeout(()=>document.querySelectorAll('#panel-'+name+' .js-plotly-plot')
@@ -1229,11 +1293,124 @@ function renderInsights(boxId, data, names){
   body.innerHTML = hlavni.map(o=>{
     let t = esc(o.text||'');
     if(rxAll) t = t.replace(rxAll, m=>`<b class="${o.tone||'teal'}">${m}</b>`);
+    // (18. 11.) "odkaz": "zavod" → odkaz na záložku (hraci.html#zavod)
+    const odk = typeof o.odkaz==='string' && /^[a-z]+$/.test(o.odkaz) && document.getElementById('panel-'+o.odkaz) ? o.odkaz : null;
+    if(odk) t += ` <a class="ins-odkaz" href="#${odk}">${odk==='zavod'?'→ Závod':'→ víc'}</a>`;
     return `<div class="insight-item"><span class="insight-ic">${o.icon||'\u2022'}</span><span class="insight-tx">${t}</span></div>`;
   }).join('') + pozn.map(o=>`<div class="insight-pozn">${o.icon||''} ${esc(o.text||'')}</div>`).join('');
   box.style.display='';
 }
 const insNames = () => [...new Set([...(HRACI||[]).map(p=>p.Jmeno), ...(BRANKARI||[]).map(g=>g.Jmeno), ...(HRACI||[]).map(p=>p.Tym_clean)])];
+
+/* ══ (18. 11.) 🏁 ZÁVOD O KANADSKÉ BODOVÁNÍ A KORUNU STŘELCŮ ══
+   zavod.json z build.R (sekce ZÁVOD): top 10 se šancí na 1. místo po základní části, odhad konce s pásmem
+   8 z 10 simulací, vítězný počet, vývoj šancí po kolech a věty do Co ti to říká. Načítá se až při otevření
+   záložky. Bez zavod.json hláška. */
+let ZAV=null, zavCo='body', zavSel=null, zavBarva={}, zavVse=false;
+const ZAV_PALETA=['#14A0A0','#B38420','#4A88C6','#CF7A63','#9670D0','#5B9A4A'];   // ověřeno validátorem (tmavé pozadí)
+const ZAV_MAX=6;
+const zavPct = x => { x=+x; if(!isFinite(x)) return '—'; if(x>=99.95) return '>99,9 %'; if(x>0&&x<0.1) return '<0,1 %';
+  const r1=Math.round(x*10)/10; if(r1<1||r1>99) return x.toFixed(1).replace('.',',')+' %'; return Math.round(x)+' %'; };
+const zavCz2 = x => (+x).toFixed(2).replace('.',',');
+const zavEsc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const zavPrijmeni = jm => { const c=String(jm||'').trim().split(/\s+/); return c.length>1?c.slice(1).join(' '):jm; };
+// krátká jména do výběru a legendy; dva hráči se stejným příjmením → „M. Stránský“ / „Š. Stránský“
+const zavKratka = jmena => { const n={}; jmena.forEach(j=>{ const p=zavPrijmeni(j); n[p]=(n[p]||0)+1; });
+  const m={}; jmena.forEach(j=>{ const p=zavPrijmeni(j); m[j]= n[p]>1 ? (String(j).trim()[0]||'')+'. '+p : p; }); return m; };
+async function renderZavod(){
+  if(ZAV===null){
+    ZAV = await loadJSON('zavod.json').catch(()=>false);
+    if(ZAV && (!ZAV.body || !Array.isArray(ZAV.body.hraci))) ZAV=false;
+  }
+  if(!ZAV){
+    document.getElementById('zav-tab').innerHTML='<div class="empty">Závod o kanadské bodování se ukáže po dalším spuštění build.R (nový soubor zavod.json).</div>';
+    ['zav-vyvoj-card'].forEach(id=>{ const e=document.getElementById(id); if(e) e.style.display='none'; });
+    document.getElementById('zav-co').style.display='none'; document.getElementById('insight-zavod').style.display='none';
+    return;
+  }
+  const vety=Array.isArray(ZAV.vety)?ZAV.vety:[];
+  const jmena=[...(ZAV.body.hraci||[]),...((ZAV.goly||{}).hraci||[])].map(h=>h.Jmeno);
+  renderInsights('insight-zavod', vety, jmena);
+  document.querySelectorAll('#zav-co button').forEach(b=>b.onclick=()=>{ zavCo=b.dataset.co; zavSel=null; zavBarva={}; zavVse=false;
+    document.querySelectorAll('#zav-co button').forEach(x=>x.classList.toggle('active',x===b)); zavKresli(); });
+  if(!ZAV.goly || !Array.isArray(ZAV.goly.hraci)) document.querySelector('#zav-co [data-co="goly"]').style.display='none';
+  const I=ZAV.info||{};
+  document.getElementById('zav-sub').innerHTML=`Šance hráčů skončit po základní části první — z ${(+I.sim||20000).toLocaleString('cs-CZ')} simulací zbytku sezóny (stav ${zavEsc(I.stav||'')}${I.zbyva?`, týmům zbývá až ${I.zbyva} zápasů`:''}). Ne prosté protažení dosavadního tempa: rozjeté tempo skoro nikdo neudrží.`;
+  document.getElementById('zav-jak').innerHTML=
+    `<p><b>Tempo hráče</b> = jeho letošní body na zápas, ke kterým se přičte ${I.k_b} zápasů průměrného hráče jeho postu (útočníka nebo obránce)${I.loni?` a u hráčů, kteří loni hráli extraligu, jejich loňské tempo jako dalších ${I.w_b} zápasů`:''}. U gólů je to ${I.k_g} zápasů průměru${I.loni?` a loňské tempo jako ${I.w_g} zápasů`:''} — góly jsou víc náhoda. Model tak nečeká, že kdo je teď rozjetý, pojede stejně rychle až do konce.</p>`+
+    `<p><b>Simulace:</b> v každé z ${(+I.sim||20000).toLocaleString('cs-CZ')} simulací se znovu losuje, jak dobrý hráč doopravdy je, kolik zápasů ještě odehraje (podle toho, v kolika zápasech týmu zatím hrál — napůl za celou sezónu, napůl za posledních 5) a body v každém zápase. Kdo z ligy odešel, už body nepřidá; po přestupu hraje zbývající zápasy nového týmu.</p>`+
+    `<p><b>Pořadí jako ve statistikách ČSLH:</b> víc bodů (gólů), při shodě méně odehraných zápasů, potom víc gólů. To simulace bodů zvlášť nesleduje, takže úplnou shodu rozhodne los.</p>`+
+    `<p><b>Ověřeno na letošní sezóně:</b> z prvních 9 zápasů týmů jsme předpovídali dalších 9. Tlumení k průměru postu s loňským tempem vyšlo líp než surové tempo, samotný průměr i odhad podle času na ledě. Pásmo „8 z 10 simulací“ sedí: pod ním skončilo 10 % hráčů, nad ním 7 %.</p>`+
+    `<p><b>Co model nezná:</b> zranění a přestupy dopředu, změny formací a přesilovek, sílu soupeřů. Spoluhráči z jednoho týmu se navzájem ovlivňují (když se týmu daří, bodují víc všichni) — model je počítá každého zvlášť.</p>`;
+  zavKresli();
+}
+function zavKresli(){
+  const R=ZAV[zavCo]; if(!R) return;
+  const H=R.hraci||[], jed=zavCo==='body'?'B':'G';
+  if(!H.length){ document.getElementById('zav-tab').innerHTML='<div class="empty">Zatím žádná data.</div>'; return; }
+  const lo=Math.min(...H.map(h=>Math.min(+h.Hodnota,+h.P10))), hi=Math.max(...H.map(h=>+h.P90));
+  const pad=(hi-lo)*0.04||1, L=lo-pad, W=(hi+pad)-L;
+  const x=v=>(100*(v-L)/W).toFixed(1);
+  let t=`<table class="zav"><thead><tr><th></th><th class="l">Hráč</th><th class="m-hide">Z</th><th>${jed}</th><th class="l">Odhad konce</th><th>Šance</th></tr></thead><tbody>`;
+  H.forEach((h,i)=>{
+    t+=`<tr class="${i===0?'prvni':''}"><td class="r">${i+1}.</td><td class="l"><b>${zavEsc(h.Jmeno)}</b><small>${zavEsc(h.Tym)}${h.Pozice==='O'?' · obránce':''}</small></td>`+
+      `<td class="m-hide">${h.Z}</td><td>${h.Hodnota}</td>`+
+      `<td class="pas" title="teď ${h.Hodnota}, odhad konce ~${Math.round(h.Konec)} (v 8 z 10 simulací ${h.P10}–${h.P90}); tempo do konce ${zavCz2(h.Tempo)} na zápas, zatím ${zavCz2(h.Tempo_ted)}">`+
+      `<div class="pas-bar"><span class="tr"></span><span class="pa" style="left:${x(h.P10)}%;width:${(100*(h.P90-h.P10)/W).toFixed(1)}%"></span>`+
+      `<span class="te" style="left:${x(h.Hodnota)}%"></span><span class="pr" style="left:${x(h.Konec)}%"></span></div>`+
+      `<div class="pas-tx">≈\u202f${Math.round(h.Konec)} (${h.P10}–${h.P90})</div></td>`+
+      `<td class="s">${zavPct(h.Sance)}</td></tr>`;
+  });
+  if(isFinite(+R.ostatni)) t+=`<tr class="zav-ostatni"><td></td><td class="l" colspan="3">Ostatní hráči dohromady</td><td class="m-hide"></td><td class="s" style="color:var(--text-faint);font-weight:600">${zavPct(R.ostatni)}</td></tr>`;
+  t+=`</tbody></table>`;
+  t+=`<div class="zav-leg"><span><i style="width:2px;height:11px;background:var(--text-faint)"></i>teď</span><span><i style="width:18px;height:8px;border-radius:4px;background:rgba(58,173,173,.45)"></i>v 8 z 10 simulací</span><span><i style="width:9px;height:9px;border-radius:50%;background:var(--teal-light)"></i>průměr simulací</span></div>`;
+  document.getElementById('zav-tab').innerHTML=t;
+  const v=R.vitez||{};
+  document.getElementById('zav-vitez').innerHTML=isFinite(+v.median)?`${zavCo==='body'?'Vítězi kanadského bodování':'Vítězi koruny střelců'} by nejspíš stačilo <b>kolem ${v.median} ${zavCo==='body'?'bodů':'gólů'}</b> (v 8 z 10 simulací ${v.p10}–${v.p90}).`:'';
+  zavVyvoj();
+}
+function zavVyvoj(){
+  const R=ZAV[zavCo], V=R&&R.vyvoj, card=document.getElementById('zav-vyvoj-card');
+  const st=V&&Array.isArray(V.stavy)?V.stavy:[], hr=V&&Array.isArray(V.hraci)?V.hraci:[];
+  if(st.length<2||!hr.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const ted=(R.hraci||[]).map(h=>h.Jmeno);
+  const poradi=[...hr].sort((a,b)=>{ const ia=ted.indexOf(a.Jmeno), ib=ted.indexOf(b.Jmeno);
+    if(ia>=0||ib>=0) return (ia<0?99:ia)-(ib<0?99:ib); return (+b.Sance[b.Sance.length-1]||0)-(+a.Sance[a.Sance.length-1]||0); });
+  if(!zavSel){ zavSel=poradi.slice(0,5).map(h=>h.Jmeno); zavBarva={}; }
+  // barva patří hráči, dokud je vybraný (nemění se, když přibude nebo ubude jiný)
+  Object.keys(zavBarva).forEach(j=>{ if(!zavSel.includes(j)) delete zavBarva[j]; });
+  zavSel.forEach(j=>{ if(!zavBarva[j]){ const vol=ZAV_PALETA.find(c=>!Object.values(zavBarva).includes(c)); zavBarva[j]=vol||ZAV_PALETA[0]; } });
+  const kr=zavKratka(poradi.map(h=>h.Jmeno));
+  // nabídka: dnešní top 10 (+ kdo je vybraný); ostatní, kdo byl během sezóny v top 10, až po „+ další“
+  const vid=zavVse?poradi:poradi.filter(h=>ted.includes(h.Jmeno)||zavSel.includes(h.Jmeno)), skryto=poradi.length-vid.length;
+  document.getElementById('zav-chips').innerHTML=vid.map(h=>{ const a=zavSel.includes(h.Jmeno);
+    return `<button class="${a?'active':''}" data-j="${zavEsc(h.Jmeno)}" type="button" title="${zavEsc(h.Jmeno)} (${zavEsc(h.Tym||'')})">${a?`<span class="tecka" style="background:${zavBarva[h.Jmeno]}"></span>`:''}${zavEsc(kr[h.Jmeno])}</button>`; }).join('')+
+    (skryto>0?`<button type="button" data-dalsi="1">+ ${skryto} dalších</button>`:(zavVse&&poradi.length>ted.length?`<button type="button" data-dalsi="0">méně ▴</button>`:''));
+  document.querySelectorAll('#zav-chips button[data-dalsi]').forEach(b=>b.onclick=()=>{ zavVse=b.dataset.dalsi==='1'; zavVyvoj(); });
+  document.querySelectorAll('#zav-chips button[data-j]').forEach(b=>b.onclick=()=>{ const j=b.dataset.j;
+    if(zavSel.includes(j)) zavSel=zavSel.filter(x=>x!==j);
+    else if(zavSel.length>=ZAV_MAX) zavSel=[...zavSel.slice(1),j];
+    else zavSel=[...zavSel,j];
+    zavVyvoj(); });
+  const xi=st.map((s,i)=>i), lab=st.map(s=>s.Typ==='dnes'?'dnes':`${s.Kolo}.`);
+  const step=Math.max(1,Math.ceil(st.length/(uzky()?9:18)));
+  let tv=xi.filter(i=>i%step===0); const last=st.length-1;
+  if(tv[tv.length-1]!==last){ if(last-tv[tv.length-1]<step) tv.pop(); tv.push(last); }   // poslední stav vždy, bez slepení popisků „17.18.“
+  const jed=zavCo==='body'?['bod','body','bodů']:['gól','góly','gólů'], sk=n=>n===1?jed[0]:(n>=2&&n<=4?jed[1]:jed[2]);
+  const traces=zavSel.map(j=>{ const h=hr.find(x=>x.Jmeno===j); if(!h) return null;
+    const y=h.Sance.map(v=>v==null?null:+v);
+    const tx=st.map((s,i)=>{ if(y[i]==null) return ''; const val=h.V&&h.V[i]!=null?+h.V[i]:null, z=h.Z&&h.Z[i]!=null?+h.Z[i]:null;
+      return `<b>${zavEsc(j)}</b> ${s.Typ==='dnes'?'dnes':'po '+s.Kolo+'. kole'}<br>Šance: ${zavPct(y[i])}${val!=null?`<br>${val} ${sk(val)}${z!=null?` (${z} z.)`:''}`:''}`; });
+    return {type:'scatter',mode:'lines+markers',name:kr[j]||zavPrijmeni(j),x:xi,y,line:{width:2,color:zavBarva[j]},marker:{size:8,color:zavBarva[j],line:{color:'#243545',width:2}},hoverinfo:'text',hovertext:tx,connectgaps:true};
+  }).filter(Boolean);
+  if(!traces.length){ Plotly.purge('chart-zavod'); document.getElementById('chart-zavod').innerHTML='<div class="empty">Vyber aspoň jednoho hráče.</div>'; return; }
+  const ymax=Math.min(100,Math.max(10,...traces.flatMap(t=>t.y.filter(v=>v!=null)))*1.12);
+  Plotly.newPlot('chart-zavod',traces,Object.assign({},BASE_LAYOUT,{margin:{l:44,r:12,t:10,b:uzky()?70:56},
+    xaxis:{...AX_LOCK,tickvals:tv,ticktext:tv.map(i=>lab[i]),tickangle:0,color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',tickfont:{family:'JetBrains Mono',size:10},title:{text:'po kole',font:{size:11,color:'#4A6070'}}},
+    yaxis:{...AX_LOCK,range:[-1,ymax],ticksuffix:' %',color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',tickfont:{family:'JetBrains Mono',size:10},rangemode:'tozero'},
+    showlegend:true,legend:{orientation:'h',x:0,y:uzky()?-0.3:-0.22,font:{size:10,color:'#8FA3B0'}}}),LOCK_CONFIG);
+}
 
 function renderBrankari(){
   renderInsights('insight-brankari', INS_BRANKARI, insNames());
