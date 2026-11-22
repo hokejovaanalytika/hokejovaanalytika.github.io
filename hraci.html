@@ -198,6 +198,27 @@
     .d-zaj-r{display:flex;gap:7px;align-items:baseline;margin:3px 0;font-size:12.5px;line-height:1.45;color:var(--text);font-family:var(--font-main);}
     .d-zaj-r .i{flex:0 0 auto;width:18px;text-align:center;}
     .hd-h{font-size:11.5px;font-weight:600;color:var(--text-dim);margin:2px 0 5px;font-family:var(--font-main);} .hd-h small{font-weight:400;color:var(--text-faint);}
+    /* (22. 11.) ⚖️ hodnota gólů v rozkliku hráče */
+    .d-hg{border-left-color:var(--gold);background:rgba(212,168,67,.07);} .d-hg .d-zaj-r b{color:var(--text);font-weight:600;}
+    .d-hg .d-zaj-r{white-space:normal;}
+    .d-hg-p{font-size:11px;color:var(--text-faint);margin-top:4px;font-family:var(--font-main);line-height:1.4;white-space:normal;} .d-hg-p a{color:var(--teal-light);}
+    /* (22. 11.) 🧤 S kým v brance tým vyhrává */
+    .bt-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:900px){ .bt-grid{grid-template-columns:1fr 1fr;} }
+    .bt-tym{background:var(--slate);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-width:0;}
+    .bt-tym.vyr{border-color:rgba(212,168,67,.55);}
+    .bt-h{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;}
+    .bt-h .tlogo{width:22px;height:22px;object-fit:contain;}
+    .bt-badge{margin-left:auto;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);border:1px solid rgba(212,168,67,.5);border-radius:10px;padding:2px 7px;}
+    table.bt-tab{width:100%;border-collapse:collapse;font-size:12.5px;}
+    .bt-tab th{padding:5px 4px;text-align:right;font-family:var(--font-mono);font-size:9.5px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .bt-tab td{padding:6px 4px;text-align:right;font-family:var(--font-mono);color:var(--text-dim);border-bottom:1px solid rgba(42,139,139,.08);white-space:nowrap;}
+    .bt-tab .l{text-align:left;} .bt-tab td.l{font-family:var(--font-main);color:var(--text);white-space:normal;}
+    .bt-tab td small{display:block;font-size:9.5px;color:var(--text-faint);}
+    .bt-tab td.bt-plus{color:var(--win);font-weight:700;} .bt-tab td.bt-minus{color:var(--loss);font-weight:700;}
+    .bt-veta{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:8px;}
+    @media(max-width:420px){ .bt-tym{padding:9px 8px;} .bt-tab th{white-space:normal;line-height:1.2;padding:4px 3px;} .bt-tab td{padding:6px 3px;font-size:11.5px;} }
+    .bt-jak p{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:6px;} .bt-jak b{color:var(--text);}
     .hd-tw{overflow-x:auto;}
     table.hd-t{border-collapse:collapse;width:100%;font-size:11.5px;}
     .hd-t th{font-family:var(--font-mono);font-size:9.5px;color:var(--text-faint);font-weight:600;text-align:right;padding:3px 4px;border-bottom:1px solid var(--border);white-space:nowrap;}
@@ -435,6 +456,14 @@
           <tbody id="goalie-body"><tr><td colspan="11"><div class="loading"><div class="spinner"></div> Načítám...</div></td></tr></tbody>
         </table>
       </div>
+    </div>
+
+    <!-- (22. 11.) 🧤 S KÝM V BRANCE TÝM VYHRÁVÁ (brankari_tym.json z build.R); bez souboru skrytá -->
+    <div class="card" id="bt-card" style="display:none">
+      <div class="card-title gold">🧤 S kým v brance tým vyhrává</div>
+      <div class="card-sub" id="bt-sub"></div>
+      <div class="bt-grid" id="bt-body"></div>
+      <details class="zav-jak bt-jak" style="margin-top:12px"><summary>Jak to počítáme ▾</summary><div id="bt-jak"></div></details>
     </div>
 
     <!-- GBS LOLLIPOP -->
@@ -847,6 +876,7 @@ function hracDetailHtml(jm,tym){
   let h='';
   if(Array.isArray(x.zaj)&&x.zaj.length)
     h+=`<div class="d-zaj"><div class="d-zaj-h">Zajímavosti</div>${x.zaj.map(o=>`<div class="d-zaj-r"><span class="i">${escH(o.ic)}</span><span>${escH(o.t)}</span></div>`).join('')}</div>`;
+  if(!x.b) h+=hgHtml(x, tym);   // (22. 11.) ⚖️ hodnota gólů
   const z=Array.isArray(x.z)?x.z:[];
   if(!z.length) return h||'<div class="hd-pozn">Zatím bez zápasů.</div>';
   const barva=v=>{const t=String(v).split(' ')[0]; return t==='V'?'var(--win)':t==='VP'?'#9AD6B5':t==='PP'?'var(--gold)':'var(--loss)';};
@@ -866,6 +896,67 @@ function hracDetailHtml(jm,tym){
   if(z.length>HD_ZAKLAD)
     h+=`<button class="hd-vse" data-k="${escH(klic)}">${vse?`▲ Jen posledních ${HD_ZAKLAD} zápasů`:`▼ Všech ${z.length} zápasů týmu`}</button>`;
   return h;
+}
+// (22. 11.) ⚖️ HODNOTA GÓLŮ v rozkliku hráče (hraci_zapasy.json → hg z build.R): kolik bodů góly týmu přidaly
+//   (o kolik gól zvedl body, které tým čekal ze zápasu — stejně jako Analytika → Clutch), nejcennější gól,
+//   zvlášť góly, na které přihrával (nesčítá se s góly — hodnota gólu se mezi střelce a nahrávače nedělí).
+function hgHtml(x, tym){
+  const g=x&&x.hg; if(!g) return '';
+  const d1=v=>(+v).toFixed(1).replace('.',','), d2=v=>(+v).toFixed(2).replace('.',',');
+  const R=[];
+  if(+g.g>0){
+    const n=+g.g, sl=n===1?'gól přidal':(n<=4?'góly přidaly':'gólů přidalo');
+    const ty=Array.isArray(g.tymy)?g.tymy:[];
+    const jinde=ty.length>1?' (za oba týmy)':(ty.length===1&&ty[0]!==tym?' (za předchozí tým)':'');
+    let t;
+    if(+g.h<0.05) t=`<b>${n} ${sl}</b>${jinde} týmu skoro nic — ${n===1?'padl':'padly'}, když už bylo rozhodnuto.`;
+    else {
+      t=`<b>${n} ${sl}</b>${jinde} týmu <b>${d1(g.h)} bodu</b>`+(+g.por<=20?` (${+g.por===1?'nejvíc':g.por+'. nejvíc'} v lize)`:'')+
+        (n>1?`, v průměru ${d2(g.prum)} na gól (liga ${d2(g.liga)}).`:'.');
+      if(g.nej&&+g.nej.e>=0.05) t+=` ${n>1?'Nejcennější':'Gól'}: na ${escH(g.nej.s)} v ${escH(g.nej.m)}, ${escH(g.nej.z)} (${escH(g.nej.d)}), +${d2(g.nej.e)} bodu.`;
+    }
+    R.push(t);
+  }
+  if(+g.a_n>0) R.push(`<b>Přihrávky:</b> góly, na které přihrával (${+g.a_n}), měly hodnotu ${d1(g.a)} bodu`+
+    (+g.a_por<=20?` (${+g.a_por===1?'nejvíc':g.a_por+'. nejvíc'} v lize)`:'')+`, z toho první přihrávky ${d1(g.a1)}.`);
+  if(!R.length) return '';
+  return `<div class="d-zaj d-hg"><div class="d-zaj-h">⚖️ Hodnota gólů</div>${R.map(s=>`<div class="d-zaj-r"><span>${s}</span></div>`).join('')}`+
+    `<div class="d-hg-p">O kolik gól zvedl body, které tým čekal ze zápasu (3 za výhru, 2 / 1 po prodloužení). Víc v <a href="analytika.html#clutch">Analytice → Clutch</a>.</div></div>`;
+}
+
+/* ══ (22. 11.) 🧤 S KÝM V BRANCE TÝM VYHRÁVÁ — brankari_tym.json z build.R ══
+   U každého týmu brankáři (brankář zápasu = kdo odchytal nejvíc minut): zápasy, body týmu na zápas proti
+   očekávání podle Elo (síla soupeře a domácí led, jako 🍀 Štěstí, nebo forma), úspěšnost, góly týmu na zápas
+   a věta. Výrazný rozdíl = |z| ≥ 2 proti náhodě. Bez souboru karta skrytá. */
+let BT=null;
+async function renderBT(){
+  const card=document.getElementById('bt-card');
+  if(BT===null) BT=await loadJSON('brankari_tym.json').catch(()=>false);
+  if(!BT||!Array.isArray(BT.tymy)||!BT.tymy.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const T=BT.tymy.filter(t=>t&&t.Tym&&Array.isArray(t.brankari)&&t.brankari.length);
+  const vyr=t=>t.par&&t.par.vyrazny===true;
+  const ord=[...T].sort((a,b)=>(vyr(b)-vyr(a))||(vyr(a)&&vyr(b)?Math.abs(b.par.z)-Math.abs(a.par.z):0)||a.Tym.localeCompare(b.Tym,'cs'));
+  const vt=ord.filter(vyr).map(t=>escH(t.Tym));
+  const I=BT.info||{};
+  document.getElementById('bt-sub').innerHTML=`Kdo chytal a kolik bodů s ním tým bral proti tomu, co čekalo Elo podle síly soupeřů a domácího ledu. Body v brankářových zápasech dělá i útok před ním, proto je vedle úspěšnosti i skóre týmu na zápas. Brankář zápasu = kdo odchytal nejvíc minut.`+
+    (vt.length?` <b>Výrazný rozdíl mezi brankáři</b> letos ${vt.length===1?'vychází u týmu':'vychází u týmů'} ${vt.length>1?vt.slice(0,-1).join(', ')+' a '+vt.slice(-1):vt[0]} (nahoře). Při 14 týmech ale může jeden takový rozdíl vyjít i náhodou.`
+              :' Výrazný rozdíl mezi brankáři zatím nevychází u žádného týmu.');
+  const prijm=j=>String(j||'').trim().split(/\s+/).slice(-1)[0];
+  const d1=v=>(+v).toFixed(1).replace('.',',');
+  const uz=window.innerWidth<480;
+  document.getElementById('bt-body').innerHTML=ord.map(t=>{
+    const rows=t.brankari.map(b=>{ const rz=(+b.Bz)-(+b.Ez), cl=rz>=0.3?'bt-plus':rz<=-0.3?'bt-minus':'';
+      return `<tr><td class="l">${escH(uz?prijm(b.Jmeno):b.Jmeno)}</td><td>${+b.Starty}<small>${Math.round(100*b.Podil)} %</small></td>`+
+        `<td class="${cl}">${d1(b.Bz)}</td><td>${d1(b.Ez)}</td><td>${b.Sv==null?'—':d1(100*b.Sv)+' %'}</td><td>${d1(b.GF)}:${d1(b.GA)}</td></tr>`; }).join('');
+    return `<div class="bt-tym${vyr(t)?' vyr':''}"><div class="bt-h"><img class="tlogo" src="logos/${encodeURIComponent(t.Tym)}.png" alt="" onerror="this.style.display='none'">${escH(t.Tym)}`+
+      `${vyr(t)?'<span class="bt-badge">výrazný rozdíl</span>':''}</div>`+
+      `<table class="bt-tab"><thead><tr><th class="l">Brankář</th><th title="zápasy, ve kterých odchytal nejvíc minut">Záp.</th><th title="body týmu na zápas v jeho zápasech">Body</th><th title="kolik bodů na zápas čekalo Elo">Čekalo se</th><th title="úspěšnost ve všech zápasech, kdy chytal">Úsp.</th><th title="góly týmu vstřelené : obdržené na zápas v jeho zápasech">Skóre</th></tr></thead><tbody>${rows}</tbody></table>`+
+      (t.veta?`<p class="bt-veta">${escH(t.veta)}</p>`:'')+`</div>`;
+  }).join('');
+  document.getElementById('bt-jak').innerHTML=`<p><b>Body a „čekalo se“:</b> u každého zápasu body týmu (3 za výhru, 2 / 1 po prodloužení) a kolik bodů čekalo Elo před zápasem podle síly soupeře a domácího ledu — stejně jako karta 🍀 Štěstí, nebo forma na Přehledu. V tabulce průměr na zápas.</p>`+
+    `<p><b>Výrazný rozdíl:</b> porovnávají se dva brankáři týmu s nejvíc zápasy, oba aspoň ${+I.min||4}. Body na zápas hodně kolísají i náhodou (výhra, nebo prohra o gól), takže při 9 a 9 zápasech dá samotná náhoda rozdíl kolem ±0,6 bodu na zápas. „Výrazný“ je rozdíl aspoň ${+I.z||2}× větší, než jaký dává náhoda.</p>`+
+    `<p><b>Proč z toho neděláme hodnocení brankáře:</b> body v jeho zápasech dělá i útok před ním — proto je vedle i skóre týmu a úspěšnost. Jak dobře chytá, ukazuje spíš úspěšnost a GPI v tabulce nahoře.</p>`;
 }
 function napojRozklik(body, otevrene, prekresli){
   body.querySelectorAll('button.hd-vse').forEach(b=>b.addEventListener('click',e=>{
@@ -1417,6 +1508,7 @@ function renderBrankari(){
   // (8. 10.) Clutch Goalie Score vyřazený — byl to hlavně podíl výher týmu
   renderGoalieTable(); renderGBS(); renderWorkloadPerf();
   renderGSAA(); renderSegmentace(); renderShootout();   // (9. 10.) Nejvytíženější brankáři → osa grafu Kolik práce
+  renderBT().catch(e=>{ console.error('S kým v brance se nevykreslilo:', e); document.getElementById('bt-card').style.display='none'; });   // (22. 11.)
 }
 
 // (8. 10.) kategorie s diakritikou (build.R); starší názvy bez háčků pro jistotu taky

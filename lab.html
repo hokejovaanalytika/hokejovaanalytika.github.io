@@ -211,6 +211,7 @@
     .lepsi{color:var(--win);} .horsi{color:var(--loss);}
     .bk-veta{margin-top:12px;font-size:13.5px;line-height:1.55;color:var(--text-dim);text-align:center;}
     .bk-veta b{color:var(--text);}
+    .bk-veta a{color:var(--teal-light);font-weight:600;text-decoration:none;} .bk-veta a:hover{text-decoration:underline;}   /* (22. 11.) odkaz do GM módu */
     .bk-tab{width:100%;max-width:520px;margin:14px auto 0;border-collapse:collapse;font-size:12.5px;}
     .bk-tab td{padding:4px 6px;border-bottom:1px solid rgba(42,139,139,.08);}
     .bk-tab td.p{font-family:var(--font-mono);color:var(--text-faint);width:32px;text-align:right;}
@@ -769,6 +770,11 @@ function bkKresli(zapsat=true){
      `${esc(tD.Tym)}: <b>${tD.SA}</b> střel na branku, úspěšnost brankářů ${bkMod==='letos'?'':'(odhad) '}<b>${svTxt(V.svOld)}</b>. `+
      `${esc(g.Jmeno)} (${bkMod==='letos'?'letos':'odhad'} <b>${svTxt(V.svNew)}</b>) by při stejných střelách dostal `+
      (mn?'<b>skoro stejně gólů</b>.':`o <b>${c1(Math.abs(V.dGA))} gólu ${V.dGA<0?'méně':'víc'}</b> — zhruba <b>${zn(V.dB)} bodu</b>, tedy ${c1(V.bNew)} bodu a ${mistoTx} místo.`)+`</div>`;
+  // (22. 11.) odkaz na rozbor výměny brankáře za brankáře v GM módu (vybraný brankář ⇄ jednička týmu = nejvíc střel)
+  if(!vlastni){ const j=B.brankari.filter(x=>x.Tym===tD.Tym).sort((x,y)=>y.SA-x.SA)[0];
+    const prijm=t=>String(t||'').trim().split(/\s+/).slice(-1)[0];
+    const sl=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+    if(j) h+=`<div class="bk-veta" style="font-size:12.5px"><a href="gm-mod.html#vymena=${sl(g.Jmeno)}-${sl(j.Jmeno)}">🔄 Výměna ${esc(prijm(g.Jmeno))} ⇄ ${esc(prijm(j.Jmeno))}: co by přinesla oběma týmům → GM mód</a></div>`; }
   if(bkMod==='letos' && g.GP<B.prah_gp) h+=`<div class="bk-veta" style="color:var(--gold);font-size:12.5px">⚠️ ${esc(g.Jmeno)} má jen ${pocet(g.GP,'zápas','zápasy','zápasů')} — jeho letošní úspěšnost je hlavně náhoda. Spolehlivější je realistický odhad.</div>`;
   // tabulka s přepočtenými body
   const tab=B.tymy.map(t=>({Tym:t.Tym, B:t.Tym===tD.Tym?V.bNew:t.B, P0:t.Poradi})).sort((a,b)=>b.B-a.B||a.P0-b.P0);

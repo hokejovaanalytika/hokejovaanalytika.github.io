@@ -306,6 +306,16 @@
     .cmp-b::after{content:'';position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px dashed rgba(232,239,244,.45);}
     .cmp-v{font-family:var(--font-mono);font-weight:600;color:var(--text);min-width:52px;text-align:right;}
     .cmp-pozn{font-size:11px;color:var(--text-faint);margin-top:6px;line-height:1.45;}
+    /* (22. 11.) 📏 Sedí procenta? Kalibrace tipů */
+    .kal-graf{width:100%;max-width:600px;height:330px;}   /* na PC ať graf není placatý — kalibrace se čte nejlíp skoro čtvercová */
+    .kal-vety{font-size:13px;color:var(--text-dim);line-height:1.55;margin:10px 0 8px;}
+    .kal-vety p+p{margin-top:6px;} .kal-vety b{color:var(--text);font-weight:600;}
+    table.kal-tab{width:100%;max-width:520px;border-collapse:collapse;font-size:12.5px;margin:6px 0 4px;}
+    .kal-tab th{padding:6px;text-align:right;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap;}
+    .kal-tab td{padding:6px;text-align:right;font-family:var(--font-mono);color:var(--text-dim);border-bottom:1px solid rgba(42,139,139,.08);white-space:nowrap;}
+    .kal-tab .l{text-align:left;} .kal-tab td.l{font-family:var(--font-main);color:var(--text);} .kal-tab td.v{color:var(--text);font-weight:700;}
+    .kal-jak p{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:6px;} .kal-jak b{color:var(--text);}
+    @media(max-width:480px){ .kal-tab th{white-space:normal;line-height:1.25;} .kal-tab th,.kal-tab td{padding:5px 4px;font-size:11.5px;} }
     .hist-more{margin-top:10px;}
     tr.nepotkali td{color:var(--text-faint);}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
@@ -469,6 +479,17 @@
         </table>
       </div>
       <button class="chip hist-more" id="hist-more" type="button" style="display:none"></button>
+    </div>
+
+    <!-- (22. 11.) 📏 SEDÍ PROCENTA? Kalibrace tipů (predikce.json → kalibrace z build.R); bez ní skrytá -->
+    <div class="card" id="kal-card" style="display:none">
+      <div class="card-title">📏 Sedí procenta? Kalibrace tipů</div>
+      <div class="card-sub">Když model dává favoritovi třeba 60 %, měl by favorit vyhrát zhruba 6 zápasů z 10. Tečka ukazuje, jak často favorit opravdu vyhrál, čárkovaná úhlopříčka je „přesně podle modelu“. Svislá čárka = 95% interval: kam by se výsledek vešel jen kvůli náhodě.</div>
+      <div class="kal-graf" id="chart-kal"></div>
+      <div class="kal-vety" id="kal-vety"></div>
+      <div id="kal-tab"></div>
+      <div id="kal-sez"></div>
+      <div id="kal-jak"></div>
     </div>
   </section>
 </main>
@@ -1352,6 +1373,7 @@ function renderPredikce(){
   else if(PRED){ const el=document.getElementById('pred-elo-info'); if(!el.innerHTML) el.innerHTML=eloInfoHTML(); }
   if(!PRED){ [['pred-body',6],['hist-body',7]].forEach(([id,n])=>document.getElementById(id).innerHTML=`<tr><td colspan="${n}"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>`); document.getElementById('chart-breakdown').innerHTML='<div class="empty">Zatím bez dat.</div>'; return; }
   renderPredTable(); buildBreakdownSelect(); renderBreakdown(); renderAccuracy();
+  try{ renderKalibrace(); }catch(e){ console.error('Kalibrace se nevykreslila:', e); document.getElementById('kal-card').style.display='none'; }   // (22. 11.)
   nactiVersus().then(()=>{ if(VS) document.getElementById('pred-vs-link').style.display='inline-block'; });
   nactiNahled();   // (1. 11.) 👀 Na co se dívat
   // (28. 10.) odkaz na 🎮 Co kdyby (Playoff) jen když build.R vyrobil cokdyby.json — starší build ho nemá
@@ -1462,6 +1484,62 @@ function eloUspesnost(a){
   if((e&&+e.tipovano>=vse)||(!e&&!vse)) return '';   // všechny tipy už jsou Elo / zatím nic k vyhodnocení
   return `<div class="cmp-pozn" style="margin:-6px 0 12px">${e?`<b style="color:var(--text)">Elo</b> (tipuje od přechodu na nový model): trefilo ${+e.spravne} z ${+e.tipovano} (${pct(+e.pct_spravne)}). Čísla nahoře jsou za celou sezónu včetně tipů předchozího modelu s 10 faktory.`
     :'Od přechodu tipuje Elo — jeho vlastní úspěšnost se ukáže po prvních odehraných zápasech. Čísla nahoře jsou za tipy předchozího modelu s 10 faktory.'}</div>`;
+}
+/* ══ (22. 11.) 📏 SEDÍ PROCENTA? KALIBRACE TIPŮ — predikce.json → kalibrace (build.R) ══
+   Zpětně spočítané tipy Elo (šance favorita před zápasem) pro zápasy základní části od 2. sezóny v datech
+   po letošek, rozdělené do košů po 5 procentních bodech. Tečka = jak často favorit opravdu vyhrál,
+   svislá čárka = 95% interval (Wilson), úhlopříčka = přesně podle modelu. Starší predikce.json bez
+   kalibrace → karta skrytá. */
+const kalKos=k=>k.Do==null||isNaN(k.Do)?`${k.Od} % a víc`:`${k.Od}–${k.Do} %`;
+const kalN=x=>(+x).toLocaleString('cs-CZ');
+const kalSk=(n,a,b,c)=>{ n=Math.abs(+n); return n===1?a:(n>=2&&n<=4?b:c); };
+const kalDen=d=>{const m=/^(\d+)\.(\d+)\./.exec(String(d||'')); return m?`${+m[1]}. ${+m[2]}.`:esc(d);};
+function renderKalibrace(){
+  const K=PRED&&PRED.kalibrace, card=document.getElementById('kal-card');
+  if(!K||!Array.isArray(K.kose)||!K.kose.length){ card.style.display='none'; return; }
+  const ks=K.kose.map(k=>({Od:+k.Od,Do:k.Do==null?null:+k.Do,N:+k.N,Model:+k.Model,Vyhral:+k.Vyhral,Skut:+k.Skut,Lo:+k.Lo,Hi:+k.Hi}))
+    .filter(k=>k.N>0&&[k.Model,k.Skut,k.Lo,k.Hi].every(isFinite));
+  if(!ks.length){ card.style.display='none'; return; }
+  card.style.display='';
+  // --- graf ---
+  const lo=Math.min(48,...ks.map(k=>k.Lo-2)), hi=Math.max(80,...ks.map(k=>k.Hi+2));
+  const tr={type:'scatter',mode:'markers+text',x:ks.map(k=>k.Model),y:ks.map(k=>k.Skut),
+    text:ks.map(k=>Math.round(k.Skut)+' %'),textposition:'top left',textfont:{family:'JetBrains Mono',size:10,color:'#8FA3B0'},cliponaxis:false,
+    marker:{size:11,color:'#3AADAD',line:{color:'#243545',width:2}},
+    error_y:{type:'data',symmetric:false,array:ks.map(k=>k.Hi-k.Skut),arrayminus:ks.map(k=>k.Skut-k.Lo),color:'rgba(58,173,173,.55)',thickness:2,width:0},
+    hoverinfo:'text',hovertext:ks.map(k=>`<b>Model říká ${kalKos(k)}</b> (v průměru ${c1(k.Model)} %)<br>Favorit vyhrál v ${c1(k.Skut)} % (${kalN(k.Vyhral)} z ${kalN(k.N)})<br>95% interval ${c1(k.Lo)}–${c1(k.Hi)} %`)};
+  const diag={type:'scatter',mode:'lines',x:[lo,hi],y:[lo,hi],line:{color:'rgba(143,163,176,.55)',width:1.5,dash:'dash'},hoverinfo:'skip'};
+  const AX={...AX_LOCK,range:[lo,hi],ticksuffix:' %',dtick:5,color:'#4A6070',gridcolor:'rgba(42,139,139,0.08)',zeroline:false,tickfont:{family:'JetBrains Mono',size:10}};
+  Plotly.newPlot('chart-kal',[diag,tr],Object.assign({},BASE_LAYOUT,{margin:{l:48,r:18,t:8,b:46},showlegend:false,
+    xaxis:{...AX,title:{text:'model dával favoritovi',font:{size:11,color:'#8FA3B0'}}},
+    yaxis:{...AX,title:{text:'favorit opravdu vyhrál',font:{size:11,color:'#8FA3B0'}}},
+    annotations:[{x:hi-1,y:hi-1,xanchor:'right',yanchor:'bottom',text:'přesně podle modelu',showarrow:false,font:{size:10,color:'#8FA3B0'},textangle:0}]}),LOCK_CONFIG);
+  // --- věty ---
+  const V=[], maxd=K.max_rozdil==null?NaN:+K.max_rozdil;
+  const kan=ks.filter(k=>k.Od>=55&&k.N>=30).sort((a,b)=>b.N-a.N)[0]||ks[0];
+  const za=`Za ${kalN(K.zapasu)} zápasů základní části od sezóny ${esc(K.od)}`;
+  V.push((isFinite(maxd)?(maxd<=5?`<b>Procenta sedí.</b> ${za} se v žádném koši s aspoň 100 zápasy skutečnost od modelu neliší o víc než ${c1(maxd)} procentního bodu.`
+                                 :`<b>Procenta sedí jen zčásti.</b> ${za} se v jednom koši skutečnost od modelu liší o ${c1(maxd)} procentního bodu.`)
+                       :`${za} jsou koše zatím malé na hodnocení.`)+
+    ` Když model říká ${kalKos(kan)}, favorit vyhrál v ${pct(kan.Skut)} (${kalN(kan.Vyhral)} z ${kalN(kan.N)}).`);
+  const S=(Array.isArray(K.sezony)?K.sezony:[]).map(s=>({Sezona:String(s.Sezona),N:+s.N,Model:+s.Model,Skut:+s.Skut,Vyhral:+s.Vyhral})).filter(s=>s.N>0);
+  const L=S.find(s=>s.Sezona===String(K.letos));
+  if(L) V.push(`<b>Letos</b> (${kalN(L.N)} ${kalSk(L.N,'zápas','zápasy','zápasů')}, tipy spočítané zpětně stejným modelem): model favoritům dával v průměru ${pct(L.Model)}, vyhráli ${pct(L.Skut)} zápasů.`);
+  const minule=S.filter(s=>s!==L&&s.N>=100).sort((a,b)=>Math.abs(b.Skut-b.Model)-Math.abs(a.Skut-a.Model))[0];
+  if(minule&&Math.abs(minule.Skut-minule.Model)>3) V.push(`Po sezónách to kolísá víc: v sezóně ${esc(minule.Sezona)} favoriti vyhráli ${pct(minule.Skut)} zápasů, model čekal ${pct(minule.Model)}. I celá sezóna je pořád dost náhody.`);
+  const Z=K.zive&&+K.zive.n>0?K.zive:null;
+  if(Z) V.push(`<b>Skutečné tipy z Predikce</b> od přechodu na Elo (zápasy od ${kalDen(Z.od)}): ${kalN(Z.n)} ${kalSk(+Z.n,'zápas','zápasy','zápasů')}, model favoritům dával v průměru ${pct(+Z.model)}, favorit vyhrál ${+Z.vyhral}× (${pct(+Z.skut)})${+Z.n<100?' — na hodnocení je to zatím málo':''}.`);
+  document.getElementById('kal-vety').innerHTML=V.map(s=>`<p>${s}</p>`).join('');
+  // --- tabulky ---
+  document.getElementById('kal-tab').innerHTML=`<table class="kal-tab"><thead><tr><th class="l">Model říká</th><th>v průměru</th><th>Favorit vyhrál</th><th>Zápasů</th></tr></thead><tbody>`+
+    ks.map(k=>`<tr><td class="l">${kalKos(k)}</td><td>${pct(k.Model)}</td><td class="v">${pct(k.Skut)}</td><td>${kalN(k.N)}</td></tr>`).join('')+`</tbody></table>`;
+  document.getElementById('kal-sez').innerHTML=S.length?`<details class="vs-det kal-det"><summary>Po sezónách</summary><table class="kal-tab"><thead><tr><th class="l">Sezóna</th><th>Model čekal</th><th>Favoriti vyhráli</th><th>Zápasů</th></tr></thead><tbody>`+
+    S.map(s=>`<tr><td class="l">${esc(s.Sezona)}${s===L?' (letos)':''}</td><td>${pct(s.Model)}</td><td class="v">${pct(s.Skut)}</td><td>${kalN(s.N)}</td></tr>`).join('')+`</tbody></table></details>`:'';
+  document.getElementById('kal-jak').innerHTML=`<details class="vs-det kal-det"><summary>Jak to počítáme</summary><div class="kal-jak">
+    <p><b>Tipy spočítané zpětně:</b> u každého zápasu základní části šance, kterou by dala dnešní Predikce — Elo obou týmů před zápasem (jen z výsledků do toho dne, start sezóny ze 70 % loňské síly) a domácí led. Skutečných tipů na Elo je zatím málo, proto zpětně. Výhra = i v prodloužení a na nájezdech.</p>
+    <p><b>Favorit</b> = tým, kterému model dával víc. Koše po 5 procentních bodech, od 70 % dohromady (takových zápasů je málo). <b>95% interval</b> (Wilsonův) = kam by se podíl výher vešel jen kvůli náhodě, kdyby model měl přesně pravdu.</p>
+    <p>První sezóna v datech je vynechaná — Elo v ní teprve začíná (všechny týmy od 1500). Tipy předchozího modelu s 10 faktory (do 19. 10.) se nepočítají.</p>
+    <p><b>Poctivě:</b> parametry Elo (jak rychle se síla mění, kolik se přenáší z loňska, domácí led) jsme nastavovali na těchže sezónách, takže je to o kousek optimističtější než čistá předpověď do budoucna.</p></div></details>`;
 }
 const HIST_N=14;   // (8. 10.) na začátku jen poslední zápasy (zhruba dvě kola), zbytek tlačítkem
 let histVse=false;

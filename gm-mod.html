@@ -323,6 +323,10 @@
     .vym-hraci small{display:block;font-size:11px;font-weight:400;color:var(--text-faint);}
     .vym-det .vs-det-sub p+p{margin-top:5px;} .vym-det b{color:var(--text-dim);}
     .vym-pozn b{color:var(--text-dim);}
+    /* (22. 11.) brankář za brankáře: odkaz do Laboratoře; Změny v kádru → Rozebrat výměnu */
+    .vym-lab{color:var(--teal-light);font-size:12.5px;font-weight:600;text-decoration:none;}
+    .vym-lab:hover,.kz-vym:hover{text-decoration:underline;}
+    .kz-vym{color:var(--teal-light);font-size:12px;font-weight:600;text-decoration:none;white-space:nowrap;margin-left:6px;}
     #vym-body .vs-row,#vym-body .vym-hraci,#vym-body .vs-h,#vym-body .cmp-pozor,#vym-body .vym-det{max-width:760px;margin-left:auto;margin-right:auto;}   /* na PC ať se srovnání neroztáhne přes celou šířku */
     @media(max-width:420px){.subnav{gap:2px;} .subnav button{padding:8px 9px;font-size:12px;}}
     /* (28. 10.) 6 záložek: na telefonu ve dvou řádcích po třech, ať Výměna nezapadne za okraj */
@@ -566,7 +570,7 @@
   <section class="subpanel" id="panel-vymena">
     <div class="card" id="vym-card">
       <div class="card-title">🔄 Rozbor výměny hráčů</div>
-      <div class="card-sub">Vyber dva hráče z různých týmů a uvidíš, kdo si výměnou polepší a proč — podle výkonu obou hráčů a podle toho, co který tým potřebuje (stejné potřeby jako Trade Help v záložce Kádr). Funguje pro skutečné výměny i pro „co kdyby“. Odkaz na rozbor se dá sdílet — je v adrese stránky.</div>
+      <div class="card-sub">Vyber dva hráče z různých týmů a uvidíš, kdo si výměnou polepší a proč — podle výkonu obou hráčů a podle toho, co který tým potřebuje (stejné potřeby jako Trade Help v záložce Kádr). Funguje pro skutečné výměny i pro „co kdyby“ a i pro brankáře (brankář za brankáře). Odkaz na rozbor se dá sdílet — je v adrese stránky.</div>
       <div id="vym-real"></div>
       <div class="vym-pick" id="vym-pick">
         <div class="vym-side"><span class="vym-role">Hráč 1</span><div class="pick" id="vym-pa"></div><span class="vym-smer" id="vym-smer-a"></span></div>
@@ -1632,10 +1636,16 @@ function renderZmeny(t){
   const zdroj=x=>x.Zdroj==='rucne'?`zapsáno ručně ${dnx(x.Datum)}`:`v datech od ${dnx(x.Datum)}`;
   const poz=x=>POZ_N[x.Pozice]||'hráč';
   const rad=(cls,lab,items)=>items.length?`<div class="kz-row"><b class="${cls}">${lab}</b><ul>${items.join('')}</ul></div>`:'';
+  // (22. 11.) výměna = přišel z X a do X odešel jiný hráč (brankář za brankáře, hráč do pole za hráče do pole) do 7 dní
+  //   — stejné pravidlo jako build.R pro „Výměny v sezóně“ → odkaz na rozbor v záložce Výměna
+  const dnyZ=d=>{const m=/^(\d+)\.(\d+)\.(\d+)$/.exec(String(d||'')); return m?Date.UTC(+m[3],+m[2]-1,+m[1])/864e5:NaN;};
+  const parVym=x=>x.Odkud?od.find(y=>y.Kam&&y.Kam===x.Odkud&&y.Jmeno!==x.Jmeno&&(y.Pozice==='B')===(x.Pozice==='B')&&Math.abs(dnyZ(y.Datum)-dnyZ(x.Datum))<=7):null;
+  const odkazVym=x=>{const y=parVym(x); return y?`<a class="kz-vym" href="#vymena=${vymSlugZ(x.Jmeno)}-${vymSlugZ(y.Jmeno)}" data-vym="1">Rozebrat výměnu →</a>`:'';};
   box.innerHTML=
-    rad('in','Přišli',pr.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · ${x.Odkud?'předtím '+x.Odkud:(x.Zdroj==='data-soucet'?'přišel během sezóny — hokej.cz mu sčítá zápasy za oba týmy':'přišel během sezóny')} · ${zdroj(x)}</small></li>`))+
+    rad('in','Přišli',pr.map(x=>`<li>${x.Jmeno}${odkazVym(x)}<small>${poz(x)} · ${x.Odkud?'předtím '+x.Odkud:(x.Zdroj==='data-soucet'?'přišel během sezóny — hokej.cz mu sčítá zápasy za oba týmy':'přišel během sezóny')} · ${zdroj(x)}</small></li>`))+
     rad('out','Odešli',od.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · ${x.Kam?'→ '+x.Kam:'mimo ligu'} · ${zdroj(x)}</small></li>`))+
     rad('ne','Nehrají',ne.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · nenastoupil v posledních ${x.Nehral} zápasech týmu · ${x.GP} ${pl(x.GP,'zápas','zápasy','zápasů')} za sezónu</small></li>`));
+  box.querySelectorAll('a[data-vym]').forEach(a=>a.onclick=e=>{ e.preventDefault(); vymOtevri(a.getAttribute('href')); });
   const n=nv(KZ.nehraje_po,4);
   note.innerHTML=(ne.length?`„Nehrají“ = hráč nenastoupil v posledních ${n} nebo více zápasech týmu — zranění, farma, nebo odchod; důvod data neříkají. Web to sleduje od ${dnx(KZ.sledovano_od)}${KZ.sledovano_od?' '+KZ.sledovano_od.slice(-4):''}. `:'')+
     (od.some(x=>x.Zdroj==='rucne'&&x.Kam)||pr.some(x=>x.Zdroj==='rucne')?'Přestup zapsaný ručně platí hned; hokej.cz hráče přesune až po jeho prvním zápase za nový tým.':'');
@@ -2010,7 +2020,7 @@ function hracPicker(boxId, polozky, vychozi, onPick, extra, prah){
   extra=Array.isArray(extra)?extra:[]; let nalezNeh=[];
   const filtr=(q,zdroj=polozky)=>{
     const t=bezDiak(q).trim().split(/\s+/).filter(Boolean); if(!t.length) return zdroj;
-    const slova=x=>x._s||(x._s=bezDiak(`${x.jm} ${x.tym}`).split(/[\s.\-]+/).filter(Boolean));
+    const slova=x=>x._s||(x._s=bezDiak(`${x.jm} ${x.tym} ${x.klic||''}`).split(/[\s.\-]+/).filter(Boolean));
     let r=zdroj.filter(x=>t.every(tk=>slova(x).some(w=>w.startsWith(tk))));
     if(!r.length){ const q2=t.join(' '); r=zdroj.filter(x=>bezDiak(`${x.jm} ${x.tym}`).includes(q2)); }   // záchrana: kus uprostřed slova
     return r;
@@ -2059,7 +2069,7 @@ const pickEsc=vymEsc;
 const bezDiak=s=>String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const sk=(n,a,b,c)=>pl(n,a,b,c);
 const rt=x=>x==null||isNaN(x)?'—':String(Math.round(x));
-const postTxt=p=>p==='O'?'obránce':p==='U'?'útočník':'';
+const postTxt=p=>p==='O'?'obránce':p==='U'?'útočník':p==='B'?'brankář':'';
 const postMn2=p=>p==='O'?'obránců':'útočníků';        // 2. pád množného čísla: "z 7 obránců"
 const vymTym=t=>VYM&&VYM.tymy?VYM.tymy[t]:null;
 const vymVf=(t,sg,pl_)=>{const x=vymTym(t); return (x?x.Mn:TEAM_MN.includes(t))?pl_:sg;};   // má / mají
@@ -2070,11 +2080,15 @@ const vymPct0=x=>Math.round(x*100)+' %';
 function vymNacti(){
   if(!VYM_P) VYM_P=loadJSON('gm_vymena.json').then(v=>{
       VYM=v&&Array.isArray(v.hraci)&&v.hraci.length>1&&v.tymy?v:null;
-      if(!VYM) console.warn('gm_vymena.json je prázdný — záložka Výměna se nezobrazí.');})
+      if(!VYM){ console.warn('gm_vymena.json je prázdný — záložka Výměna se nezobrazí.'); return; }
+      // (22. 11.) brankáři za hráči do pole (starší JSON je nemá); platný = čísla, ze kterých se počítá
+      const okB=VYM.brank&&isFinite(+VYM.brank.liga_sv)&&Array.isArray(VYM.brankari);
+      VYM._vsichni=VYM.hraci.concat(okB?VYM.brankari.filter(g=>g&&g.Jmeno&&isFinite(+g.Sv_upr)&&+g.SA>0&&VYM.tymy[g.Tym])
+        .map(g=>Object.assign({},g,{Pozice:'B',br:true,SA:+g.SA,Sv:+g.Sv,Sv_upr:+g.Sv_upr})):[]);})
     .catch(()=>{VYM=null; console.warn('gm_vymena.json chybí — záložka Výměna se odemkne po dalším spuštění build.R.');});
   return VYM_P;
 }
-const vymH=i=>VYM.hraci[i];
+const vymH=i=>VYM._vsichni[i];   // (22. 11.) hráči do pole, za nimi brankáři
 // λ: jak moc tým potřebuje posily do slabin (0 = nic mu nechybí, 1 = chybí aspoň VYM_G0 gólu na zápas)
 function vymLambda(t){const T=vymTym(t); if(!T) return 0; let g=0; VYM_OBL.forEach(k=>{g+=Math.max(0,nv(T.potreby[k],0));}); return Math.min(1,g/VYM_G0);}
 // Fit hráče pro tým: oblasti hráče × váhy potřeb týmu (Trade Help)
@@ -2088,8 +2102,9 @@ function vymSmer(a,b){
 }
 // Jádro výpočtu (bez textů) — window.vymRozbor kvůli ověření
 function vymRozbor(a,b){
-  const A=vymH(a), B=vymH(b), S=vymSmer(a,b), TA=S.ta, TB=S.tb;
-  if(!A||!B||a===b||TA===TB||!vymTym(TA)||!vymTym(TB)) return null;
+  const A=vymH(a), B=vymH(b); if(!A||!B||A.br||B.br) return null;   // brankáři: vymRozborB
+  const S=vymSmer(a,b), TA=S.ta, TB=S.tb;
+  if(a===b||TA===TB||!vymTym(TA)||!vymTym(TB)) return null;
   const fA_TA=vymFit(A,TA), fB_TA=vymFit(B,TA), fA_TB=vymFit(A,TB), fB_TB=vymFit(B,TB);
   const lA=vymLambda(TA), lB=vymLambda(TB);
   const casti={vyA:(1-lA/2)*(B.Vykon-A.Vykon), fitA:lA/2*(fB_TA-fA_TA),     // tým TA dává A, dostává B
@@ -2230,17 +2245,20 @@ function vymShrnuti(R){
 }
 
 /* ── kreslení ───────────────────────────────────────────────────────── */
-function vymPicker(boxId, vybrany, onPick){
-  const ps=VYM.hraci.map((p,i)=>({i,jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,ov:p.Overall})).sort((a,b)=>b.ov-a.ov||a.jm.localeCompare(b.jm,'cs'));
+function vymPicker(boxId, vybrany, onPick, druhy){
+  const vs=VYM._vsichni.map((p,i)=>({i,jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,ov:p.br?p.GPI:p.Overall,klic:p.br?'brankar golman':'',br:!!p.br}));
+  const srt=(a,b)=>(b.ov??-1)-(a.ov??-1)||a.jm.localeCompare(b.jm,'cs');
+  const hr=vs.filter(x=>!x.br).sort(srt), bk=vs.filter(x=>x.br).sort(srt);
+  const ps=vymJeB(vymH(druhy))?bk.concat(hr):hr.concat(bk);
   const neh=(VYM.nehodnoceni||[]).map(p=>({jm:p.Jmeno,tym:p.Tym,poz:p.Pozice,gp:+p.GP}));
   const prah=+VYM.prah_gp>0?+VYM.prah_gp:null;
   hracPicker(boxId, ps, vybrany, onPick, neh, prah);
 }
 function vymSlugZ(s){ return bezDiak(s).replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
-function vymSlug(p){ const s=vymSlugZ(vymPrijm(p.Jmeno)); return VYM.hraci.filter(x=>vymSlugZ(vymPrijm(x.Jmeno))===s).length===1?s:vymSlugZ(p.Jmeno); }
+function vymSlug(p){ const s=vymSlugZ(vymPrijm(p.Jmeno)); return VYM._vsichni.filter(x=>vymSlugZ(vymPrijm(x.Jmeno))===s).length===1?s:vymSlugZ(p.Jmeno); }
 function vymNajdi(slug){
-  let k=VYM.hraci.findIndex(x=>vymSlugZ(x.Jmeno)===slug); if(k>=0) return k;
-  const m=[]; VYM.hraci.forEach((x,i)=>{ if(vymSlugZ(vymPrijm(x.Jmeno))===slug) m.push(i); }); return m.length===1?m[0]:-1;
+  let k=VYM._vsichni.findIndex(x=>vymSlugZ(x.Jmeno)===slug); if(k>=0) return k;
+  const m=[]; VYM._vsichni.forEach((x,i)=>{ if(vymSlugZ(vymPrijm(x.Jmeno))===slug) m.push(i); }); return m.length===1?m[0]:-1;
 }
 function vymCtiHash(h){
   const m=/^#?vymena=(.+)$/.exec(h||''); if(!m) return false;
@@ -2248,7 +2266,7 @@ function vymCtiHash(h){
   for(let i=1;i<d.length;i++){ const a=vymNajdi(d.slice(0,i).join('-')), b=vymNajdi(d.slice(i).join('-')); if(a>=0&&b>=0&&a!==b){ vymA=a; vymB=b; return true; } }
   return false;
 }
-function vymIdx(jm,tym){ return VYM.hraci.findIndex(p=>p.Jmeno===jm&&p.Tym===tym); }
+function vymIdx(jm,tym){ return VYM._vsichni.findIndex(p=>p.Jmeno===jm&&p.Tym===tym); }
 // výchozí dvojice: poslední skutečná výměna → ukázka z Trade Help pro tým vybraný nahoře → dva nejlepší z různých týmů
 function vymVychozi(){
   vymUkazka=null;
@@ -2276,13 +2294,14 @@ function renderVymena(){
 function vymKresli(zapsat=true){
   const body=document.getElementById('vym-body');
   if(!vymPlatne()) vymVychozi();
-  vymPicker('vym-pa', vymA, i=>{ vymA=i; vymUkazka=null; vymKresli(); });
-  vymPicker('vym-pb', vymB, i=>{ vymB=i; vymUkazka=null; vymKresli(); });
+  vymPicker('vym-pa', vymA, i=>{ vymA=i; vymUkazka=null; vymKresli(); }, vymB);
+  vymPicker('vym-pb', vymB, i=>{ vymB=i; vymUkazka=null; vymKresli(); }, vymA);
   // skutečné výměny v sezóně — klepnutím se otevřou
   const vy=(VYM.vymeny||[]).map(v=>({v,a:vymIdx(v.A,v.A_do),b:vymIdx(v.B,v.B_do)})).filter(x=>x.a>=0&&x.b>=0);
   document.getElementById('vym-real').innerHTML=vy.length?`<div class="vym-real"><span>Výměny v sezóně:</span>`+
     vy.map((x,k)=>`<button type="button" class="vym-chip${(x.a===vymA&&x.b===vymB)||(x.a===vymB&&x.b===vymA)?' akt':''}" data-k="${k}">${vymEsc(vymPrijm(x.v.A))} ⇄ ${vymEsc(vymPrijm(x.v.B))}<small>${vymEsc(String(x.v.Datum).replace(/^0?(\d+)\.0?(\d+)\.\d+$/,'$1. $2.'))}</small></button>`).join('')+`</div>`:'';
   document.querySelectorAll('#vym-real .vym-chip').forEach(b=>b.onclick=()=>{ const x=vy[+b.dataset.k]; vymA=x.a; vymB=x.b; vymUkazka=null; vymKresli(); });
+  if(vymJeB(vymH(vymA))||vymJeB(vymH(vymB))){ vymKresliB(zapsat); return; }   // (22. 11.) brankář za brankáře
   const R=vymRozbor(vymA,vymB);
   const sA=document.getElementById('vym-smer-a'), sB=document.getElementById('vym-smer-b');
   if(!R){
@@ -2363,6 +2382,144 @@ function vymKresli(zapsat=true){
     <p><b>Jistota</b> podle počtu zápasů méně vytíženého hráče: do 15 nízká, do 30 střední.</p></div></details>`;
   h+=`<div class="vs-pozn vym-pozn"><b>Co čísla nevidí:</b> hráč přichází z jiné role, s jinými spoluhráči a trenérem — u nového týmu může hrát víc, míň nebo jinak. Nevidíme smlouvy, zranění, šatnu ani to, jak dobře hráč hrál v oslabení (góly na ledě ve speciálních formacích nemáme, skóre oslabení stojí hlavně na minutách). Podíly na čase přesilovek a oslabení jsou z čísel na zápas, ve kterých hráč nastoupil.${(+VYM.odehrano||99)<=(+VYM.maly_vzorek_do||10)?' Po pár kolech je v číslech hodně náhody.':''}</div>`;
   body.innerHTML=h;
+}
+
+/* ══ (22. 11.) VÝMĚNA BRANKÁŘE ZA BRANKÁŘE ═══════════════════════════════════
+   Data: gm_vymena.json → brankari (dnešní tým, střely, zákroky, úspěšnost a upravená úspěšnost, podíl
+   odchytaných minut týmu, GPI) a brank (průměr ligy, +k_sv střel); týmy → Zbyva, SA_odh (střely na branku
+   proti na zápas, odhad dlouhodobé úrovně jako GM mód; starší JSON bez něj → SA_z).
+   S hráčem do pole se brankář neporovnává — u hráčů je Výkon pořadí na postu, u brankáře góly.
+   GÓLY DO KONCE (tým T dává brankáře OUT, dostává IN; IN převezme starty po OUT):
+     střely = zbývající zápasy T × podíl minut OUT v T × SA_odh T
+     góly méně = střely × (upravená úspěšnost IN − upravená úspěšnost OUT),  body = góly / goly_na_bod
+   PROCENTA = šance, že tým dostává lepšího brankáře: Φ((Sv_upr IN − Sv_upr OUT) / √(sd_IN² + sd_OUT²)),
+     sd = √(Sv_upr · (1 − Sv_upr) / (střely + k_sv)) — čím víc střel brankáři viděli, tím jistější.
+     U výměny brankáře za brankáře vychází líp vždy tým, který dostane lepšího (co jeden ušetří, druhý ztratí —
+     jen jinak velké podle zápasů a střel, které je čekají).
+   ✅ / ⚠️ od ±VYM_B_BODY bodu do konce sezóny a zároveň aspoň VYM_B_P % šance; jinak ⚖️.
+   Jistotu podle počtu zápasů / střel (jako u hráčů do pole) nepíšeme — nejistota je už v procentech. */
+const VYM_B_BODY=1, VYM_B_P=60;
+// normální rozdělení (Abramowitz–Stegun 7.1.26, chyba pod 2·10⁻⁷)
+function vymPhi(z){ const x=Math.abs(z)/Math.SQRT2, t=1/(1+0.3275911*x);
+  const e=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return z>=0?(1+e)/2:(1-e)/2; }
+const vymJeB=p=>!!(p&&p.br);
+function vymSA(t){ const T=vymTym(t); if(!T) return NaN; const x=T.SA_odh!=null&&isFinite(+T.SA_odh)?+T.SA_odh:+T.SA_z; return isFinite(x)?x:NaN; }
+// jádro výpočtu (bez textů) — window.vymRozborB kvůli ověření
+function vymRozborB(a,b){
+  const A=vymH(a), B=vymH(b); if(!vymJeB(A)||!vymJeB(B)||a===b) return null;
+  const S=vymSmer(a,b), TA=S.ta, TB=S.tb; if(TA===TB||!vymTym(TA)||!vymTym(TB)) return null;
+  const I=VYM.brank||{}, K=+I.k_sv>0?+I.k_sv:1000, gnb=+VYM.goly_na_bod>0?+VYM.goly_na_bod:2.2;
+  const sd=p=>Math.sqrt(p.Sv_upr*(1-p.Sv_upr)/(p.SA+K));
+  const z=(B.Sv_upr-A.Sv_upr)/Math.sqrt(sd(A)**2+sd(B)**2);
+  const podilA=100*vymPhi(z);                      // šance, že TA (dostává B) dostává lepšího brankáře
+  const pA=Math.min(99,Math.max(1,Math.round(podilA)));
+  const tym=(T,OUT,IN)=>{ const zb=Math.max(0,nv(vymTym(T).Zbyva,0)), sa=vymSA(T), pod=Math.max(0,Math.min(1,nv(OUT.Podil,0)));
+    const strely=zb*pod*(isFinite(sa)?sa:0), goly=strely*(IN.Sv_upr-OUT.Sv_upr);   // + = méně gólů
+    return {zb,sa,pod,strely,goly,body:goly/gnb}; };
+  const dA=tym(TA,A,B), dB=tym(TB,B,A);
+  const kat=Math.abs(podilA-50)<VYM_VYROVNANA?'vyrovnana':(Math.abs(podilA-50)<VYM_JASNE?'mirne':'jasne');
+  const verd=(d,p)=>d.body>=VYM_B_BODY&&p>=VYM_B_P?'plus':(d.body<=-VYM_B_BODY&&p<=100-VYM_B_P?'minus':'nula');
+  // (jistotu podle počtu střel jako u hráčů do pole tu nepíšeme — nejistota už je v procentech)
+  return {A,B,TA,TB,skutecna:S.skutecna,z,podilA,pA,pB:100-pA,kat,dA,dB,gnb,verdA:verd(dA,podilA),verdB:verd(dB,100-podilA)};
+}
+window.vymRozborB=vymRozborB;
+const vymSv1=x=>f1(100*x)+' %', vymSv2=x=>f2(100*x)+' %';
+const vymLabSlug=s=>bezDiak(s).replace(/[^a-z0-9]/g,'');
+function vymShrnutiB(R){
+  const A=R.A, B=R.B, jA=vymEsc(vymPrijm(A.Jmeno)), jB=vymEsc(vymPrijm(B.Jmeno)), I=VYM.brank||{}, V=[];
+  V.push(`Letos chytá ${jA} ${vymSv1(A.Sv)} z ${A.SA} ${sk(A.SA,'střely','střel','střel')} a ${jB} ${vymSv1(B.Sv)} z ${B.SA}. Úspěšnost brankáře je po pár stech střel hodně náhodná, proto ji přitahujeme k průměru ligy (${vymSv1(I.liga_sv)}): upravená vychází ${jA} ${vymSv2(A.Sv_upr)} a ${jB} ${vymSv2(B.Sv_upr)}.`);
+  const d=B.Sv_upr-A.Sv_upr;
+  if(Math.abs(d)<0.0005) V.push(`Brankáři jsou podle čísel skoro stejní — výměna na gólech skoro nic nezmění.`);
+  else { const lepsi=d>0?jB:jA, p=d>0?R.podilA:100-R.podilA;
+    V.push(`Lepší je podle čísel ${lepsi} (o ${f2(Math.abs(100*d))} procentního bodu upravené úspěšnosti). Šance, že je opravdu lepší, je ${Math.round(p)} %${p<VYM_B_P?' — skoro hod mincí':''}.`); }
+  V.push(`Počítáme, že každý převezme starty po tom, za koho přišel: ${jB} by v týmu ${vymEsc(R.TA)} chytal ${vymPct0(A.Podil)} minut, ${jA} v týmu ${vymEsc(R.TB)} ${vymPct0(B.Podil)}. Trenér to může rozdělit jinak.`);
+  if(Math.abs(R.dA.body)<VYM_B_BODY&&Math.abs(R.dB.body)<VYM_B_BODY) V.push(`Ani jeden tým si do konce sezóny podle čísel nepolepší ani nepohorší ani o bod.`);
+  return V;
+}
+// věty pro tým T, který dostává brankáře IN a dává OUT (d = výpočet pro T, p = šance, že IN je lepší)
+function vymVetyTymB(T,IN,OUT,d,p,gnb){
+  const jIn=vymEsc(vymPrijm(IN.Jmeno)), V=[];
+  if(d.pod<0.005) V.push(`<b>Do konce:</b> odcházející brankář letos za tým skoro nechytal, takže když ${jIn} převezme jen jeho starty, nic se nezmění. Kdyby chytal víc, změna by byla větší.`);
+  else V.push(`<b>Do konce:</b> ${sk(d.zb,'zbývá','zbývají','zbývá')} ${d.zb} ${sk(d.zb,'zápas','zápasy','zápasů')} a soupeři vystřelí zhruba ${f1(d.sa)} střely na branku na zápas (odhad dlouhodobé úrovně). Když ${jIn} převezme starty odcházejícího brankáře (${vymPct0(d.pod)} minut týmu), čeká ho asi ${Math.round(d.strely)} ${sk(Math.round(d.strely),'střela','střely','střel')}.`);
+  if(d.pod>=0.005){
+    const g=d.goly;
+    V.push(`<b>Góly a body:</b> s upravenou úspěšností ${vymSv2(IN.Sv_upr)} místo ${vymSv2(OUT.Sv_upr)} `+
+      (Math.abs(g)<0.5?`by padlo skoro stejně gólů.`:`by z nich padlo zhruba o ${f1(Math.abs(g))} gólu ${g>0?'méně':'víc'} — asi ${vymZn(d.body)} bodu (${f1(gnb)} gólu ≈ 1 bod).`)+
+      ` Šance, že ${jIn} je lepší: ${Math.round(p)} %.`);
+  }
+  const zust=VYM._vsichni.filter(x=>x.br&&x.Tym===T&&x!==OUT&&x!==IN).sort((x,y)=>nv(y.Podil,0)-nv(x.Podil,0));
+  if(zust.length){ const z=zust[0], dz=IN.Sv_upr-z.Sv_upr;
+    V.push(`<b>V brance zůstává</b> ${vymEsc(z.Jmeno)} (${vymPct0(nv(z.Podil,0))} minut, upravená úspěšnost ${vymSv2(z.Sv_upr)})`+
+      (dz>=0.0005?` — ${jIn} je podle čísel lepší, takže by mohl chytat i víc.`:dz<=-0.0005?` — ten je podle čísel lepší než ${jIn}.`:'.')); }
+  V.push(`<a class="vym-lab" href="lab.html#brankar=${vymLabSlug(T)}/${vymLabSlug(IN.Jmeno)}">🧪 Kdyby ${jIn} chytal za tým celou sezónu → Laboratoř</a>`);
+  return V;
+}
+function vymKresliB(zapsat){
+  const body=document.getElementById('vym-body'), sA=document.getElementById('vym-smer-a'), sB=document.getElementById('vym-smer-b');
+  const PA=vymH(vymA), PB=vymH(vymB);
+  if(!(vymJeB(PA)&&vymJeB(PB))){ sA.textContent=''; sB.textContent='';
+    body.innerHTML=`<div class="empty">Brankáře porovnáme jen s brankářem — u hráčů do pole měříme výkon pořadím na postu, u brankáře góly, a to spolu srovnat nejde. ${vymJeB(PA)?'Ve druhém':'V prvním'} políčku vyber taky brankáře (stačí napsat „brankář“).</div>`; return; }
+  const R=vymRozborB(vymA,vymB);
+  if(!R){ sA.textContent=''; sB.textContent='';
+    body.innerHTML=`<div class="empty">${vymA===vymB?'Vyber dva různé brankáře.':`Oba brankáři chytají za ${vymEsc(PA.Tym)} — vyber brankáře z jiného týmu.`}</div>`; return; }
+  if(zapsat){ try{ history.replaceState(null,'','#vymena='+vymSlug(R.A)+'-'+vymSlug(R.B)); }catch(_){ } }
+  const BAR=pridelBarvy([R.TA,R.TB]), cA=BAR[R.TA], cB=BAR[R.TB];
+  sA.innerHTML=`<i style="background:${cA}"></i>${vymEsc(R.TA)} → ${vymEsc(R.TB)}`;
+  sB.innerHTML=`<i style="background:${cB}"></i>${vymEsc(R.TB)} → ${vymEsc(R.TA)}`;
+  const logo=t=>`<img class="vym-logo" src="logos/${encodeURIComponent(t)}.png" alt="" onerror="this.style.display='none'">`;
+  const kat=R.kat==='vyrovnana'?'Vyrovnaná výměna':`${R.kat==='jasne'?'Výrazně':'O něco'} líp z ní ${vymVf(R.podilA>50?R.TA:R.TB,'vychází','vycházejí')} ${vymEsc(R.podilA>50?R.TA:R.TB)}`;
+  let h='';
+  if(R.skutecna) h+=`<div class="vym-ukazka">Skutečná výměna z ${vymEsc(R.skutecna.Datum)} — rozbor je z pohledu před ní.</div>`;
+  h+=`<div class="vym-bil">
+    <div class="vym-bil-t"><span>${logo(R.TA)}${vymEsc(R.TA)}</span><span>${vymEsc(R.TB)}${logo(R.TB)}</span></div>
+    <div class="vs-pct"><span style="color:${cA}">${R.pA} %</span><span style="color:${cB}">${R.pB} %</span></div>
+    <div class="vs-bar"><i style="width:${R.pA}%;background:${cA}"></i><i style="width:${R.pB}%;background:${cB}"></i></div>
+    <div class="vym-kat">${kat}</div>
+    <div class="vym-jist">Procenta = šance, že tým dostává lepšího brankáře. Čím víc střel brankáři viděli (${vymEsc(vymPrijm(R.A.Jmeno))} ${R.A.SA}, ${vymEsc(vymPrijm(R.B.Jmeno))} ${R.B.SA}), tím jistější jsou.</div>
+  </div>`;
+  h+=`<div class="vym-shrn">${vymShrnutiB(R).map(s=>`<p>${s}</p>`).join('')}</div>`;
+  const verdTxt={plus:['✅','si podle čísel polepší'],nula:['⚖️','— zhruba nastejno'],minus:['⚠️','si podle čísel pohorší']};
+  const blok=(T,IN,OUT,d,p,v,c)=>{const [ic,tx]=verdTxt[v];
+    return `<div class="vym-tym" style="border-top-color:${c}"><h4>${ic} ${vymEsc(T)} <span>${tx}</span></h4>
+      <div class="vym-tym-sub">přichází ${vymEsc(IN.Jmeno)}, odchází ${vymEsc(OUT.Jmeno)}</div>
+      ${vymVetyTymB(T,IN,OUT,d,p,R.gnb).map(s=>`<p>${s}</p>`).join('')}</div>`;};
+  h+=`<div class="vym-tymy">${blok(R.TA,R.B,R.A,R.dA,R.podilA,R.verdA,cA)}${blok(R.TB,R.A,R.B,R.dB,100-R.podilA,R.verdB,cB)}</div>`;
+  // srovnání brankářů — pruh = pořadí mezi brankáři v rozboru
+  const BR=VYM._vsichni.filter(x=>x.br);
+  const pctl=(p,f)=>{const a=BR.map(f).filter(x=>x!=null&&!isNaN(x)), v=f(p); if(v==null||isNaN(v)||a.length<2) return 50;
+    return 100*(a.filter(x=>x<v).length+(a.filter(x=>x===v).length-1)/2)/(a.length-1);};
+  const radek=(l,s,f,fmt)=>{const va=f(R.A), vb=f(R.B), la=va>vb, lb=vb>va, w=x=>Math.round(6+Math.max(0,Math.min(100,x))*0.94);
+    return `<div class="vs-row"><div class="vs-lab">${l}${s?` <small>· ${s}</small>`:''}</div>
+      <div class="vs-cmp"><span class="vs-v a${la?' lepsi':''}">${fmt(va,R.A)}</span>
+        <span class="vs-tr a"><i style="width:${w(pctl(R.A,f))}%;background:${la?cA:'rgba(143,163,176,.35)'}"></i></span>
+        <span class="vs-tr"><i style="width:${w(pctl(R.B,f))}%;background:${lb?cB:'rgba(143,163,176,.35)'}"></i></span>
+        <span class="vs-v${lb?' lepsi':''}">${fmt(vb,R.B)}</span></div></div>`;};
+  h+=`<div class="vs-h">Srovnání brankářů</div>
+    <div class="vym-hraci"><span style="color:${cA}">${vymEsc(R.A.Jmeno)}<small>brankář · ${R.A.GP} ${sk(R.A.GP,'zápas','zápasy','zápasů')}</small></span>
+      <span style="color:${cB}">${vymEsc(R.B.Jmeno)}<small>brankář · ${R.B.GP} ${sk(R.B.GP,'zápas','zápasy','zápasů')}</small></span></div>`;
+  h+=radek('Upravená úspěšnost','přitažená k průměru ligy',p=>p.Sv_upr,v=>vymSv2(v))+
+     radek('Úspěšnost letos','',p=>p.Sv,v=>vymSv1(v))+
+     radek('GPI','hodnocení brankáře 0–100 (Hráči → Brankáři)',p=>p.GPI==null?NaN:+p.GPI,v=>isNaN(v)?'—':f1(v))+
+     radek('Střely na branku','kolik jich letos viděl',p=>+p.SA,v=>String(v))+
+     radek('Podíl minut týmu','kolik týmových minut odchytal',p=>nv(p.Podil,0),v=>vymPct0(v));
+  h+=`<details class="vs-det vym-det"><summary>Jak to počítáme</summary><div class="vs-det-sub">
+    <p><b>Brankář jen za brankáře.</b> U hráčů do pole měříme výkon pořadím na postu, u brankářů góly — dohromady to poctivě sečíst nejde.</p>
+    <p><b>Upravená úspěšnost</b> = k zákrokům brankáře se přičte ${(+((VYM.brank||{}).k_sv)||1000).toLocaleString('cs-CZ')} střel s průměrnou úspěšností ligy (${vymSv1((VYM.brank||{}).liga_sv)}), stejně jako GPI, NHL Rating a Laboratoř. Po pár stech střel je velká část rozdílů mezi brankáři náhoda.</p>
+    <p><b>Góly do konce</b> = zbývající zápasy týmu × podíl minut, které chytal odcházející brankář × střely na branku soupeřů na zápas (odhad dlouhodobé úrovně jako v GM módu) × rozdíl upravených úspěšností. Body: ${f1(R.gnb)} gólu ≈ 1 bod (GM mód).</p>
+    <p><b>Procenta</b> = šance, že tým dostává lepšího brankáře, podle toho, kolik střel oba zatím viděli. Při výměně brankáře za brankáře vychází líp vždy ten tým, který dostane lepšího: co jeden ušetří, druhý ztratí (jak moc, záleží na zápasech a střelách, které je čekají). Do 45 : 55 píšeme „vyrovnaná“, od 65 : 35 „výrazně líp“.</p>
+    <p>✅ / ⚠️ od ±${VYM_B_BODY} bodu do konce sezóny a zároveň aspoň ${VYM_B_P} % šance, jinak ⚖️.</p></div></details>`;
+  h+=`<div class="vs-pozn vym-pozn"><b>Co čísla nevidí:</b> kdo bude opravdu chytat (lepší brankář obvykle dostane víc zápasů), formu a zranění. A jak nebezpečné střely tým pouští — úspěšnost brankáře zčásti závisí i na obraně před ním, kvalitu střel ale nemáme.${(+VYM.odehrano||99)<=(+VYM.maly_vzorek_do||10)?' Po pár kolech je v číslech hodně náhody.':''}</div>`;
+  body.innerHTML=h;
+}
+// (22. 11.) odkaz „Rozebrat výměnu →“ z karty Změny v kádru: otevře záložku Výměna s danou dvojicí
+function vymOtevri(h){
+  try{ history.replaceState(null,'',h); }catch(_){ }
+  vymNacti().then(()=>{
+    if(VYM&&vymCtiHash(h)){ vymInit=true; vymUkazka=null; }
+    const uz=rendered.vymena; showSub('vymena'); if(uz&&VYM) vymKresli();
+    const el=document.getElementById('vym-card'); if(el) el.scrollIntoView({block:'start'});
+  });
 }
 
 
