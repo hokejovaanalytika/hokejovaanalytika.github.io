@@ -316,6 +316,34 @@
     .kal-tab .l{text-align:left;} .kal-tab td.l{font-family:var(--font-main);color:var(--text);} .kal-tab td.v{color:var(--text);font-weight:700;}
     .kal-jak p{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:6px;} .kal-jak b{color:var(--text);}
     @media(max-width:480px){ .kal-tab th{white-space:normal;line-height:1.25;} .kal-tab th,.kal-tab td{padding:5px 4px;font-size:11.5px;} }
+    /* (24. 11.) 📚 Historie vzájemných zápasů */
+    .hh-filtr{margin:10px 0 10px;}
+    .hh-tab td:first-child{text-align:left;color:var(--text);font-weight:500;}
+    /* soupeř zůstane vidět i při posunu tabulky doprava (na mobilu se Výhry a Posledních 5 nevejdou) */
+    .hh-tab th:first-child,.hh-tab td:first-child{position:sticky;left:0;z-index:1;text-align:left;}
+    .hh-tab thead th:first-child{background:var(--slate-light);}
+    .hh-tab tbody td:first-child{background:var(--slate-mid);box-shadow:1px 0 0 rgba(42,139,139,.15);}
+    .hh-tab tbody tr.hh-det-r td:first-child{position:static;box-shadow:none;background:rgba(42,139,139,.05);}
+    .hh-det-in{position:sticky;left:22px;width:max-content;max-width:calc(100vw - 80px);}   /* seznam zápasů zůstane vidět i při posunu tabulky */
+    .hh-tab tbody tr.hh-r{cursor:pointer;}
+    .hh-tab tbody tr.hh-r td:first-child::before{content:'▸';display:inline-block;width:12px;color:var(--text-faint);font-size:10px;transition:transform .15s;}
+    .hh-tab tbody tr.hh-r.open td:first-child::before{transform:rotate(90deg);}
+    .hh-tab td.hh-sk{font-family:var(--font-mono);}
+    .hh-dots{display:inline-flex;gap:3px;vertical-align:middle;}
+    .hh-dot{width:11px;height:11px;border-radius:50%;display:inline-block;}
+    .hh-dot.V{background:var(--win);} .hh-dot.VP{background:var(--otwin);} .hh-dot.PP{background:#FF8A3D;} .hh-dot.P{background:var(--loss);}
+    .hh-tab tr.hh-det-r td{text-align:left;white-space:normal;background:rgba(42,139,139,.05);padding:6px 10px 8px 22px;}
+    .hh-zap{font-size:12px;line-height:1.6;color:var(--text-dim);}
+    .hh-zap .hh-dot{margin-right:6px;}
+    .hh-zap b{color:var(--text);font-weight:600;font-family:var(--font-mono);}
+    .hh-veta{font-size:13px;color:var(--text-dim);line-height:1.55;margin:10px 0 6px;}
+    .hh-leg{font-size:11.5px;color:var(--text-faint);margin-top:6px;display:flex;flex-wrap:wrap;gap:4px 12px;}
+    .hh-leg span{display:inline-flex;align-items:center;gap:4px;}
+    .hh-sr{font-size:12.5px;line-height:1.7;color:var(--text-dim);}
+    .hh-sr .ok{color:var(--win);font-weight:700;} .hh-sr .ne{color:var(--loss);font-weight:700;}
+    .hh-sr b{color:var(--text);font-family:var(--font-mono);font-weight:600;}
+    .hh-jak p{font-size:12px;color:var(--text-dim);line-height:1.5;margin-top:6px;} .hh-jak b{color:var(--text);}
+    @media(max-width:420px){ .hh-tab th,.hh-tab td{padding:6px 5px;font-size:12px;} .hh-dot{width:10px;height:10px;} .hh-dots{gap:2px;} }
     .hist-more{margin-top:10px;}
     tr.nepotkali td{color:var(--text-faint);}
     footer{text-align:center;padding:24px 16px;color:var(--text-faint);font-size:12px;border-top:1px solid var(--border);max-width:1100px;margin:0 auto;}
@@ -420,6 +448,24 @@
         <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Body</th><th>Úspěšnost</th><th>Příště</th></tr></thead>
         <tbody id="t-h2h"><tr><td colspan="10"><div class="empty">Vyber tým výše.</div></td></tr></tbody>
       </table></div>
+    </div>
+
+    <!-- (24. 11.) 📚 HISTORIE VZÁJEMNÝCH ZÁPASŮ — h2h.json → historie (build.R); starší JSON ji nemá → karta skrytá -->
+    <div class="card" id="hh-card" style="display:none">
+      <div class="card-title">📚 Historie vzájemných zápasů</div>
+      <div class="card-sub" id="hh-sub"></div>
+      <div class="chips hh-filtr" id="hh-filtr">
+        <button class="chip active" type="button" data-f="vse">Vše</button>
+        <button class="chip" type="button" data-f="zakl">Základní část</button>
+        <button class="chip" type="button" data-f="po">Playoff</button>
+      </div>
+      <div class="tbl-wrap"><table class="tbl hh-tab">
+        <thead><tr><th>Soupeř</th><th>Z</th><th>V</th><th>VP</th><th>PP</th><th>P</th><th>Skóre</th><th>Výhry</th><th class="hh-ser">Série PO</th><th>Posledních 5</th></tr></thead>
+        <tbody id="t-hh"></tbody>
+      </table></div>
+      <div class="hh-veta" id="hh-veta"></div>
+      <div id="hh-serie"></div>
+      <details class="vs-det hh-det"><summary>Jak to počítáme</summary><div class="hh-jak" id="hh-jak"></div></details>
     </div>
 
   </section>
@@ -1352,6 +1398,82 @@ function drawH2H(){
     return `<tr class="nepotkali">
     <td>${esc(t)}</td><td>0</td><td colspan="7" style="text-align:left">letos ještě nehráli${pr!=='—'?` · příště <span style="color:var(--text-dim)">${pr}</span>`:''}</td><td></td>
   </tr>`;}).join('');
+  try{ drawHH(); }catch(e){ console.error('Historie vzájemných zápasů se nevykreslila:', e); document.getElementById('hh-card').style.display='none'; }   // (24. 11.)
+}
+
+/* (24. 11.) 📚 HISTORIE VZÁJEMNÝCH ZÁPASŮ — h2h.json → historie z build.R (archiv 5 sezón vč. playoff + letošek).
+   Stejný výběr týmu jako karty nad ní. Přepínač Vše / Základní část / Playoff, klepnutí na řádek ukáže
+   posledních 5 vzájemných zápasů. Starší h2h.json historii nemá → karta zůstane skrytá. */
+let hhF='vse', hhOtevrene=new Set(), hhTymMinule=null, hhInit=false;
+const HH_KOD={V:'výhra',VP:'výhra po prodloužení',PP:'prohra po prodloužení',P:'prohra'};
+const hhNum=x=>{ const n=+(Array.isArray(x)?x[0]:x); return isFinite(n)?n:0; };
+const hhUn=x=>Array.isArray(x)?x[0]:x;
+// datum i s rokem (historie jde přes víc sezón): "02.10.2025" → "2. 10. 2025"
+const hhDen=s=>{ const m=String(s||'').match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/); return m?`${+m[1]}. ${+m[2]}. ${m[3]}`:String(s||''); };
+const hhPct=r=>{ const n=hhNum(r.Z); return n?(hhNum(r.V)+hhNum(r.VP))/n:0; };
+function hhSk(n,a,b,c){ n=Math.abs(n); return n===1?a:(n>=2&&n<=4?b:c); }
+function hhDots(posl,info){
+  const k=String(posl||'').split('-').filter(x=>HH_KOD[x]);
+  const inf=String(info||'').split('\n');
+  return `<span class="hh-dots">${k.map((x,i)=>`<span class="hh-dot ${x}" title="${esc((inf[i]||'')+' — '+HH_KOD[x])}"></span>`).join('')}</span>`;
+}
+function drawHH(){
+  const card=document.getElementById('hh-card');
+  const H=H2H&&H2H.historie&&typeof H2H.historie==='object'&&!Array.isArray(H2H.historie)?H2H.historie:null;
+  if(!H||!Array.isArray(H.pary)||!H.pary.length){ card.style.display='none'; return; }
+  card.style.display='';
+  if(!hhInit){
+    hhInit=true;
+    document.querySelectorAll('#hh-filtr .chip').forEach(b=>b.addEventListener('click',()=>{
+      hhF=b.dataset.f; hhOtevrene.clear();
+      document.querySelectorAll('#hh-filtr .chip').forEach(x=>x.classList.toggle('active',x===b));
+      drawHH();
+    }));
+    document.getElementById('t-hh').addEventListener('click',e=>{
+      const tr=e.target.closest('tr.hh-r'); if(!tr) return;
+      const s=tr.dataset.s; hhOtevrene.has(s)?hhOtevrene.delete(s):hhOtevrene.add(s); drawHH();
+    });
+  }
+  if(hhTymMinule!==h2hTym){ hhOtevrene.clear(); hhTymMinule=h2hTym; }
+  const I=H.info||{}, od=hhUn(I.od), doo=hhUn(I.do), nS=hhNum(I.sezon);
+  const obdobi=od&&doo&&nS?`${nS} ${hhSk(nS,'sezónu','sezóny','sezón')} (${od}–${doo})`:'minulé sezóny';
+  document.getElementById('hh-sub').textContent=`Kolikrát tým vyhrál a prohrál s každým soupeřem za ${obdobi} a letos — základní část i playoff. Klepni na řádek a uvidíš posledních 5 vzájemných zápasů.`;
+  // --- tabulka ---
+  const rows=H.pary.filter(r=>r.Tym===h2hTym&&r.F===hhF)
+    .sort((a,b)=>hhPct(b)-hhPct(a)||hhNum(b.Z)-hhNum(a.Z)||String(a.Souper).localeCompare(String(b.Souper),'cs'));
+  const sPO=hhF!=='zakl';
+  card.querySelectorAll('.hh-ser').forEach(th=>th.style.display=sPO?'':'none');
+  const nCol=sPO?10:9;
+  const barva=u=>u>=60?'var(--win)':u>=40?'var(--gold)':'var(--loss)';
+  const ser=r=>{ const v=hhNum(r.Ser_V), p=hhNum(r.Ser_P); return v+p?`${v}–${p}`:'–'; };
+  document.getElementById('t-hh').innerHTML=rows.length?rows.map(r=>{
+    // % z počtů (Vyhry v JSONu je zaokrouhlené na desetiny — 54,5 by se zaokrouhlilo jinak než 18 z 33 = 54,55)
+    const s=String(r.Souper), op=hhOtevrene.has(s), nZ=hhNum(r.Z), u=nZ?100*(hhNum(r.V)+hhNum(r.VP))/nZ:0;
+    const radek=`<tr class="hh-r${op?' open':''}" data-s="${esc(s)}">
+      <td>${esc(s)}</td><td>${hhNum(r.Z)}</td><td>${hhNum(r.V)}</td><td>${hhNum(r.VP)}</td><td>${hhNum(r.PP)}</td><td>${hhNum(r.P)}</td>
+      <td class="hh-sk">${hhNum(r.GF)}:${hhNum(r.GA)}</td><td style="color:${barva(u)};font-weight:600">${Math.round(u)} %</td>
+      ${sPO?`<td>${ser(r)}</td>`:''}<td>${hhDots(r.Posl,r.Posl_info)}</td></tr>`;
+    if(!op) return radek;
+    const k=String(r.Posl||'').split('-'), inf=String(r.Posl_info||'').split('\n');
+    const zap=inf.map((t,i)=>{ const m=t.match(/^(\S+) (.+?) (\d+:\d+)(.*)$/);
+      return `<div class="hh-zap"><span class="hh-dot ${HH_KOD[k[i]]?k[i]:''}"></span>${m?`${esc(hhDen(m[1]))} · ${esc(m[2])} <b>${esc(m[3])}</b>${esc(m[4])}`:esc(t)}</div>`; }).reverse().join('');
+    return radek+`<tr class="hh-det-r"><td colspan="${nCol}"><div class="hh-det-in">${zap}</div></td></tr>`;
+  }).join(''):`<tr><td colspan="${nCol}"><div class="empty">${hhF==='po'?'S žádným z letošních soupeřů se v playoff nepotkali.':'Zatím bez vzájemných zápasů.'}</div></td></tr>`;
+  // --- věta ---
+  const v=(H.vety||[]).find(x=>x.Tym===h2hTym&&x.F===hhF);
+  document.getElementById('hh-veta').innerHTML=(v&&v.Veta?`<div>${esc(hhUn(v.Veta))}</div>`:'')+
+    `<div class="hh-leg">${Object.entries(HH_KOD).map(([c,t])=>`<span><span class="hh-dot ${c}"></span>${t}</span>`).join('')}<span>· nejnovější vpravo</span></div>`;
+  // --- série playoff ---
+  const S=Array.isArray(H.serie)?H.serie.filter(s=>s.Tym===h2hTym):[];
+  document.getElementById('hh-serie').innerHTML=sPO&&S.length?`<details class="vs-det hh-det"><summary>Série v playoff (${S.length})</summary><div class="hh-sr">`+
+    S.map(s=>{ const ok=s.Vyhral===true||s.Vyhral==='TRUE';
+      return `<div><span class="${ok?'ok':'ne'}">${ok?'✓':'✗'}</span> ${esc(s.Sezona)} · ${esc(s.Faze||'playoff')} · ${esc(s.Souper)} <b>${hhNum(s.W)}:${hhNum(s.L)}</b> ${s.Faze==='finále'?(ok?'titul 🏆':'prohrané finále'):(ok?'postup':'konec')}</div>`; }).join('')+`</div></details>`:'';
+  // --- jak to počítáme ---
+  const nZ=hhNum(I.zapasu), nL=hhNum(I.letos), nP=hhNum(I.playoff), nSer=hhNum(I.serii);
+  document.getElementById('hh-jak').innerHTML=
+    `<p><b>Zápasy:</b> archiv výsledků Extraligy ${od&&doo?od+'–'+doo:''} (základní část i playoff) a letošní odehrané zápasy — dohromady ${nZ.toLocaleString('cs-CZ')} vzájemných zápasů dnešních týmů ligy (letos ${nL}, v playoff ${nP}). Tým, který v některé sezóně v Extralize nehrál, má se soupeři méně zápasů.</p>`+
+    `<p><b>V</b> = výhra · <b>VP</b> = výhra v prodloužení nebo na nájezdy · <b>PP</b> = prohra v prodloužení nebo na nájezdy · <b>P</b> = prohra. <b>Výhry</b> = podíl vyhraných zápasů (i po prodloužení) — playoff body nemá, proto procenta výher, ne bodů.</p>`+
+    `<p><b>Série PO</b> = vyhrané–prohrané série v playoff (${nSer} ${hhSk(nSer,'série','série','sérií')} mezi dnešními týmy). Letošní playoff se do historie přidá po sezóně.</p>`;
 }
 
 /* (19. 10.) Vysvětlivka „Co je Elo?“ — stejný text na Zápasech (Predikce, Souboj), Playoff a v GM módu.
