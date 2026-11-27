@@ -1627,6 +1627,11 @@ function kadrTag(x){
 }
 const POZ_N={U:'útočník',O:'obránce',B:'brankář'};
 const dnx=d=>{const m=/^(\d{1,2})\.(\d{1,2})\./.exec(d||''); return m?`${+m[1]}. ${+m[2]}.`:'';};   // "17.10.2026" → "17. 10."
+// (25. 11.) u „Nehrají“ body, podíl na bodech týmu a čas na ledě (build.R → sekce 🚑 Výpadky v kádru); starší JSON je nemá
+function neBody(x){
+  const b=x.Body!=null&&isFinite(+x.Body)?+x.Body:null, p=x.Podil!=null&&isFinite(+x.Podil)?+x.Podil:null, m=x.Min!=null&&isFinite(+x.Min)?+x.Min:null;
+  return (b!=null?` · ${b} ${pl(b,'bod','body','bodů')}${p!=null&&p>=1?` (${f1(p)} % bodů týmu)`:''}`:'')+(m!=null&&m>0?` · ${mmss(m)} na ledě v zápase`:'');
+}
 function renderZmeny(t){
   const card=document.getElementById('gm-zmeny-card'), box=document.getElementById('gm-zmeny'), note=document.getElementById('gm-zmeny-note');
   const e=KZ&&KZ.tymy&&!Array.isArray(KZ.tymy)?KZ.tymy[t.Tym]:null;
@@ -1644,7 +1649,7 @@ function renderZmeny(t){
   box.innerHTML=
     rad('in','Přišli',pr.map(x=>`<li>${x.Jmeno}${odkazVym(x)}<small>${poz(x)} · ${x.Odkud?'předtím '+x.Odkud:(x.Zdroj==='data-soucet'?'přišel během sezóny — hokej.cz mu sčítá zápasy za oba týmy':'přišel během sezóny')} · ${zdroj(x)}</small></li>`))+
     rad('out','Odešli',od.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · ${x.Kam?'→ '+x.Kam:'mimo ligu'} · ${zdroj(x)}</small></li>`))+
-    rad('ne','Nehrají',ne.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · nenastoupil v posledních ${x.Nehral} zápasech týmu · ${x.GP} ${pl(x.GP,'zápas','zápasy','zápasů')} za sezónu</small></li>`));
+    rad('ne','Nehrají',ne.map(x=>`<li>${x.Jmeno}<small>${poz(x)} · nenastoupil v posledních ${x.Nehral} zápasech týmu · ${x.GP} ${pl(x.GP,'zápas','zápasy','zápasů')} za sezónu${neBody(x)}</small></li>`));
   box.querySelectorAll('a[data-vym]').forEach(a=>a.onclick=e=>{ e.preventDefault(); vymOtevri(a.getAttribute('href')); });
   const n=nv(KZ.nehraje_po,4);
   note.innerHTML=(ne.length?`„Nehrají“ = hráč nenastoupil v posledních ${n} nebo více zápasech týmu — zranění, farma, nebo odchod; důvod data neříkají. Web to sleduje od ${dnx(KZ.sledovano_od)}${KZ.sledovano_od?' '+KZ.sledovano_od.slice(-4):''}. `:'')+

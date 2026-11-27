@@ -195,6 +195,30 @@
     .pf-s.win{color:var(--win);} .pf-s.loss{color:var(--loss);} .pf-s.gold{color:var(--gold);} .pf-s.blue{color:var(--otwin);} .pf-s.teal{color:var(--teal-light);}
     .pf-t{font-size:14px;line-height:1.55;color:var(--text);}
     .pf-pozn{font-size:11px;color:var(--text-faint);margin-top:10px;line-height:1.45;}
+    /* (25. 11.) 🚑 Výpadky v kádru + 🎛️ Otisk trenéra */
+    .vyp-r{padding:10px 0;}
+    .vyp-r+.vyp-r{border-top:1px solid rgba(42,139,139,.15);}
+    .vyp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;}
+    .vyp-t{background:none;border:0;padding:0;font:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;}
+    .vyp-t:hover,.vyp-t:focus-visible{color:var(--teal-light);text-decoration:underline;}
+    .vyp-p{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-dim);white-space:nowrap;}
+    .vyp-bar{height:6px;border-radius:3px;background:rgba(42,139,139,.12);margin:6px 0 7px;overflow:hidden;}
+    .vyp-bar i{display:block;height:100%;border-radius:3px;background:var(--gold);}
+    .vyp-r:not(.klic) .vyp-bar i{background:var(--text-faint);}
+    .vyp-j{font-size:13px;line-height:1.5;color:var(--text);}
+    .vyp-j b{font-weight:600;}
+    .vyp-j .kl{color:var(--gold);font-weight:700;margin-right:3px;}
+    .vyp-j small{color:var(--text-dim);font-size:12px;}
+    .vyp-sn{font-size:12px;color:var(--text-dim);margin-top:4px;line-height:1.45;}
+    .vyp-bez{font-size:12px;color:var(--text-dim);margin-top:10px;padding-top:10px;border-top:1px solid rgba(42,139,139,.15);line-height:1.55;}
+    .vyp-bez b{color:var(--text);font-weight:600;}
+    .vyp-bez+.vyp-bez{border-top:0;padding-top:0;margin-top:6px;}
+    .otisk-graf{width:100%;height:440px;}
+    .otisk-vety{font-size:13px;color:var(--text-dim);line-height:1.55;margin-top:8px;}
+    .otisk-vety p+p{margin-top:4px;}
+    .otisk-det{margin-top:10px;font-size:12px;color:var(--text-dim);}
+    .otisk-det summary{cursor:pointer;color:var(--teal-light);font-weight:600;}
+    .otisk-jak p{margin-top:6px;line-height:1.5;} .otisk-jak b{color:var(--text);}
     /* (12. 10.) rychlá fakta — dlaždice s odkazem na záložku, odkud číslo je */
     .pf-fh{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-dim);margin:14px 0 8px;padding-top:12px;border-top:1px solid rgba(42,139,139,.15);}
     .pf-fakta{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -260,6 +284,14 @@
       <div class="pf-ctl"><label for="profil-team">Tým</label><select id="profil-team"></select></div>
       <div id="profil-body"><div class="loading"><div class="spinner"></div> Načítám...</div></div>
       <div class="pf-pozn" id="profil-pozn"></div>
+    </div>
+
+    <!-- (25. 11.) 🚑 VÝPADKY V KÁDRU — kadr_trener.json → vypadky (build.R); starší data ho nemají → karta skrytá -->
+    <div class="card" id="vyp-card" style="display:none">
+      <div class="card-title">🚑 Komu teď nejvíc chybí hráči</div>
+      <div class="card-sub" id="vyp-sub"></div>
+      <div id="vyp-list"></div>
+      <div class="pf-pozn" id="vyp-pozn"></div>
     </div>
   </section>
 
@@ -468,6 +500,21 @@
       <div class="card-title">Rozložení kanadských bodů — kolektiv vs hvězdy</div>
       <div class="card-sub">Podíl tří hráčů s nejvíc kanadskými body (góly + asistence) na bodech celého týmu. Vyšší podíl = větší závislost na hvězdách. GM mód (karta Na kom stojí góly) počítá jen z gólů, proto tam může vyjít jiné pořadí.</div>
       <div class="chart-wrap-tall" id="chart-scoring-dist"></div>
+    </div>
+
+    <!-- (25. 11.) 🎛️ OTISK TRENÉRA — kadr_trener.json → otisk (build.R); starší data ho nemají → karta skrytá -->
+    <div class="card" id="otisk-card" style="display:none">
+      <div class="card-title">🎛️ Otisk trenéra — jak rozděluje čas na ledě</div>
+      <div class="chips" id="otisk-chips">
+        <button class="chip on" type="button" data-m="f">Útočníci</button>
+        <button class="chip" type="button" data-m="d">Obránci</button>
+        <button class="chip" type="button" data-m="pp">Přesilovka</button>
+        <button class="chip" type="button" data-m="rot">Rotace</button>
+      </div>
+      <div class="card-sub" id="otisk-sub"></div>
+      <div id="chart-otisk" class="otisk-graf"></div>
+      <div class="otisk-vety" id="otisk-vety"></div>
+      <details class="otisk-det"><summary>Jak to počítáme</summary><div class="otisk-jak" id="otisk-jak"></div></details>
     </div>
 
     <div class="card">
@@ -825,6 +872,101 @@ function showSub(name, zapsatHash = true){
   window.scrollTo(0,0);
 }
 
+/* ════════════════ (25. 11.) 🚑 VÝPADKY V KÁDRU + 🎛️ OTISK TRENÉRA ════════════════
+   kadr_trener.json z build.R: kdo teď nehraje (za tým 5+ zápasů, posledních 4 zápasů týmu bez něj) a jak
+   trenér rozděluje čas na ledě. Starší data soubor nemají → obě karty zůstanou skryté. */
+let KT=null;
+async function ktLoad(){ if(KT===null) KT=await loadJSON('kadr_trener.json').catch(()=>false); return KT; }
+const ktUn=x=>Array.isArray(x)?x[0]:x;
+const ktN=x=>{ const n=+ktUn(x); return isFinite(n)?n:null; };
+const ktSk=(n,a,b,c)=>{ n=Math.abs(Math.round(n)); return n===1?a:(n>=2&&n<=4?b:c); };
+const ktEsc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ktMin=m=>{ m=ktN(m); if(m==null) return ''; const s=Math.round(m*60); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); };
+async function renderVypadky(){
+  const card=document.getElementById('vyp-card'), K=await ktLoad();
+  const V=K&&K.vypadky&&Array.isArray(K.vypadky.tymy)?K.vypadky.tymy:null;
+  if(!V||!V.length){ card.style.display='none'; return; }
+  card.style.display='';
+  const I=K.info||{}, po=ktN(I.nehraje_po)||4, mz=ktN(I.min_z)||5;
+  document.getElementById('vyp-sub').textContent=`Hráči do pole, kteří za tým odehráli aspoň ${mz} zápasů a v posledních ${po} zápasech týmu nenastoupili. Důvod data neříkají — zranění, farma, nebo rozhodnutí trenéra. Pruh = jaký podíl bodů týmu za sezónu mají chybějící hráči, ★ = klíčový hráč. Klepni na tým a uvidíš jeho profil.`;
+  // (25. 11.) celý řádek jen týmy, kterým chybí klíčový hráč nebo aspoň VYP_VELKY % bodů; ostatní (chybí hráči s pár body) jedním řádkem
+  const VYP_VELKY=3, vel=t=>t.Klic===true||(ktN(t.Podil)||0)>=VYP_VELKY;
+  const s=V.filter(t=>ktN(t.N)>0&&vel(t)), mal=V.filter(t=>ktN(t.N)>0&&!vel(t)), bez=V.filter(t=>!(ktN(t.N)>0)).map(t=>ktUn(t.Tym)).sort((a,b)=>a.localeCompare(b,'cs'));
+  const mx=Math.max(10,...s.map(t=>ktN(t.Podil)||0));
+  const hrac=c=>{ const o=ktUn(c.Pozice)==='O', b=ktN(c.Body)||0, gp=ktN(c.GP)||0, mi=ktN(c.Mimo)||0;
+    return `<div class="vyp-j">${c.Klic===true?'<span class="kl" title="klíčový hráč">★</span>':''}<b>${ktEsc(ktUn(c.Kratke)||ktUn(c.Jmeno))}</b> <small>${o?'obránce':'útočník'} · ${b} ${ktSk(b,'bod','body','bodů')} v ${gp} ${ktSk(gp,'zápase','zápasech','zápasech')}${ktN(c.Min)?` · ${ktMin(c.Min)} na ledě`:''} · chybí ${mi} ${ktSk(mi,'zápas','zápasy','zápasů')}</small></div>`; };
+  const sn=t=>{ const x=t.sn; if(!x||typeof x!=='object'||Array.isArray(x)) return '';
+    const ch=Array.isArray(t.chybi)?t.chybi:[]; if(!ch.some(c=>c.Klic===true&&ktUn(c.Jmeno)===ktUn(x.Jmeno))) return '';   // jen u klíčového hráče
+    const e=(v)=>ktN(v)!=null?` (čekalo se ${c1(ktN(v))})`:'';
+    return `<div class="vyp-sn">Když hrál ${ktEsc(ktUn(x.Kratke))}: ${c1(ktN(x.Bs))} bodu na zápas${e(x.Es)} v ${ktN(x.Zs)} ${ktSk(ktN(x.Zs),'zápase','zápasech','zápasech')} · bez něj ${c1(ktN(x.Bb))}${e(x.Eb)} v ${ktN(x.Zb)}</div>`; };
+  document.getElementById('vyp-list').innerHTML=(s.length?s.map(t=>{
+      const tm=ktUn(t.Tym), p=ktN(t.Podil)||0, ch=Array.isArray(t.chybi)?t.chybi:[];
+      return `<div class="vyp-r${t.Klic===true?' klic':''}"><div class="vyp-h"><button class="vyp-t" type="button" data-t="${ktEsc(tm)}">${ktEsc(tm)}</button><span class="vyp-p">${c1(p)} % bodů týmu</span></div>
+        <div class="vyp-bar"><i style="width:${Math.max(p>0?2:0,Math.min(100,p/mx*100))}%"></i></div>${ch.map(hrac).join('')}${sn(t)}</div>`; }).join('')
+    :'<div class="empty">Teď žádnému týmu nechybí nikdo z hráčů, kteří sbírají body nebo hrají hodně minut.</div>')+
+    (mal.length?`<div class="vyp-bez">Menší výpadky (dohromady pod ${VYP_VELKY} % bodů týmu): ${mal.map(t=>`<b>${ktEsc(ktUn(t.Tym))}</b> (${(Array.isArray(t.chybi)?t.chybi:[]).map(c=>ktEsc(ktUn(c.Kratke)||ktUn(c.Jmeno))).join(', ')})`).join(', ')}.</div>`:'')+
+    (bez.length?`<div class="vyp-bez">Bez výpadku: ${bez.map(ktEsc).join(', ')}.</div>`:'');
+  document.getElementById('vyp-pozn').textContent=`★ Klíčový hráč = mezi 6 nejlepšími bodovači týmu nebo mezi 4 nejvytíženějšími útočníky / 3 obránci podle času na ledě. Hráči, kteří přestoupili do jiného týmu nebo odešli z ligy, se nepočítají. „Když hrál × bez něj“ = body týmu na zápas od prvního zápasu hráče za tým; čekalo se = podle Elo před zápasem (síla soupeřů a domácí led). Malé vzorky — ber to jako orientaci, ne jako důkaz.`;
+  document.querySelectorAll('#vyp-list .vyp-t').forEach(b=>b.onclick=()=>{
+    const t=b.dataset.t, sel=document.getElementById('profil-team');
+    if(PROFIL&&PROFIL.tymy&&PROFIL.tymy[t]){ profilTym=t; sel.value=t; vypisProfil(); }
+    const c=sel.closest('.card'); if(c) c.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+let otM='f', otInit=false;
+const OT_M={
+  f:{v:'F6', avg:'F6', t:'Podíl 6 nejvytíženějších útočníků (%)', fmt:x=>c1(x)+' %', za:r=>`4. lajna ${c1(ktN(r.F4))} min`,
+     sub:'Kolik času útočníků připadne na šest nejvytíženějších (zhruba dvě lajny) — průměr přes zápasy. Vpravo = trenér víc spoléhá na první lajny, vlevo = rozděluje rovnoměrněji. Za tečkou čas čtvrté lajny (10.–12. útočník podle času) na zápas.'},
+  d:{v:'D4', avg:'D4', t:'Podíl 4 nejvytíženějších obránců (%)', fmt:x=>c1(x)+' %', za:r=>`3. pár ${c1(ktN(r.D3))} min`,
+     sub:'Kolik času obránců odehrají čtyři nejvytíženější — průměr přes zápasy. Za tečkou čas třetího páru (5. a 6. obránce podle času) na zápas.'},
+  pp:{v:'PP5', avg:'PP5', t:'Podíl 5 hráčů s nejvíc minutami v přesilovce (%)', fmt:x=>c1(x)+' %', za:r=>`oslabení ${c1(ktN(r.SH4))} %`,
+     sub:'Kolik přesilovkového času hráčů týmu odehraje pětice s nejvíc minutami v přesilovce (za sezónu). Kolem 50 % = dvě formace se střídají skoro rovným dílem, výš = první formace hraje většinu. Za tečkou totéž v oslabení (čtveřice s nejvíc minutami).'},
+  rot:{v:'Hracu', avg:'Hracu', t:'Hráčů do pole v sezóně', fmt:x=>String(Math.round(x)), za:r=>`všechny zápasy ${ktN(r.Vse)}`,
+     sub:'Kolik různých hráčů do pole tým v sezóně nasadil. Za tečkou počet hráčů, kteří odehráli všechny zápasy týmu. Hodně hráčů může znamenat zranění, střídání s farmou i přestupy.'}
+};
+async function renderOtisk(){
+  const card=document.getElementById('otisk-card'), K=await ktLoad();
+  const O=K&&K.otisk&&Array.isArray(K.otisk.tymy)?K.otisk.tymy:null;
+  if(!O||O.length<2){ card.style.display='none'; return; }
+  card.style.display='';
+  if(!otInit){ otInit=true;
+    document.querySelectorAll('#otisk-chips .chip').forEach(b=>b.addEventListener('click',()=>{
+      otM=b.dataset.m; document.querySelectorAll('#otisk-chips .chip').forEach(x=>x.classList.toggle('on',x===b)); renderOtisk(); }));
+    document.getElementById('otisk-jak').innerHTML=
+      '<p><b>Odkud:</b> čas na ledě každého hráče v každém zápase (statistika hráčů v zápase na hokej.cz), u přesilovky a oslabení čas v nich za celou sezónu.</p>'+
+      '<p><b>„Lajny“</b> jsou jen pořadí podle času v zápase: 6 nejvytíženějších útočníků ≈ první dvě lajny, 10.–12. útočník ≈ čtvrtá lajna, 5.–6. obránce ≈ třetí pár. Skutečné formace ani střídání neznáme. Když tým nastoupí s 11 útočníky, čtvrtá lajna = 10. a 11. útočník.</p>'+
+      '<p><b>Co to není:</b> měřítko kvality. Je to styl — jak moc trenér spoléhá na nejlepší hráče. Ovlivní ho i zranění (chybí-li hvězda, čas se rozloží) a vyloučení (kdo hraje oslabení, má víc minut).</p>';
+  }
+  const M=OT_M[otM]||OT_M.f, L=(K.otisk.liga)||{};
+  document.getElementById('otisk-sub').textContent=M.sub;
+  const d=O.filter(r=>ktN(r[M.v])!=null).sort((a,b)=>ktN(a[M.v])-ktN(b[M.v]));   // nejvyšší nahoře
+  if(d.length<2){ emptyBox('chart-otisk','Zatím bez dat.'); document.getElementById('otisk-vety').innerHTML=''; return; }
+  const x=d.map(r=>ktN(r[M.v])), lo=Math.min(...x), hi=Math.max(...x), sp=Math.max(hi-lo, otM==='rot'?4:2);
+  const mob=window.innerWidth<520, avg=ktN(L[M.avg]);
+  const hov=r=>`<b>${ktEsc(ktUn(r.Tym))}</b><br>6 nejvytíženějších útočníků: ${c1(ktN(r.F6))} % · 4. lajna ${c1(ktN(r.F4))} min`+
+    `<br>4 nejvytíženější obránci: ${c1(ktN(r.D4))} % · 3. pár ${c1(ktN(r.D3))} min`+
+    `<br>Přesilovka (5 hráčů): ${c1(ktN(r.PP5))} % · oslabení (4): ${c1(ktN(r.SH4))} %`+
+    `<br>Hráčů do pole: ${ktN(r.Hracu)} · všechny zápasy: ${ktN(r.Vse)}`+
+    (ktUn(r.NejF)?`<br>Nejvíc hraje: ${ktEsc(ktUn(r.NejF))} ${ktMin(r.NejF_min)}`+(ktUn(r.NejD)?`, ${ktEsc(ktUn(r.NejD))} ${ktMin(r.NejD_min)}`:''):'')+
+    `<br><span style="color:#8FA3B0">${ktN(r.Z)} zápasů</span>`;
+  const el=document.getElementById('chart-otisk'); el.style.height=(d.length*(mob?27:29)+70)+'px';
+  Plotly.newPlot('chart-otisk',[{type:'scatter',mode:'markers+text',y:d.map(r=>ktUn(r.Tym)),x,
+      marker:{size:11,color:'#3AADAD',line:{color:'#243545',width:2}},
+      text:d.map(r=>`${M.fmt(ktN(r[M.v]))} · ${M.za(r)}`),textposition:'middle right',cliponaxis:false,
+      textfont:{family:'JetBrains Mono',size:mob?9:10,color:'#8FA3B0'},hoverinfo:'text',hovertext:d.map(hov)}],
+    Object.assign({},BASE_LAYOUT,{
+      margin:{l:mob?82:110,r:10,t:26,b:40},showlegend:false,
+      xaxis:{...AX_LOCK,range:[lo-sp*0.12, hi+sp*(mob?1.05:0.7)],color:'#4A6070',gridcolor:'rgba(42,139,139,0.1)',zeroline:false,
+             tickfont:{family:'JetBrains Mono',size:10},title:{text:M.t,font:{size:11,color:'#4A6070'}}},
+      yaxis:{...AX_LOCK,categoryorder:'array',categoryarray:d.map(r=>ktUn(r.Tym)),tickfont:{family:'DM Sans',size:mob?10:11,color:'#8FA3B0'},automargin:true,
+             showgrid:true,gridcolor:'rgba(42,139,139,0.08)',zeroline:false},
+      shapes:avg!=null?[{type:'line',x0:avg,x1:avg,y0:0,y1:1,yref:'paper',line:{color:'rgba(212,168,67,.55)',width:1.5,dash:'dash'}}]:[],
+      annotations:avg!=null?[{x:avg,y:1,yref:'paper',yanchor:'bottom',text:'průměr ligy '+M.fmt(avg),showarrow:false,font:{size:10,color:'#D4A843'}}]:[]
+    }),LOCK_CONFIG);
+  const vt=(K.otisk.vety||{})[otM]; const vv=Array.isArray(vt)?vt:(vt?[vt]:[]);
+  document.getElementById('otisk-vety').innerHTML=vv.map(v=>`<p>${ktEsc(v)}</p>`).join('');
+}
+
 /* ════════════════ PROFIL TÝMU (7. 10.) ════════════════
    Věty skládá build.R (profil_tymu.json) — tady se jen vypíšou. */
 let PROFIL=null, profilTym=null;
@@ -841,6 +983,7 @@ async function renderProfil(){
     pozn.textContent=(PROFIL.info&&PROFIL.info.pozn)||'';
   }
   if(PROFIL) vypisProfil();
+  try{ renderVypadky(); }catch(e){ console.error('Výpadky v kádru se nevykreslily:', e); }   // (25. 11.)
 }
 function vypisProfil(){
   const body=document.getElementById('profil-body'), V=(PROFIL.tymy||{})[profilTym];
@@ -1473,6 +1616,7 @@ const DNA_DIMS = [
 ];
 function renderDNA(){
   renderGrit();
+  try{ renderOtisk(); }catch(e){ console.error('Otisk trenéra se nevykreslil:', e); }   // (25. 11.) nezávisle na team_dna.json
   if(!DNA.length){
     document.getElementById('dna-ready-body').innerHTML='<tr><td colspan="9"><div class="empty">Tahle karta se odemkne, až bude odehráno víc zápasů.</div></td></tr>';
     ['chart-dna-bars','chart-faceoff-dna','chart-scoring-dist','chart-home-away'].forEach(id=>emptyBox(id,'Zatím bez dat.'));
